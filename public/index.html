@@ -963,7 +963,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
         </div>
         <div style="background:rgba(0,0,0,.3);border:1px solid rgba(0,255,143,.2);border-radius:14px;padding:18px;margin-top:12px">
           <h4 style="color:var(--green);font-weight:700;font-size:14px;margin-bottom:12px">Sampark Karo</h4>
-          <div style="font-size:14px;margin-bottom:8px">&#128231; <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9fdccc8c487fadcd9d9c6dbdde9c1dccbc6c6d3cc87c0c7">[email&#160;protected]</a></strong></div>
+          <div style="font-size:14px;margin-bottom:8px">&#128231; <strong>Team.Support@hubooze.in</strong></div>
           <button class="btn-grad" style="width:100%;padding:13px;font-size:14px;border-radius:8px;margin-top:8px" onclick="showPage('orders')">Return Shuru Karo &#8594;</button>
         </div>
       </div>
@@ -1008,7 +1008,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
               Shop Now &#8594;
             </button>
             <div class="portal-demo" onclick="event.stopPropagation();quickLogin('customer')">
-              Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5525273c2c34153130383a7b363a38">[email&#160;protected]</a>
+              Demo: priya@demo.com
             </div>
           </div>
 
@@ -1029,7 +1029,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
               Start Selling &#8594;
             </button>
             <div class="portal-demo" onclick="event.stopPropagation();quickLogin('seller')">
-              Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6d7dbdfc2f6d2d3dbd998d5d9db">[email&#160;protected]</a>
+              Demo: amit@demo.com
             </div>
           </div>
 
@@ -1050,7 +1050,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
               Admin Panel &#8594;
             </button>
             <div class="portal-demo" onclick="event.stopPropagation();quickLogin('admin')">
-              Demo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93f2f7fefafdd3fbe6f1fcfce9f6bdfafd">[email&#160;protected]</a>
+              Demo: admin@hubooze.in
             </div>
           </div>
 
@@ -1204,7 +1204,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
             <div id="accAvatarEl" style="background:var(--grad);padding:22px;text-align:center">
               <div style="width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.3);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:1.8rem">&#128100;</div>
               <div style="font-weight:800;font-size:15px;color:#000" id="accNameEl">User</div>
-              <div style="font-size:12px;color:rgba(0,0,0,.7)" id="accEmailEl"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfaaa2aea6a38faab7aea2bfa3aae1aca0a2">[email&#160;protected]</a></div>
+              <div style="font-size:12px;color:rgba(0,0,0,.7)" id="accEmailEl">email@example.com</div>
               <div style="font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700;letter-spacing:.5px;margin-top:6px;display:inline-block" id="accRolePill"></div>
             </div>
             <div id="accMenuEl"></div>
@@ -1336,6 +1336,12 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════════
+//  PRODUCT DATABASE
+// ════════════════════════════════════════════════════════════════
+var PRODUCTS = {
+  p1:  {id:'p1',  name:'Floral Printed Kurti',      brand:'EthniCraft',  cat:'fashion',   price:299,  orig:599,  icon:'&#128521;', rating:4.8, reviews:1892, eco:false, badge:'NEW',       sizes:['XS','S','M','L','XL'], inStock:true},
+  p2:  {id:'p2',  name:'Wireless Earphones Pro',    brand:'TechHub',     cat:'electronics',price:799, orig:1499, icon:'&#127911;', rating:4.5, reviews:2341, eco:false, badge:'BESTSELLER', si
 // ════════════════════════════════════════════════════════════════
 //  PRODUCT DATABASE
 // ════════════════════════════════════════════════════════════════
@@ -2520,57 +2526,63 @@ function quickLogin(type) {
     admin:    { email: 'admin@hubooze.in', password: 'admin123' }
   };
   var c = creds[type]; if (!c) return;
-  // Fill the right fields and trigger login
-  if (type === 'customer') {
-    var ei = document.getElementById('loginEmail');
-    var pi = document.getElementById('loginPass');
-    if (ei) ei.value = c.email;
-    if (pi) pi.value = c.password;
-    openPortal('customer');
-    setTimeout(doLogin, 100);
-  } else if (type === 'seller') {
-    var sei = document.getElementById('sLoginEmail');
-    var spi = document.getElementById('sLoginPass');
-    if (sei) sei.value = c.email;
-    if (spi) spi.value = c.password;
-    openPortal('seller');
-    setTimeout(doSellerLogin, 100);
-  } else if (type === 'admin') {
-    var aei = document.getElementById('aLoginEmail');
-    var api_inp = document.getElementById('aLoginPass');
-    if (aei) aei.value = c.email;
-    if (api_inp) api_inp.value = c.password;
-    openPortal('admin');
-    setTimeout(doAdminLogin, 100);
-  }
+
+  // Show loading toast
+  showToast('Logging in as demo ' + type + '...', 'info');
+
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: c.email, password: c.password })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res) {
+    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
+    if (res.data.token) {
+      localStorage.setItem('hb_token', res.data.token);
+      if (window.api) window.api.token = res.data.token;
+    }
+    loginSuccess(res.data.user);
+    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+  })
+  .catch(function() {
+    showToast('Connection error. Is the server running?', 'error');
+  });
 }
 
 // Customer login uses loginEmail + loginPass (same as before — app.js overrides doLogin)
 // Seller login
 function doSellerLogin() {
-  var email = (document.getElementById('sLoginEmail') || {}).value || '';
-  var pass  = (document.getElementById('sLoginPass')  || {}).value || '';
+  var email = (document.getElementById('sLoginEmail') || {value:''}).value.trim().toLowerCase();
+  var pass  = (document.getElementById('sLoginPass')  || {value:''}).value;
   if (!email || !pass) { showToast('Please enter email and password', 'error'); return; }
 
-  // Borrow loginEmail/loginPass for the shared doLogin function
-  var ei = document.getElementById('loginEmail');
-  var pi = document.getElementById('loginPass');
-  var prevE = ei ? ei.value : '';
-  var prevP = pi ? pi.value : '';
-  if (ei) ei.value = email;
-  if (pi) pi.value = pass;
+  var btn = document.querySelector('#sLoginForm .portal-submit');
+  if (btn) { btn.textContent = 'Logging in...'; btn.disabled = true; }
 
-  doLogin().then ? doLogin().then(function() {
-    // After login, check role
-    if (currentUser && currentUser.role !== 'seller' && currentUser.role !== 'admin') {
-      showToast('This account is not a seller account. Use Customer portal.', 'error');
-      doLogout(); return;
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, password: pass })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res) {
+    if (btn) { btn.innerHTML = 'Login to Seller Dashboard &#8594;'; btn.disabled = false; }
+    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
+    if (res.data.user.role !== 'seller' && res.data.user.role !== 'admin') {
+      showToast('This account is not a seller. Use the Customer portal.', 'error'); return;
     }
-    if (currentUser) { showPage('seller'); }
-  }).catch(function() {}) : (function() {
-    if (ei) ei.value = prevE;
-    if (pi) pi.value = prevP;
-  })();
+    if (res.data.token) {
+      localStorage.setItem('hb_token', res.data.token);
+      if (window.api) window.api.token = res.data.token;
+    }
+    loginSuccess(res.data.user);
+    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+  })
+  .catch(function() {
+    if (btn) { btn.innerHTML = 'Login to Seller Dashboard &#8594;'; btn.disabled = false; }
+    showToast('Connection error. Please try again.', 'error');
+  });
 }
 
 // Seller register
@@ -2600,25 +2612,36 @@ function doSellerRegister() {
 
 // Admin login
 function doAdminLogin() {
-  var email = (document.getElementById('aLoginEmail') || {}).value || '';
-  var pass  = (document.getElementById('aLoginPass')  || {}).value || '';
+  var email = (document.getElementById('aLoginEmail') || {value:''}).value.trim().toLowerCase();
+  var pass  = (document.getElementById('aLoginPass')  || {value:''}).value;
   if (!email || !pass) { showToast('Please enter admin credentials', 'error'); return; }
 
-  var ei = document.getElementById('loginEmail');
-  var pi = document.getElementById('loginPass');
-  if (ei) ei.value = email;
-  if (pi) pi.value = pass;
+  var btn = document.querySelector('#adminPortal .portal-submit');
+  if (btn) { btn.textContent = 'Accessing...'; btn.disabled = true; }
 
-  var p = doLogin();
-  if (p && p.then) {
-    p.then(function() {
-      if (currentUser && currentUser.role !== 'admin') {
-        showToast('Access denied. This account does not have admin privileges.', 'error');
-        doLogout(); return;
-      }
-      if (currentUser) { showPage('admin'); }
-    }).catch(function() {});
-  }
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, password: pass })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res) {
+    if (btn) { btn.innerHTML = '&#9878; Access Admin Panel &#8594;'; btn.disabled = false; }
+    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
+    if (res.data.user.role !== 'admin') {
+      showToast('Access denied. Admin credentials required.', 'error'); return;
+    }
+    if (res.data.token) {
+      localStorage.setItem('hb_token', res.data.token);
+      if (window.api) window.api.token = res.data.token;
+    }
+    loginSuccess(res.data.user);
+    showToast('Welcome, Admin ' + res.data.user.name.split(' ')[0] + '! &#9878;', 'success');
+  })
+  .catch(function() {
+    if (btn) { btn.innerHTML = '&#9878; Access Admin Panel &#8594;'; btn.disabled = false; }
+    showToast('Connection error. Please try again.', 'error');
+  });
 }
 
 // ── renderAccountPage — shows portal choice or logged-in dashboard ──
@@ -6034,10 +6057,3 @@ initNotifications();
 
 
 // ── Service Wor
-</script>
-<script src="/js/api.js"></script>
-<script src="/js/app.js"></script>
-<script src="/js/payments.js"></script>
-<script src="/js/pwa.js"></script>
-</body>
-</html>
