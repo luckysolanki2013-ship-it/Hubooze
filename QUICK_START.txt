@@ -1,0 +1,112 @@
+==========================================
+  HUBOOZE — QUICK START GUIDE
+==========================================
+
+BEFORE YOU START — Install these (one time only):
+  1. Node.js  → nodejs.org  (download LTS version)
+  2. Git      → git-scm.com (download and install)
+
+------------------------------------------
+  STEP 1 — RUN THE WEBSITE LOCALLY
+------------------------------------------
+
+Windows users:
+  → Double-click setup.bat
+  → Website opens at http://localhost:3000
+
+Mac/Linux users:
+  → Open Terminal in this folder
+  → Type: bash setup.sh
+  → Website opens at http://localhost:3000
+
+TEST LOGINS:
+  Customer : priya@demo.com     / demo123
+  Seller   : amit@demo.com      / demo123
+  Admin    : admin@hubooze.in   / admin123
+
+
+------------------------------------------
+  STEP 2 — CONNECT REAL DATABASE (5 mins)
+------------------------------------------
+
+1. Go to: mongodb.com/cloud/atlas
+2. Sign up free → Create cluster (M0 free tier)
+3. Get connection string (looks like):
+   mongodb+srv://user:pass@cluster.mongodb.net/hubooze
+4. Open the .env file in Notepad
+5. Replace this line:
+   MONGO_URI=mongodb://localhost:27017/hubooze
+   With your connection string
+6. Restart setup.bat — you will see "MongoDB Connected"
+
+
+------------------------------------------
+  STEP 3 — PUT IT ONLINE (10 mins)
+------------------------------------------
+
+3a. Create GitHub account at github.com
+    → Create a new repo called "hubooze"
+
+3b. Windows: double-click deploy.bat
+    Mac:     bash deploy.sh
+    → Enter your GitHub username when asked
+
+3c. Go to render.com → Sign up with GitHub
+    → New → Web Service → Connect hubooze repo
+    → Build: npm install
+    → Start: node backend/server.js
+    → Add these Environment Variables:
+        NODE_ENV     = production
+        MONGO_URI    = your mongodb atlas string
+        JWT_SECRET   = any long random text (min 32 chars)
+    → Click Create Web Service
+    → Wait 3 minutes
+    → Your site is LIVE!
+
+
+------------------------------------------
+  STEP 4 — CONNECT REAL SERVICES
+------------------------------------------
+
+Email (Gmail):
+  → myaccount.google.com → Security → App Passwords
+  → Generate for Mail → copy the password
+  → Add to Render environment variables:
+      EMAIL_USER = your@gmail.com
+      EMAIL_PASS = xxxx xxxx xxxx xxxx
+
+Payments (Razorpay):
+  → razorpay.com → Sign up → complete KYC
+  → Get API keys → add to Render:
+      RAZORPAY_KEY_ID     = rzp_live_xxx
+      RAZORPAY_KEY_SECRET = xxx
+
+WhatsApp (Twilio):
+  → twilio.com → Sign up → WhatsApp sandbox
+  → Add to Render:
+      TWILIO_ACCOUNT_SID    = ACxxxxxxxx
+      TWILIO_AUTH_TOKEN     = xxxxxxxx
+      TWILIO_WHATSAPP_FROM  = whatsapp:+14155238886
+
+
+------------------------------------------
+  IF ANYTHING GOES WRONG
+------------------------------------------
+
+Error: Cannot find module
+  → Run npm install again
+
+Error: Port already in use
+  → Change PORT=3001 in .env file
+
+White blank page
+  → Press F12 in browser → Console tab
+  → Share the red error with Claude
+
+Site works locally but not on Render
+  → Check Render Logs tab for the error
+  → Usually a missing environment variable
+
+Need help? Share the exact error message with Claude.
+
+==========================================
