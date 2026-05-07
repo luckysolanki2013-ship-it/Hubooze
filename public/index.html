@@ -2331,58 +2331,88 @@ function doLogin() {
   var pass  = (document.getElementById('loginPass')||{value:''}).value;
   if (!email || !pass) { showToast('Please fill email and password', 'error'); return; }
 
-  // Check demo users first, then registered
-  var user = DEMO_USERS[email] || registeredUsers[email];
-  if (!user || user.password !== pass) {
-    showToast('Incorrect email or password', 'error');
-    var ei = document.getElementById('loginEmail');
-    var pi = document.getElementById('loginPass');
-    if (ei) ei.classList.add('error');
-    if (pi) pi.classList.add('error');
-    setTimeout(function(){if(ei)ei.classList.remove('error');if(pi)pi.classList.remove('error');},2000);
-    return;
-  }
-  loginSuccess(user);
+  var btn = document.querySelector('#cLoginForm .portal-submit') || document.querySelector('#loginFormWrap .btn-grad');
+  if (btn) { btn.textContent = 'Logging in...'; btn.disabled = true; }
+
+  return fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, password: pass })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res) {
+    if (btn) { btn.innerHTML = 'Login &#8594;'; btn.disabled = false; }
+    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
+    if (res.data.token) {
+      localStorage.setItem('hb_token', res.data.token);
+      if (window.api) window.api.token = res.data.token;
+    }
+    loginSuccess(res.data.user);
+    showToast('Welcome back, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+  })
+  .catch(function() {
+    if (btn) { btn.innerHTML = 'Login &#8594;'; btn.disabled = false; }
+    showToast('Connection error. Please try again.', 'error');
+  });
 }
 
 function doRegister() {
-  var name  = (document.getElementById('regName')||{value:''}).value.trim();
-  var email = (document.getElementById('regEmail')||{value:''}).value.trim().toLowerCase();
-  var pass  = (document.getElementById('regPass')||{value:''}).value;
-  var phone = (document.getElementById('regPhone')||{value:''}).value.trim();
-  var city  = (document.getElementById('regCity')||{value:''}).value.trim();
-  var isSeller = (document.getElementById('regIsSeller')||{checked:false}).checked;
+  var name   = (document.getElementById('regName')  ||{value:''}).value.trim();
+  var email  = (document.getElementById('regEmail') ||{value:''}).value.trim().toLowerCase();
+  var pass   = (document.getElementById('regPass')  ||{value:''}).value;
+  var phone  = (document.getElementById('regPhone') ||{value:''}).value.trim();
+  var city   = (document.getElementById('regCity')  ||{value:''}).value.trim();
+  var isSelEl= document.getElementById('regIsSeller');
+  var isSel  = isSelEl ? (isSelEl.checked || isSelEl.value === 'true') : false;
 
   if (!name || !email || !pass) { showToast('Name, email and password are required', 'error'); return; }
   if (pass.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
-  if (DEMO_USERS[email] || registeredUsers[email]) { showToast('Email already registered', 'error'); return; }
 
-  var newUser = {
-    id: 'u_' + Date.now(),
-    name: name, email: email, phone: phone, city: city,
-    password: pass,
-    role: isSeller ? 'seller' : 'customer',
-    createdAt: new Date().toLocaleDateString('en-IN')
-  };
-  registeredUsers[email] = newUser;
-  saveUsers();
-  loginSuccess(newUser);
+  var btn = document.querySelector('#sRegForm .portal-submit') || document.querySelector('#registerFormWrap .btn-grad');
+  if (btn) { btn.textContent = 'Creating...'; btn.disabled = true; }
+
+  fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name:name, email:email, password:pass, phone:phone, city:city, role: isSel?'seller':'customer' })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res) {
+    if (btn) { btn.innerHTML = 'Create Account &#8594;'; btn.disabled = false; }
+    if (!res.ok) { showToast(res.data.error || 'Registration failed', 'error'); return; }
+    if (res.data.token) {
+      localStorage.setItem('hb_token', res.data.token);
+      if (window.api) window.api.token = res.data.token;
+    }
+    loginSuccess(res.data.user);
+    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+  })
+  .catch(function() {
+    if (btn) { btn.innerHTML = 'Create Account &#8594;'; btn.disabled = false; }
+    showToast('Connection error. Please try again.', 'error');
+  });
 }
 
 function loginSuccess(user) {
   currentUser = user;
   localStorage.setItem('hb_session', JSON.stringify(user));
-  showToast('Welcome, ' + user.name.split(' ')[0] + '! &#127881;', 'success');
   updateHeaderAuth();
+  renderNav();
   renderAccountPage();
+  // Role-based redirect after login
+  if (user.role === 'admin')  { setTimeout(function(){ showPage('admin');  }, 300); }
+  if (user.role === 'seller') { setTimeout(function(){ showPage('seller'); }, 300); }
 }
 
 function doLogout() {
   currentUser = null;
   localStorage.removeItem('hb_session');
+  localStorage.removeItem('hb_token');
+  if (window.api) window.api.token = null;
   updateHeaderAuth();
+  renderNav();
   showToast('Logged out successfully', 'info');
-  renderAccountPage();
+  showPage('account');
 }
 
 function updateHeaderAuth() {
@@ -2395,6 +2425,8 @@ function updateHeaderAuth() {
     if (signEl) signEl.textContent = T.signIn || 'Login';
     if (accEl)  accEl.textContent  = T.myAcc || 'Account';
   }
+  // Always re-render nav so role-specific links (Admin) show/hide correctly
+  if (typeof renderNav === 'function') renderNav();
 }
 
 function fillDemo(type) {
