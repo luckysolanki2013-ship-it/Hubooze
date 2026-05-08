@@ -11,28 +11,43 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hubooze">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Hind:wght@400;500;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080808;--bg2:#101010;--bg3:#161616;--bg4:#1e1e1e;--border:#2a2a2a;--border2:#333;--text:#f0f0f0;--text2:#aaa;--text3:#666;--green:#00ff8f;--blue:#00a1ff;--grad:linear-gradient(90deg,#00ff8f,#00a1ff);--red:#ff4d4d;--yellow:#ffc107;--orange:#ff6b35;}
-*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
-::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-body{background:var(--bg);color:var(--text);overflow-x:hidden;font-family:"DM Sans",sans-serif;font-size:15px;line-height:1.6;}
-body.village{font-family:"Hind",sans-serif;}
-.df{font-family:"Syne",sans-serif;font-weight:800;}body.village .df{font-family:"Baloo 2",cursive;font-weight:800;}
-.grad-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.btn-grad{background:var(--grad);color:#000;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity .2s,transform .1s;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-.btn-grad:hover{opacity:.88;transform:translateY(-1px);}
-.btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text);border-radius:8px;cursor:pointer;transition:border-color .2s,color .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
-.btn-ghost:hover{border-color:var(--green);color:var(--green);}
-.btn-danger{background:rgba(255,77,77,.1);border:1.5px solid rgba(255,77,77,.3);color:var(--red);border-radius:8px;cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
-.btn-danger:hover{background:rgba(255,77,77,.2);}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#222;
+  --border:#2c2c2c;--border2:#383838;
+  --text:#f5f5f5;--text2:#999;--text3:#555;
+  --green:#00c853;--blue:#0071e3;
+  --grad:linear-gradient(135deg,#00c853,#0071e3);
+  --red:#ff3b30;--yellow:#ffd60a;--orange:#ff6b00;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 2px 12px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+body{background:var(--bg);color:var(--text);overflow-x:hidden;font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.6;letter-spacing:-.01em;}
+body.village{font-family:'Inter',sans-serif;}
+.df{font-family:'Playfair Display',Georgia,serif;font-weight:800;letter-spacing:-.02em;}
+body.village .df{font-family:'Playfair Display',serif;font-weight:800;}
+.grad-text{background:linear-gradient(135deg,#00c853 0%,#0071e3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.btn-grad{background:var(--grad);color:#fff;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;letter-spacing:-.01em;}
+.btn-grad:hover{opacity:.9;transform:translateY(-1px);box-shadow:var(--shadow-lg);}
+.btn-grad:active{transform:scale(.98);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:var(--radius);cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;font-weight:500;}
+.btn-ghost:hover{border-color:var(--text2);color:var(--text);}
+.btn-danger{background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.25);color:var(--red);border-radius:var(--radius);cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:6px;font-weight:500;}
+.btn-danger:hover{background:rgba(255,59,48,.15);}
 .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
 .badge-green{background:rgba(0,255,143,.15);color:var(--green);border:1px solid rgba(0,255,143,.25);}
 .badge-blue{background:rgba(0,161,255,.15);color:var(--blue);border:1px solid rgba(0,161,255,.25);}
 .wrap{max-width:1400px;margin:0 auto;padding:0 20px;}
 .section{padding:44px 0;}
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
-.sec-title{font-size:clamp(1.4rem,3vw,2rem);font-weight:800;}
+.sec-title{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;letter-spacing:-.02em;}
 .see-all{color:var(--blue);font-size:13px;cursor:pointer;font-weight:600;}
 .see-all:hover{color:var(--green);}
 .pulse{animation:pls 2s ease-in-out infinite;}@keyframes pls{0%,100%{opacity:1}50%{opacity:.6}}
@@ -48,7 +63,7 @@ body.village{font-family:"Hind",sans-serif;}
 .tone-sep{height:1px;background:var(--border);margin:3px 0;}
 
 /* HEADER */
-header{position:sticky;top:0;z-index:1000;background:rgba(8,8,8,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+header{position:sticky;top:0;z-index:1000;background:rgba(10,10,10,.98);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.06);}
 .topbar{background:#000;padding:7px 20px;text-align:center;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border);}
 .topbar .hl{color:var(--green);font-weight:600;}
 .hdr-main{max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px;}
@@ -73,8 +88,8 @@ header{position:sticky;top:0;z-index:1000;background:rgba(8,8,8,.97);backdrop-fi
 .nav-bar{background:var(--bg2);border-bottom:1px solid var(--border);}
 .nav-inner{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none;}
 .nav-inner::-webkit-scrollbar{display:none;}
-.nav-link{padding:10px 14px;font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;cursor:pointer;font-family:inherit;}
-.nav-link:hover,.nav-link.nactive{color:var(--green);border-bottom-color:var(--green);}
+.nav-link{padding:10px 16px;font-size:13px;font-weight:500;color:var(--text3);white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;cursor:pointer;font-family:inherit;letter-spacing:-.01em;}
+.nav-link:hover,.nav-link.nactive{color:var(--text);border-bottom-color:var(--green);}
 .nav-link.special{color:var(--green);font-weight:700;}.nav-link.hot{color:var(--orange);font-weight:700;}
 
 /* PAGES */
@@ -89,7 +104,7 @@ header{position:sticky;top:0;z-index:1000;background:rgba(8,8,8,.97);backdrop-fi
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 50%,rgba(0,255,143,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(0,161,255,.06) 0%,transparent 60%),var(--bg);}
 .hero-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px);background-size:32px 32px;}
 .hero-inner{max-width:1400px;margin:0 auto;padding:56px 20px;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;position:relative;z-index:1;width:100%;}
-.hero-h1{font-size:clamp(2rem,4.5vw,3.2rem);font-weight:800;line-height:1.15;margin-bottom:14px;}
+.hero-h1{font-size:clamp(2.2rem,4.5vw,3.6rem);font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-.03em;}
 .hero-p{font-size:16px;color:var(--text2);line-height:1.75;margin-bottom:18px;max-width:500px;}
 .hero-p strong{color:var(--green);}
 .ret-badge{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(0,255,143,.1),rgba(0,161,255,.07));border:1.5px solid rgba(0,255,143,.3);border-radius:14px;padding:16px 20px;max-width:480px;margin-bottom:22px;}
@@ -128,8 +143,8 @@ header{position:sticky;top:0;z-index:1000;background:rgba(8,8,8,.97);backdrop-fi
 
 /* CAT GRID */
 .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;}
-.cat-card{background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:18px 10px 14px;text-align:center;cursor:pointer;transition:border-color .2s,transform .2s;display:flex;flex-direction:column;align-items:center;gap:8px;}
-.cat-card:hover{border-color:var(--green);transform:translateY(-3px);}
+.cat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 12px 16px;text-align:center;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.cat-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-3px);box-shadow:var(--shadow);}
 .cat-card.hl{border-color:rgba(0,255,143,.3);background:rgba(0,255,143,.04);}
 .cat-icon{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,rgba(0,255,143,.15),rgba(0,161,255,.1));border:1px solid rgba(0,255,143,.2);display:flex;align-items:center;justify-content:center;font-size:20px;}
 .cat-name{font-size:12px;font-weight:600;line-height:1.3;}.cat-cnt{font-size:11px;color:var(--text3);}
@@ -150,8 +165,8 @@ header{position:sticky;top:0;z-index:1000;background:rgba(8,8,8,.97);backdrop-fi
 .hscroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
 .hscroll::-webkit-scrollbar{display:none;}
 .hscroll .prod-card{min-width:195px;flex-shrink:0;}
-.prod-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;}
-.prod-card:hover{border-color:var(--green);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,255,143,.1);}
+.prod-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;}
+.prod-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.6);}
 .prod-img{height:185px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;}
 .prod-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;z-index:1;}
 .pb{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:900;}
@@ -493,7 +508,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
 .portal-card:nth-child(3)::after{background:radial-gradient(ellipse at top,rgba(255,77,77,.06),transparent 70%);}
 .portal-card:hover::after{opacity:1;}
 .portal-icon{width:72px;height:72px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:16px;flex-shrink:0;}
-.portal-title{font-weight:800;font-size:1.2rem;margin-bottom:8px;font-family:"Syne",sans-serif;}
+.portal-title{font-weight:800;font-size:1.2rem;margin-bottom:8px;font-family:"Playfair Display",Georgia,serif;}
 .portal-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px;}
 .portal-features{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;align-self:stretch;}
 .pf-item{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);text-align:left;}
@@ -521,10 +536,74 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
 @media(max-width:768px){#portalChoiceScreen > div > div{grid-template-columns:1fr!important;}.portal-login-header{flex-direction:column;text-align:center;}.portal-back-btn{align-self:flex-start;}}
 @media(max-width:540px){#portalChoiceScreen > div > div{grid-template-columns:1fr!important;}}
 
+
+/* ── PREMIUM OVERRIDES ── */
+.prod-name{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;color:var(--text2);}
+.prod-brand{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;font-weight:500;}
+.pp-main{font-size:1rem;font-weight:600;color:var(--text);}
+.pp-orig{font-size:12px;color:var(--text3);text-decoration:line-through;}
+.pp-off{font-size:11px;color:var(--green);font-weight:600;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.hdr-btn{border:1px solid var(--border);border-radius:var(--radius);transition:all .2s;}
+.hdr-btn:hover{border-color:var(--border2);background:var(--bg3);}
+.hdr-btn .hbt{font-size:10px;color:var(--text3);font-weight:400;}
+.trust-card{border-radius:var(--radius-lg);transition:all .2s;}
+.trust-card:hover{border-color:rgba(255,255,255,.1);background:var(--bg4);}
+.tc-title{font-weight:600;font-size:13px;}
+.tc-body{font-size:12px;color:var(--text3);}
+.rev-card{border-radius:var(--radius-lg);background:var(--bg3);}
+.form-input{border-radius:var(--radius);font-weight:400;color:var(--text);background:var(--bg4);border-color:var(--border2);}
+.form-input:focus{border-color:rgba(255,255,255,.25);background:var(--bg3);}
+.portal-card{border-radius:20px;}
+.portal-title{font-size:1.1rem;font-weight:700;letter-spacing:-.02em;}
+.portal-sub{font-size:12px;color:var(--text3);}
+.portal-btn{font-weight:600;letter-spacing:-.01em;font-size:14px;}
+.sel-stat{border-radius:var(--radius-lg);}
+.sel-stat .sv{font-size:1.8rem;font-weight:700;}
+.ord-card{border-radius:var(--radius-lg);}
+.modal-box{border-radius:20px;}
+.cart-sidebar{box-shadow:-8px 0 40px rgba(0,0,0,.6);}
+.sum-total .tv{font-weight:700;}
+input,select,textarea,button{font-family:'Inter',system-ui,-apple-system,sans-seri
+/* ── LOGIN LOADING OVERLAY ── */
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.login-overlay.show{display:flex;}
+.login-spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:20px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-overlay-msg{font-size:16px;font-weight:500;color:#fff;margin-bottom:8px;text-align:center;}
+.login-overlay-sub{font-size:13px;color:rgba(255,255,255,.5);text-align:center;max-width:260px;line-height:1.5;}
+.login-overlay-progress{width:200px;height:2px;background:rgba(255,255,255,.1);border-radius:1px;margin-top:20px;overflow:hidden;}
+.login-overlay-bar{height:100%;background:var(--green);border-radius:1px;width:0%;transition:width .3s;}
+
+</style>ant;}
+
+
+/* ── PREMIUM TYPOGRAPHY (Inter + Playfair Display) ── */
+body, input, button, select, textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1,h2,h3,.df,.hero-h1,.sec-title,.portal-title,.prod-name-lg {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif !important;
+  letter-spacing: -0.02em;
+}
+.nav-link, .btn-grad, .btn-ghost, .badge, .chip {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
 </style>
 
 </head>
 <body>
+<div class="login-overlay" id="loginLoadingOverlay">
+  <div class="login-spinner"></div>
+  <div class="login-overlay-msg" id="loginOverlayMsg">Signing you in...</div>
+  <div class="login-overlay-sub" id="loginOverlaySub">Please wait a moment</div>
+  <div class="login-overlay-progress"><div class="login-overlay-bar" id="loginOverlayBar"></div></div>
+</div>
+
 
 <!-- ── NOTIFICATION PANEL ── -->
 <div class="cart-overlay" id="notifOverlay" onclick="closeNotifPanel()" style="z-index:9996"></div>
@@ -1320,28 +1399,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);margin-top:60px;
 <!-- RETURN MODAL -->
 <div class="modal-overlay" id="returnModalOverlay" onclick="if(event.target===this)closeReturnModal()">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeReturnModal()">&#10005;</button>
-    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:18px">&#128260; Initiate Return</h2>
-    <div id="returnModalBody"></div>
-  </div>
-</div>
-
-<!-- CHECKOUT MODAL -->
-<div class="modal-overlay" id="checkoutModalOverlay" onclick="if(event.target===this)closeCheckoutModal()">
-  <div class="modal-box" style="max-width:520px">
-    <button class="modal-close" onclick="closeCheckoutModal()">&#10005;</button>
-    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:18px">&#128230; Checkout</h2>
-    <div id="checkoutModalBody"></div>
-  </div>
-</div>
-
+    <button class="modal-close" onclick="closeReturnModal()">&#1
 <script>
-// ════════════════════════════════════════════════════════════════
-//  PRODUCT DATABASE
-// ════════════════════════════════════════════════════════════════
-var PRODUCTS = {
-  p1:  {id:'p1',  name:'Floral Printed Kurti',      brand:'EthniCraft',  cat:'fashion',   price:299,  orig:599,  icon:'&#128521;', rating:4.8, reviews:1892, eco:false, badge:'NEW',       sizes:['XS','S','M','L','XL'], inStock:true},
-  p2:  {id:'p2',  name:'Wireless Earphones Pro',    brand:'TechHub',     cat:'electronics',price:799, orig:1499, icon:'&#127911;', rating:4.5, reviews:2341, eco:false, badge:'BESTSELLER', si
 // ════════════════════════════════════════════════════════════════
 //  PRODUCT DATABASE
 // ════════════════════════════════════════════════════════════════
@@ -2332,34 +2391,69 @@ function loadUsers() {
 
 function saveUsers() { localStorage.setItem('hb_users', JSON.stringify(registeredUsers)); }
 
-function doLogin() {
-  var email = (document.getElementById('loginEmail')||{value:''}).value.trim().toLowerCase();
-  var pass  = (document.getElementById('loginPass')||{value:''}).value;
-  if (!email || !pass) { showToast('Please fill email and password', 'error'); return; }
 
-  var btn = document.querySelector('#cLoginForm .portal-submit') || document.querySelector('#loginFormWrap .btn-grad');
-  if (btn) { btn.textContent = 'Logging in...'; btn.disabled = true; }
-
-  return fetch('/api/auth/login', {
+// ── LOGIN HELPER ─────────────────────────────────────────────
+function showLoginOverlay(msg) {
+  var ov = document.getElementById('loginLoadingOverlay');
+  var ms = document.getElementById('loginOverlayMsg');
+  var sb = document.getElementById('loginOverlaySub');
+  var br = document.getElementById('loginOverlayBar');
+  if (ms) ms.textContent = msg || 'Signing you in...';
+  if (sb) sb.textContent = 'Please wait a moment';
+  if (br) br.style.width = '0%';
+  if (ov) ov.className = 'login-overlay show';
+  // Animate progress bar
+  var pct = 0;
+  var intv = setInterval(function() {
+    pct = Math.min(pct + (pct < 30 ? 3 : pct < 70 ? 1 : 0.3), 90);
+    if (br) br.style.width = pct + '%';
+  }, 300);
+  // Wake-up message after 4 seconds
+  var wakeTimer = setTimeout(function() {
+    if (ms) ms.textContent = 'Server is waking up...';
+    if (sb) sb.innerHTML = 'Render free tier sleeps when idle.<br>Please wait 20–40 seconds.';
+  }, 4000);
+  return {intv: intv, wakeTimer: wakeTimer};
+}
+function hideLoginOverlay(timers) {
+  if (timers) { clearInterval(timers.intv); clearTimeout(timers.wakeTimer); }
+  var ov = document.getElementById('loginLoadingOverlay');
+  var br = document.getElementById('loginOverlayBar');
+  if (br) br.style.width = '100%';
+  setTimeout(function() { if (ov) ov.className = 'login-overlay'; }, 400);
+}
+function callLoginAPI(email, password, role, onSuccess) {
+  var timers = showLoginOverlay('Signing in as ' + (role || 'user') + '...');
+  fetch('/api/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, password: pass })
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: email, password: password})
   })
-  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
   .then(function(res) {
-    if (btn) { btn.innerHTML = 'Login &#8594;'; btn.disabled = false; }
-    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
+    hideLoginOverlay(timers);
+    if (!res.ok) { showToast(res.data.error || 'Invalid email or password', 'error'); return; }
+    if (role && res.data.user.role !== role && !(role === 'seller' && res.data.user.role === 'admin')) {
+      showToast('Wrong portal. This is a ' + res.data.user.role + ' account.', 'error'); return;
+    }
     if (res.data.token) {
       localStorage.setItem('hb_token', res.data.token);
       if (window.api) window.api.token = res.data.token;
     }
     loginSuccess(res.data.user);
-    showToast('Welcome back, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+    if (onSuccess) onSuccess(res.data.user);
   })
   .catch(function() {
-    if (btn) { btn.innerHTML = 'Login &#8594;'; btn.disabled = false; }
-    showToast('Connection error. Please try again.', 'error');
+    hideLoginOverlay(timers);
+    showToast('Could not reach server. Check your connection and try again.', 'error');
   });
+}
+
+function doLogin() {
+  var email = (document.getElementById('loginEmail')||{value:''}).value.trim().toLowerCase();
+  var pass  = (document.getElementById('loginPass') ||{value:''}).value;
+  if (!email || !pass) { showToast('Please fill email and password', 'error'); return; }
+  callLoginAPI(email, pass, 'customer', null);
 }
 
 function doRegister() {
@@ -2520,69 +2614,23 @@ function switchPortalTab(portal, tab) {
 
 // Quick demo login — one click auto-login
 function quickLogin(type) {
-  var creds = {
-    customer: { email: 'priya@demo.com',   password: 'demo123'  },
-    seller:   { email: 'amit@demo.com',    password: 'demo123'  },
-    admin:    { email: 'admin@hubooze.in', password: 'admin123' }
+  var map = {
+    customer:{email:'priya@demo.com',   password:'demo123' },
+    seller:  {email:'amit@demo.com',    password:'demo123' },
+    admin:   {email:'admin@hubooze.in', password:'admin123'}
   };
-  var c = creds[type]; if (!c) return;
-
-  // Show loading toast
-  showToast('Logging in as demo ' + type + '...', 'info');
-
-  fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: c.email, password: c.password })
-  })
-  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
-  .then(function(res) {
-    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
-    if (res.data.token) {
-      localStorage.setItem('hb_token', res.data.token);
-      if (window.api) window.api.token = res.data.token;
-    }
-    loginSuccess(res.data.user);
-    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
-  })
-  .catch(function() {
-    showToast('Connection error. Is the server running?', 'error');
-  });
+  var c = map[type]; if (!c) return;
+  openPortal(type);
+  setTimeout(function() { callLoginAPI(c.email, c.password, type, null); }, 100);
 }
 
 // Customer login uses loginEmail + loginPass (same as before — app.js overrides doLogin)
 // Seller login
 function doSellerLogin() {
-  var email = (document.getElementById('sLoginEmail') || {value:''}).value.trim().toLowerCase();
-  var pass  = (document.getElementById('sLoginPass')  || {value:''}).value;
+  var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim().toLowerCase();
+  var pass  = (document.getElementById('sLoginPass') ||{value:''}).value;
   if (!email || !pass) { showToast('Please enter email and password', 'error'); return; }
-
-  var btn = document.querySelector('#sLoginForm .portal-submit');
-  if (btn) { btn.textContent = 'Logging in...'; btn.disabled = true; }
-
-  fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, password: pass })
-  })
-  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
-  .then(function(res) {
-    if (btn) { btn.innerHTML = 'Login to Seller Dashboard &#8594;'; btn.disabled = false; }
-    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
-    if (res.data.user.role !== 'seller' && res.data.user.role !== 'admin') {
-      showToast('This account is not a seller. Use the Customer portal.', 'error'); return;
-    }
-    if (res.data.token) {
-      localStorage.setItem('hb_token', res.data.token);
-      if (window.api) window.api.token = res.data.token;
-    }
-    loginSuccess(res.data.user);
-    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
-  })
-  .catch(function() {
-    if (btn) { btn.innerHTML = 'Login to Seller Dashboard &#8594;'; btn.disabled = false; }
-    showToast('Connection error. Please try again.', 'error');
-  });
+  callLoginAPI(email, pass, 'seller', null);
 }
 
 // Seller register
@@ -2612,36 +2660,10 @@ function doSellerRegister() {
 
 // Admin login
 function doAdminLogin() {
-  var email = (document.getElementById('aLoginEmail') || {value:''}).value.trim().toLowerCase();
-  var pass  = (document.getElementById('aLoginPass')  || {value:''}).value;
+  var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim().toLowerCase();
+  var pass  = (document.getElementById('aLoginPass') ||{value:''}).value;
   if (!email || !pass) { showToast('Please enter admin credentials', 'error'); return; }
-
-  var btn = document.querySelector('#adminPortal .portal-submit');
-  if (btn) { btn.textContent = 'Accessing...'; btn.disabled = true; }
-
-  fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, password: pass })
-  })
-  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
-  .then(function(res) {
-    if (btn) { btn.innerHTML = '&#9878; Access Admin Panel &#8594;'; btn.disabled = false; }
-    if (!res.ok) { showToast(res.data.error || 'Login failed', 'error'); return; }
-    if (res.data.user.role !== 'admin') {
-      showToast('Access denied. Admin credentials required.', 'error'); return;
-    }
-    if (res.data.token) {
-      localStorage.setItem('hb_token', res.data.token);
-      if (window.api) window.api.token = res.data.token;
-    }
-    loginSuccess(res.data.user);
-    showToast('Welcome, Admin ' + res.data.user.name.split(' ')[0] + '! &#9878;', 'success');
-  })
-  .catch(function() {
-    if (btn) { btn.innerHTML = '&#9878; Access Admin Panel &#8594;'; btn.disabled = false; }
-    showToast('Connection error. Please try again.', 'error');
-  });
+  callLoginAPI(email, pass, 'admin', null);
 }
 
 // ── renderAccountPage — shows portal choice or logged-in dashboard ──
@@ -6037,6 +6059,14 @@ function initNotifications() {
   setInterval(sendPromoNotification, 90000);
 }
 
+
+// ── Pre-wake server on page load ────────────────────────────────
+(function() {
+  setTimeout(function() {
+    fetch('/api/health').catch(function(){});
+  }, 1000);
+})();
+
 initNotifications();
 
 // ── Restore session from API token ────────────────────────────────
@@ -6056,4 +6086,39 @@ initNotifications();
 
 
 
-// ── Service Wor
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      console.log('[PWA] SW registered:', reg.scope);
+    }).catch(function(err) {
+      console.warn('[PWA] SW failed:', err.message);
+    });
+  });
+}
+
+
+
+
+
+
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      console.log('[PWA] SW registered:', reg.scope);
+    }).catch(function(err) {
+      console.warn('[PWA] SW failed:', err.message);
+    });
+  });
+}
+
+</script>
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/payments.js"></script>
+<script src="/js/pwa.js"></script>
+</body>
+</html>
