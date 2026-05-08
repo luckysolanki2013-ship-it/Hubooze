@@ -593,11 +593,8 @@ h1,h2,h3,.df,.hero-h1,.sec-title,.portal-title,.prod-name-lg {
   letter-spacing: -0.01em;
 }
 
-</style>
 
-<style>
 /* ═══ PREMIUM FONT SYSTEM — Inter + Playfair ═══ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
 
 *, *::before, *::after {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -616,7 +613,10 @@ h1, h2, h3, .hero-h1, .sec-title, .page-hero h1 {
 /* Remove any leftover gaming font */
 .df { font-family: 'Playfair Display', Georgia, serif !important; font-weight: 800; }
 body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
+
 </style>
+
+
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay">
@@ -1064,7 +1064,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
         </div>
         <div style="background:rgba(0,0,0,.3);border:1px solid rgba(0,255,143,.2);border-radius:14px;padding:18px;margin-top:12px">
           <h4 style="color:var(--green);font-weight:700;font-size:14px;margin-bottom:12px">Sampark Karo</h4>
-          <div style="font-size:14px;margin-bottom:8px">&#128231; <strong>Team.Support@hubooze.in</strong></div>
+          <div style="font-size:14px;margin-bottom:8px">&#128231; <strong>Team.Support&#64;hubooze.in</strong></div>
           <button class="btn-grad" style="width:100%;padding:13px;font-size:14px;border-radius:8px;margin-top:8px" onclick="showPage('orders')">Return Shuru Karo &#8594;</button>
         </div>
       </div>
@@ -1182,7 +1182,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
           <!-- Customer Login Form -->
           <div id="cLoginForm">
             <div class="form-field"><label class="form-label">Email Address</label>
-              <input class="form-input portal-input" id="loginEmail" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+              <input class="form-input portal-input" id="loginEmail" type="email" placeholder="your&#64;email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
             <div class="form-field"><label class="form-label">Password</label>
               <input class="form-input portal-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
             <button class="btn-grad portal-submit" onclick="doLogin()">Login to My Account &#8594;</button>
@@ -1199,7 +1199,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
                 <input class="form-input" id="regPhone" type="tel" placeholder="+91 9999999999"></div>
             </div>
             <div class="form-field"><label class="form-label">Email Address *</label>
-              <input class="form-input" id="regEmail" type="email" placeholder="your@email.com"></div>
+              <input class="form-input" id="regEmail" type="email" placeholder="your&#64;email.com"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div class="form-field"><label class="form-label">Password *</label>
                 <input class="form-input" id="regPass" type="password" placeholder="Min 6 characters"></div>
@@ -1235,7 +1235,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
               &#128712; First time? Register below and start selling in minutes. Zero commission for 3 months!
             </div>
             <div class="form-field"><label class="form-label">Seller Email</label>
-              <input class="form-input portal-input" id="sLoginEmail" type="email" placeholder="seller@business.com" onkeydown="if(event.key==='Enter')doSellerLogin()"></div>
+              <input class="form-input portal-input" id="sLoginEmail" type="email" placeholder="seller&#64;business.com" onkeydown="if(event.key==='Enter')doSellerLogin()"></div>
             <div class="form-field"><label class="form-label">Password</label>
               <input class="form-input portal-input" id="sLoginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSellerLogin()"></div>
             <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="doSellerLogin()">Login to Seller Dashboard &#8594;</button>
@@ -1254,7 +1254,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
             <div class="form-field"><label class="form-label">Business / Shop Name *</label>
               <input class="form-input" id="sRegBusiness" placeholder="AK Textiles"></div>
             <div class="form-field"><label class="form-label">Email Address *</label>
-              <input class="form-input" id="sRegEmail" type="email" placeholder="amit@business.com"></div>
+              <input class="form-input" id="sRegEmail" type="email" placeholder="amit&#64;business.com"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div class="form-field"><label class="form-label">Password *</label>
                 <input class="form-input" id="sRegPass" type="password" placeholder="Min 6 characters"></div>
@@ -1286,7 +1286,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
             <div style="font-size:13px;color:var(--text2)">This portal is for Hubooze platform administrators only. All access attempts are logged.</div>
           </div>
           <div class="form-field"><label class="form-label">Admin Email</label>
-            <input class="form-input portal-input" id="aLoginEmail" type="email" placeholder="admin@hubooze.in" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+            <input class="form-input portal-input" id="aLoginEmail" type="email" placeholder="admin [at] hubooze.in" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
           <div class="form-field"><label class="form-label">Admin Password</label>
             <input class="form-input portal-input" id="aLoginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
           <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#ff4d4d,#ff6b35)" onclick="doAdminLogin()">&#9878; Access Admin Panel &#8594;</button>
@@ -1305,7 +1305,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
             <div id="accAvatarEl" style="background:var(--grad);padding:22px;text-align:center">
               <div style="width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.3);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:1.8rem">&#128100;</div>
               <div style="font-weight:800;font-size:15px;color:#000" id="accNameEl">User</div>
-              <div style="font-size:12px;color:rgba(0,0,0,.7)" id="accEmailEl">email@example.com</div>
+              <div style="font-size:12px;color:rgba(0,0,0,.7)" id="accEmailEl">email&#64;example.com</div>
               <div style="font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700;letter-spacing:.5px;margin-top:6px;display:inline-block" id="accRolePill"></div>
             </div>
             <div id="accMenuEl"></div>
@@ -2415,35 +2415,8 @@ function saveUsers() { localStorage.setItem('hb_users', JSON.stringify(registere
 
 
 // ── LOGIN HELPER ─────────────────────────────────────────────
-function showLoginOverlay(msg) {
-  var ov = document.getElementById('loginLoadingOverlay');
-  var ms = document.getElementById('loginOverlayMsg');
-  var sb = document.getElementById('loginOverlaySub');
-  var br = document.getElementById('loginOverlayBar');
-  if (ms) ms.textContent = msg || 'Signing you in...';
-  if (sb) sb.textContent = 'Please wait a moment';
-  if (br) br.style.width = '0%';
-  if (ov) ov.className = 'login-overlay show';
-  // Animate progress bar
-  var pct = 0;
-  var intv = setInterval(function() {
-    pct = Math.min(pct + (pct < 30 ? 3 : pct < 70 ? 1 : 0.3), 90);
-    if (br) br.style.width = pct + '%';
-  }, 300);
-  // Wake-up message after 4 seconds
-  var wakeTimer = setTimeout(function() {
-    if (ms) ms.textContent = 'Server is waking up...';
-    if (sb) sb.innerHTML = 'Render free tier sleeps when idle.<br>Please wait 20–40 seconds.';
-  }, 4000);
-  return {intv: intv, wakeTimer: wakeTimer};
-}
-function hideLoginOverlay(timers) {
-  if (timers) { clearInterval(timers.intv); clearTimeout(timers.wakeTimer); }
-  var ov = document.getElementById('loginLoadingOverlay');
-  var br = document.getElementById('loginOverlayBar');
-  if (br) br.style.width = '100%';
-  setTimeout(function() { if (ov) ov.className = 'login-overlay'; }, 400);
-}
+// function showLoginOverlay(msg) — in app.js
+// function hideLoginOverlay(timers) — in app.js
 function callLoginAPI(email, password, role, onSuccess) {
   var timers = showLoginOverlay('Signing in as ' + (role || 'user') + '...');
   fetch('/api/auth/login', {
@@ -2472,47 +2445,16 @@ function callLoginAPI(email, password, role, onSuccess) {
 }
 
 function doLogin() {
-  var email = (document.getElementById('loginEmail')||{value:''}).value.trim().toLowerCase();
+  // Overridden by app.js
+  var email = (document.getElementById('loginEmail')||{value:''}).value.trim();
   var pass  = (document.getElementById('loginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please fill email and password', 'error'); return; }
-  callLoginAPI(email, pass, 'customer', null);
+  if (!email || !pass) { showToast('Please fill email and password','error'); return; }
+  showToast('Connecting...', 'info');
 }
 
 function doRegister() {
-  var name   = (document.getElementById('regName')  ||{value:''}).value.trim();
-  var email  = (document.getElementById('regEmail') ||{value:''}).value.trim().toLowerCase();
-  var pass   = (document.getElementById('regPass')  ||{value:''}).value;
-  var phone  = (document.getElementById('regPhone') ||{value:''}).value.trim();
-  var city   = (document.getElementById('regCity')  ||{value:''}).value.trim();
-  var isSelEl= document.getElementById('regIsSeller');
-  var isSel  = isSelEl ? (isSelEl.checked || isSelEl.value === 'true') : false;
-
-  if (!name || !email || !pass) { showToast('Name, email and password are required', 'error'); return; }
-  if (pass.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
-
-  var btn = document.querySelector('#sRegForm .portal-submit') || document.querySelector('#registerFormWrap .btn-grad');
-  if (btn) { btn.textContent = 'Creating...'; btn.disabled = true; }
-
-  fetch('/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name:name, email:email, password:pass, phone:phone, city:city, role: isSel?'seller':'customer' })
-  })
-  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
-  .then(function(res) {
-    if (btn) { btn.innerHTML = 'Create Account &#8594;'; btn.disabled = false; }
-    if (!res.ok) { showToast(res.data.error || 'Registration failed', 'error'); return; }
-    if (res.data.token) {
-      localStorage.setItem('hb_token', res.data.token);
-      if (window.api) window.api.token = res.data.token;
-    }
-    loginSuccess(res.data.user);
-    showToast('Welcome, ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
-  })
-  .catch(function() {
-    if (btn) { btn.innerHTML = 'Create Account &#8594;'; btn.disabled = false; }
-    showToast('Connection error. Please try again.', 'error');
-  });
+  // Overridden by app.js
+  showToast('Connecting...', 'info');
 }
 
 function loginSuccess(user) {
@@ -2636,23 +2578,19 @@ function switchPortalTab(portal, tab) {
 
 // Quick demo login — one click auto-login
 function quickLogin(type) {
-  var map = {
-    customer:{email:'priya@demo.com',   password:'demo123' },
-    seller:  {email:'amit@demo.com',    password:'demo123' },
-    admin:   {email:'admin@hubooze.in', password:'admin123'}
-  };
-  var c = map[type]; if (!c) return;
+  // Overridden by app.js
   openPortal(type);
-  setTimeout(function() { callLoginAPI(c.email, c.password, type, null); }, 100);
+  showToast('Connecting to demo...', 'info');
 }
 
 // Customer login uses loginEmail + loginPass (same as before — app.js overrides doLogin)
 // Seller login
 function doSellerLogin() {
-  var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim().toLowerCase();
+  // Overridden by app.js
+  var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim();
   var pass  = (document.getElementById('sLoginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please enter email and password', 'error'); return; }
-  callLoginAPI(email, pass, 'seller', null);
+  if (!email || !pass) { showToast('Please fill email and password','error'); return; }
+  showToast('Connecting...', 'info');
 }
 
 // Seller register
@@ -2682,10 +2620,11 @@ function doSellerRegister() {
 
 // Admin login
 function doAdminLogin() {
-  var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim().toLowerCase();
+  // Overridden by app.js
+  var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim();
   var pass  = (document.getElementById('aLoginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please enter admin credentials', 'error'); return; }
-  callLoginAPI(email, pass, 'admin', null);
+  if (!email || !pass) { showToast('Please fill credentials','error'); return; }
+  showToast('Connecting...', 'info');
 }
 
 // ── renderAccountPage — shows portal choice or logged-in dashboard ──
