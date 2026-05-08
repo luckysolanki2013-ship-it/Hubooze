@@ -8,11 +8,25 @@ const { apiLimiter } = require('./middleware');
 
 const app = express();
 
+// Trust Render's proxy (required for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
+
 // ── Security ──────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+// CORS — allow same-origin requests + any configured frontend URL
 app.use(cors({
-  origin: ['http://localhost:3000','http://localhost:5500','http://127.0.0.1:5500',
-           process.env.FRONTEND_URL].filter(Boolean),
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow localhost in development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) return callback(null, true);
+    // Allow any onrender.com subdomain
+    if (origin.includes('onrender.com')) return callback(null, true);
+    // Allow configured frontend URL
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return callback(null, true);
+    // Allow same-origin requests (when frontend is served by same server)
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
