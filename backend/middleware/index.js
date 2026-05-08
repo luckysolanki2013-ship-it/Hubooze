@@ -1,5 +1,5 @@
-const jwt  = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
+const jwt        = require('jsonwebtoken');
+const rateLimit  = require('express-rate-limit');
 
 // ── JWT Auth ──────────────────────────────────────────────────────
 const protect = async (req, res, next) => {
@@ -37,21 +37,32 @@ const optionalAuth = (req, res, next) => {
 };
 
 // ── Rate Limiters ─────────────────────────────────────────────────
+// validate.trustProxy: false — required for Render/proxy deployments
+// This disables the strict proxy check that causes "Host not in allowlist"
+const rateLimitConfig = {
+  validate: { trustProxy: false },
+  standardHeaders: true,
+  legacyHeaders: false,
+};
+
 const authLimiter = rateLimit({
+  ...rateLimitConfig,
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Too many auth attempts. Try again in 15 minutes.' },
 });
 
 const otpLimiter = rateLimit({
+  ...rateLimitConfig,
   windowMs: 5 * 60 * 1000,
   max: 5,
   message: { error: 'Too many OTP requests. Wait 5 minutes.' },
 });
 
 const apiLimiter = rateLimit({
+  ...rateLimitConfig,
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 300,
   message: { error: 'Too many requests. Please slow down.' },
 });
 

@@ -1086,7 +1086,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
       <!-- Portal choice screen -->
       <div id="portalChoiceScreen">
         <div style="text-align:center;margin-bottom:36px">
-          <h1 class="df grad-text" style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:10px">Welcome to Hubooze</h1>
+          <h1 class="df grad-text" style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:10px" onclick="secretAdminReveal()">Welcome to Hubooze</h1>
           <p style="color:var(--text2);font-size:15px">Choose your portal to continue</p>
         </div>
 
@@ -1135,7 +1135,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
           </div>
 
           <!-- Admin Portal -->
-          <div class="portal-card" onclick="openPortal('admin')">
+          <div class="portal-card" id="adminPortalCard" style="display:none" onclick="openPortal('admin')">
             <div class="portal-icon" style="background:linear-gradient(135deg,rgba(255,77,77,.2),rgba(255,107,53,.1));border-color:rgba(255,77,77,.3)">
               &#9878;
             </div>
@@ -6027,6 +6027,25 @@ function initNotifications() {
     fetch('/api/health').catch(function(){});
   }, 1000);
 })();
+
+
+// ── Secret Admin Access ───────────────────────────────────────────
+var _adminClickCount = 0;
+var _adminClickTimer = null;
+function secretAdminReveal() {
+  _adminClickCount++;
+  clearTimeout(_adminClickTimer);
+  _adminClickTimer = setTimeout(function() { _adminClickCount = 0; }, 800);
+  if (_adminClickCount >= 5) {
+    _adminClickCount = 0;
+    var card = document.getElementById('adminPortalCard');
+    if (card) {
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      showToast('Admin portal unlocked', 'info');
+    }
+  }
+}
 
 initNotifications();
 

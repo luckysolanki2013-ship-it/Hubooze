@@ -213,3 +213,17 @@ setTimeout(function() {
 }, 500);
 
 console.log('Hubooze app.js loaded — login ready');
+
+// ── Show admin portal card when logged in as admin ─────────────
+// Called by loginSuccess in index.html — show admin card if admin
+var _origLoginSuccess2 = window.loginSuccess;
+document.addEventListener('DOMContentLoaded', function() {
+  // After page loads, check if already logged in as admin
+  try {
+    var session = JSON.parse(localStorage.getItem('hb_session') || 'null');
+    if (session && session.role === 'admin') {
+      var card = document.getElementById('adminPortalCard');
+      if (card) card.style.display = '';
+    }
+  } catch(e) {}
+});
