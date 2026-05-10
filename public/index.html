@@ -2445,11 +2445,21 @@ function callLoginAPI(email, password, role, onSuccess) {
 }
 
 function doLogin() {
-  // Overridden by app.js
-  var email = (document.getElementById('loginEmail')||{value:''}).value.trim();
+  var email = (document.getElementById('loginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('loginPass') ||{value:''}).value;
   if (!email || !pass) { showToast('Please fill email and password','error'); return; }
-  showToast('Connecting...', 'info');
+  if (typeof callLoginAPI === 'function') {
+    callLoginAPI(email, pass, 'customer', null);
+  } else {
+    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(res){
+      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
+      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
+      loginSuccess(res.data.user);
+    })
+    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
+  }
 }
 
 function doRegister() {
@@ -2578,19 +2588,47 @@ function switchPortalTab(portal, tab) {
 
 // Quick demo login — one click auto-login
 function quickLogin(type) {
-  // Overridden by app.js
+  var map = {
+    customer:{email:'priya@demo.com',password:'demo123'},
+    seller:{email:'amit@demo.com',password:'demo123'},
+    admin:{email:'admin@hubooze.in',password:'admin123'}
+  };
+  var c = map[type]; if(!c) return;
   openPortal(type);
-  showToast('Connecting to demo...', 'info');
+  setTimeout(function() {
+    if (typeof callLoginAPI === 'function') {
+      callLoginAPI(c.email, c.password, type, null);
+    } else {
+      fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:c.email,password:c.password})})
+      .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+      .then(function(res){
+        if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
+        if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
+        loginSuccess(res.data.user);
+      })
+      .catch(function(){showToast('Cannot reach server. Please try again.','error');});
+    }
+  }, 100);
 }
 
 // Customer login uses loginEmail + loginPass (same as before — app.js overrides doLogin)
 // Seller login
 function doSellerLogin() {
-  // Overridden by app.js
-  var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim();
+  var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('sLoginPass') ||{value:''}).value;
   if (!email || !pass) { showToast('Please fill email and password','error'); return; }
-  showToast('Connecting...', 'info');
+  if (typeof callLoginAPI === 'function') {
+    callLoginAPI(email, pass, 'seller', null);
+  } else {
+    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(res){
+      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
+      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
+      loginSuccess(res.data.user);
+    })
+    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
+  }
 }
 
 // Seller register
@@ -2620,11 +2658,21 @@ function doSellerRegister() {
 
 // Admin login
 function doAdminLogin() {
-  // Overridden by app.js
-  var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim();
+  var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('aLoginPass') ||{value:''}).value;
   if (!email || !pass) { showToast('Please fill credentials','error'); return; }
-  showToast('Connecting...', 'info');
+  if (typeof callLoginAPI === 'function') {
+    callLoginAPI(email, pass, 'admin', null);
+  } else {
+    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(res){
+      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
+      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
+      loginSuccess(res.data.user);
+    })
+    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
+  }
 }
 
 // ── renderAccountPage — shows portal choice or logged-in dashboard ──
