@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Hubooze — Shop. Return. Recycle.</title>
 
-<link rel="manifest" href="/manifest.json">
+<!-- manifest disabled -->
 <meta name="theme-color" content="#00ff8f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -619,7 +619,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
 
 </head>
 <body>
-<div class="login-overlay" id="loginLoadingOverlay">
+<div class="login-overlay" id="loginLoadingOverlay" style="display:none">
   <div class="login-spinner"></div>
   <div class="login-overlay-msg" id="loginOverlayMsg">Signing you in...</div>
   <div class="login-overlay-sub" id="loginOverlaySub">Please wait a moment</div>
@@ -844,7 +844,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
     <button class="loc-btn"><span>&#128205;</span><span><span class="loc-lbl" id="locLblEl">Deliver to</span><span class="loc-val">Pithampur, MP</span></span></button>
     <div class="search-wrap">
       <select class="search-cat"><option>All</option><option>Fashion</option><option>Electronics</option><option>Handmade</option></select>
-      <input class="search-input" id="searchInpEl" type="text" placeholder="Kuch bhi dhundhein...">
+      <input class="search-input" id="searchInpEl" autocomplete="off" autocomplete="off" type="text" placeholder="Kuch bhi dhundhein...">
       <button class="search-btn" onclick="doSearch()">&#128269;</button>
     </div>
     <div class="hdr-right">
@@ -1363,6 +1363,7 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
     <div id="adminContentEl"></div>
   </div>
 </div>
+<div id="page-product" class="page"></div>
 
 
 
@@ -1419,10 +1420,17 @@ body.village .df { font-family: 'Playfair Display', Georgia, serif !important; }
 </footer>
 
 <!-- RETURN MODAL -->
-<div class="modal-overlay" id="returnModalOverlay" onclick="if(event.target===this)closeReturnModal()">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeReturnModal()">&#1
-<script>
+<div class="modal-overlay" id="returnModalOverlay" onclick="if(event.target===this)closeReturnModal()" style="display:none">
+  <div class="modal-box" style="max-width:500px;width:90%;padding:28px;border-radius:16px;background:var(--bg3);border:1px solid var(--border)">
+    <button class="modal-close" onclick="closeReturnModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;font-family:inherit">&#10005;</button>
+    <div id="returnModalContent"></div>
+  </div>
+</div>
+
+<script>var SELLER_PRODUCTS_DB = {};
+var SELLER_OWN_PRODUCTS = {};
+var currentProduct = null;
+
 // ════════════════════════════════════════════════════════════════
 //  PRODUCT DATABASE
 // ════════════════════════════════════════════════════════════════
@@ -1460,6 +1468,7 @@ var COUPONS = {
 
 // ════════════════════════════════════════════════════════════════
 //  CART STATE — persisted in localStorage
+
 // ════════════════════════════════════════════════════════════════
 var cartItems   = [];   // [{id, productId, qty, size, addedAt}]
 var savedItems  = [];   // same structure
@@ -2003,11 +2012,11 @@ function makeCard(p) {
   for (var j=0;j<5-full;j++) stars += '&#9734;';
   var wished = wishlist.indexOf(p.id) > -1;
 
-  return '<div class="prod-card">'
+  return '<div class="prod-card" onclick="openProduct(\'' + p.id + '\')" style="cursor:pointer">'
     + '<div class="prod-img">'
     + (p.badge ? '<div class="prod-badges"><span class="pb ' + bcls + '">' + p.badge + '</span></div>' : '')
     + '<button class="prod-wish' + (wished ? ' wished' : '') + '" data-wish="' + p.id + '" onclick="event.stopPropagation();toggleWishlist(\'' + p.id + '\',this)">' + (wished ? '&#10084;&#65039;' : '&#9825;') + '</button>'
-    + '<span>' + p.icon + '</span>'
+    + (p.image ? '<img src="' + p.image + '" style="width:100%;height:100%;object-fit:cover;border-radius:12px" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'">' : '')    + '<span style="' + (p.image ? 'display:none' : '') + '">' + (p.icon||'&#128247;') + '</span>'
     + '</div>'
     + '<div class="prod-body">'
     + '<div class="prod-brand">' + p.brand + '</div>'
@@ -2026,6 +2035,52 @@ function makeCard(p) {
     + '</div>'
     + '</div>';
 }
+// ─── PRODUCT DETAIL PAGE ─────────────────────────────────────────
+function openProduct(pid) {
+  var p = PRODUCTS[pid];
+  if (!p) { showToast('Product not found', 'error'); return; }
+  currentProduct = p;
+  showPage('product');
+  var el = document.getElementById('page-product');
+  if (!el) return;
+  var disc = Math.round((1 - p.price / (p.orig||p.price||1)) * 100);
+  var full = Math.floor(p.rating||0);
+  var stars = '';
+  for (var i=0;i<full;i++) stars += '&#9733;';
+  for (var j=0;j<5-full;j++) stars += '&#9734;';
+  var sizesHtml = (p.sizes && p.sizes.length)
+    ? '<div style="margin:14px 0"><div style="font-weight:600;margin-bottom:8px">Size</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + p.sizes.map(function(s){ return '<button onclick="this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'\';b.style.color=\'\';});this.style.background=\'var(--green)\';this.style.color=\'#fff\';" style="padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">'+s+'</button>'; }).join('')
+      + '</div></div>'
+    : '';
+  el.innerHTML = '<div style="max-width:900px;margin:0 auto;padding:20px 16px">'
+    + '<button onclick="showPage(\'home\')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;margin-bottom:20px;font-family:inherit;display:flex;align-items:center;gap:6px">&#8592; Back</button>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">'
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:8rem;min-height:280px;overflow:hidden">'    + (p.image ? '<img src="' + p.image + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\';this.parentNode.innerHTML=p.icon">' : p.icon)    + '</div>'
+    + '<div>'
+    + '<div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + p.brand + '</div>'
+    + '<h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3">' + p.name + '</h2>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
+    + '<span style="color:#f59e0b;font-size:14px">' + stars + '</span>'
+    + '<span style="font-size:13px;color:var(--text3)">(' + (p.reviews||0).toLocaleString('en-IN') + ' reviews)</span></div>'
+    + '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">'
+    + '<span style="font-size:28px;font-weight:900;color:var(--text)">&#8377;' + (p.price||0).toLocaleString('en-IN') + '</span>'
+    + '<span style="font-size:16px;color:var(--text3);text-decoration:line-through">&#8377;' + (p.orig||0).toLocaleString('en-IN') + '</span>'
+    + (disc>0 ? '<span style="background:#dcfce7;color:#16a34a;font-size:12px;font-weight:700;padding:3px 8px;border-radius:20px">' + disc + '% OFF</span>' : '')
+    + '</div>'
+    + (p.eco ? '<div style="color:#16a34a;font-size:13px;margin-bottom:10px">&#9851; Eco Friendly &middot; Supports Rural Jobs</div>' : '')
+    + sizesHtml
+    + '<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">'
+    + '<button class="btn-ghost" style="flex:1;min-width:130px;padding:14px" onclick="addToCart(\'' + pid + '\')">&#128722; Add to Cart</button>'
+    + '<button class="btn-grad" style="flex:1;min-width:130px;padding:14px" onclick="addToCart(\'' + pid + '\');openCart()">&#9889; Buy Now</button>'
+    + '</div>'
+    + '<div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)">'
+    + '&#128260; 90 Day Easy Return &bull; &#9889; Instant Refund &bull; &#128666; Free Delivery above &#8377;499</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
 
 function renderGrid(id, arr) {
   var el = document.getElementById(id);
@@ -2036,7 +2091,8 @@ function renderGrid(id, arr) {
 // ════════════════════════════════════════════════════════════════
 //  HOME CONTENT
 // ════════════════════════════════════════════════════════════════
-var allProducts = Object.values(PRODUCTS);
+// allProducts is computed fresh each time from PRODUCTS
+function getAllProducts() { return Object.values(PRODUCTS); }
 
 function renderHomeContent() {
   ss('heroBadgeEl',T.heroBadge,true); ss('heroH1El',T.heroH1,true); ss('heroSubEl',T.heroSub,true);
@@ -2066,7 +2122,9 @@ function renderHomeContent() {
   ss('selBadgeEl',T.selBadge,false); ss('selTitleEl',T.selTitle,false); ss('selSubEl',T.selSub,true); ss('selBtnEl',T.selBtn,true);
   ss('footDescEl',T.footDesc,false); ss('footCopyEl',T.footCopy,true);
 
-  renderGrid('trendGridEl', allProducts.sort(function(a,b){return b.reviews-a.reviews;}).slice(0,8));
+  var allProducts = getAllProducts();
+  var allProducts = Object.values(PRODUCTS);
+  renderGrid('trendGridEl', allProducts.slice().sort(function(a,b){return b.reviews-a.reviews;}).slice(0,8));
   renderGrid('handmadeScrollEl', allProducts.filter(function(p){return p.cat==='handmade';}));
   renderGrid('electronicsScrollEl', allProducts.filter(function(p){return p.cat==='electronics';}));
   renderGrid('fashionScrollEl', allProducts.filter(function(p){return p.cat==='fashion';}));
@@ -2101,6 +2159,7 @@ function renderCategoriesPage(cat) {
 }
 
 function renderCatProducts() {
+  var allProducts = Object.values(PRODUCTS);
   var priceFilter = (document.querySelector('input[name="price"]:checked') || {value:''}).value;
   var sortVal = (document.getElementById('sortSelectEl') || {value:''}).value;
   var ecoOnly = (document.getElementById('ecoCheckEl') || {checked:false}).checked;
@@ -2303,6 +2362,7 @@ function setTone(tone) {
   // Nav
   renderNav();
   // Home
+  showPage(currentPage || 'home');
   renderHomeContent();
   // Current page specific
   if (currentPage === 'categories') renderCategoriesPage();
@@ -2324,7 +2384,7 @@ var currentPage = 'home';
 
 function showPage(name, cat) {
   currentPage = name;
-  ['home','categories','returns','account','orders','seller','admin','checkout','notifications'].forEach(function(p) {
+  ['home','categories','returns','account','orders','seller','admin','checkout','notifications','product'].forEach(function(p) {
     var el = document.getElementById('page-'+p);
     if (el) el.className = 'page' + (p===name?' active':'');
   });
@@ -2415,51 +2475,66 @@ function saveUsers() { localStorage.setItem('hb_users', JSON.stringify(registere
 
 
 // ── LOGIN HELPER ─────────────────────────────────────────────
-// function showLoginOverlay(msg) — in app.js
-// function hideLoginOverlay(timers) — in app.js
-function callLoginAPI(email, password, role, onSuccess) {
-  var timers = showLoginOverlay('Signing in as ' + (role || 'user') + '...');
+function showLoginOverlay(msg) { return {}; }
+
+function hideLoginOverlay(timers) {}
+function callLoginAPI(email, password, role, cb) {
   fetch('/api/auth/login', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: email, password: password})
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email:email, password:password})
   })
-  .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
-  .then(function(res) {
-    hideLoginOverlay(timers);
-    if (!res.ok) { showToast(res.data.error || 'Invalid email or password', 'error'); return; }
-    if (role && res.data.user.role !== role && !(role === 'seller' && res.data.user.role === 'admin')) {
-      showToast('Wrong portal. This is a ' + res.data.user.role + ' account.', 'error'); return;
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res){
+    if (!res.ok) { showToast(res.data.error||'Login failed','error'); return; }
+    if (role && res.data.user.role!==role && !(role==='seller' && res.data.user.role==='admin')) {
+      showToast('Wrong portal. This is a '+res.data.user.role+' account.','error'); return;
     }
-    if (res.data.token) {
-      localStorage.setItem('hb_token', res.data.token);
-      if (window.api) window.api.token = res.data.token;
-    }
-    loginSuccess(res.data.user);
-    if (onSuccess) onSuccess(res.data.user);
+    var user = res.data.user; var token = res.data.token;
+    localStorage.setItem('hb_token', token);
+    localStorage.setItem('token', token);
+    try { localStorage.setItem('hb_session', JSON.stringify(user)); } catch(e) {}
+    currentUser = user;
+    if (window.api) window.api.token = res.data.token;
+    try { updateHeaderAuth(); } catch(e) {}
+    try { renderNav(); } catch(e) {}
+    showToast('Welcome ' + res.data.user.name.split(' ')[0] + '! &#127881;', 'success');
+    setTimeout(function(){
+      try {
+        if (res.data.user.role==='admin') showPage('admin');
+        else if (res.data.user.role==='seller') showPage('seller');
+        else showPage('account');
+      } catch(e) {}
+    }, 300);
+    if (cb) cb(res.data.user);
   })
-  .catch(function() {
-    hideLoginOverlay(timers);
-    showToast('Could not reach server. Check your connection and try again.', 'error');
-  });
+  .catch(function(){ showToast('Connection error. Please try again.','error'); });
 }
 
 function doLogin() {
   var email = (document.getElementById('loginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('loginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please fill email and password','error'); return; }
-  if (typeof callLoginAPI === 'function') {
-    callLoginAPI(email, pass, 'customer', null);
-  } else {
-    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
-    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
-    .then(function(res){
-      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
-      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
-      loginSuccess(res.data.user);
-    })
-    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
-  }
+  if (!email || !pass) { showToast('Please enter email and password','error'); return; }
+  var btn = document.querySelector('#cLoginForm .portal-submit');
+  if (btn) { btn.textContent = 'Please wait...'; btn.disabled = true; }
+  fetch('/api/auth/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email:email, password:pass})
+  })
+  .then(function(r){ return r.json().then(function(d){return{ok:r.ok,data:d};}); })
+  .then(function(res){
+    if (btn) { btn.innerHTML='Login &#8594;'; btn.disabled=false; }
+    if (!res.ok) { showToast(res.data.error||'Login failed','error'); return; }
+    localStorage.setItem('hb_token', res.data.token);
+    localStorage.setItem('hb_session', JSON.stringify(res.data.user));
+    localStorage.setItem('hb_after_login', res.data.user.role==='admin'?'admin':(res.data.user.role==='seller'?'seller':'account'));
+    window.location.reload();
+  })
+  .catch(function(){
+    if (btn) { btn.innerHTML='Login &#8594;'; btn.disabled=false; }
+    showToast('Cannot reach server. Please try again.','error');
+  });
 }
 
 function doRegister() {
@@ -2469,13 +2544,9 @@ function doRegister() {
 
 function loginSuccess(user) {
   currentUser = user;
-  localStorage.setItem('hb_session', JSON.stringify(user));
-  updateHeaderAuth();
-  renderNav();
-  renderAccountPage();
-  // Role-based redirect after login
-  if (user.role === 'admin')  { setTimeout(function(){ showPage('admin');  }, 300); }
-  if (user.role === 'seller') { setTimeout(function(){ showPage('seller'); }, 300); }
+  try { localStorage.setItem('hb_session', JSON.stringify(user)); } catch(e) {}
+  try { updateHeaderAuth(); } catch(e) {}
+  try { renderNav(); } catch(e) {}
 }
 
 function doLogout() {
@@ -2593,21 +2664,16 @@ function quickLogin(type) {
     seller:{email:'amit@demo.com',password:'demo123'},
     admin:{email:'admin@hubooze.in',password:'admin123'}
   };
-  var c = map[type]; if(!c) return;
+  var c = map[type]; if (!c) return;
   openPortal(type);
-  setTimeout(function() {
-    if (typeof callLoginAPI === 'function') {
-      callLoginAPI(c.email, c.password, type, null);
-    } else {
-      fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:c.email,password:c.password})})
-      .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
-      .then(function(res){
-        if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
-        if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
-        loginSuccess(res.data.user);
-      })
-      .catch(function(){showToast('Cannot reach server. Please try again.','error');});
-    }
+  setTimeout(function(){
+    var ef = type==='customer'?'loginEmail':(type==='seller'?'sLoginEmail':'aLoginEmail');
+    var pf = type==='customer'?'loginPass':(type==='seller'?'sLoginPass':'aLoginPass');
+    var e = document.getElementById(ef); if(e) e.value=c.email;
+    var p = document.getElementById(pf); if(p) p.value=c.password;
+    if(type==='customer') doLogin();
+    else if(type==='seller') doSellerLogin();
+    else doAdminLogin();
   }, 100);
 }
 
@@ -2616,19 +2682,30 @@ function quickLogin(type) {
 function doSellerLogin() {
   var email = (document.getElementById('sLoginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('sLoginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please fill email and password','error'); return; }
-  if (typeof callLoginAPI === 'function') {
-    callLoginAPI(email, pass, 'seller', null);
-  } else {
-    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
-    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
-    .then(function(res){
-      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
-      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
-      loginSuccess(res.data.user);
-    })
-    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
-  }
+  if (!email || !pass) { showToast('Please enter email and password','error'); return; }
+  var btn = document.querySelector('#sLoginForm .portal-submit');
+  if (btn) { btn.textContent='Please wait...'; btn.disabled=true; }
+  fetch('/api/auth/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email:email, password:pass})
+  })
+  .then(function(r){ return r.json().then(function(d){return{ok:r.ok,data:d};}); })
+  .then(function(res){
+    if (btn) { btn.innerHTML='Login to Seller Dashboard &#8594;'; btn.disabled=false; }
+    if (!res.ok) { showToast(res.data.error||'Login failed','error'); return; }
+    if (res.data.user.role!=='seller'&&res.data.user.role!=='admin') {
+      showToast('Not a seller account','error'); return;
+    }
+    localStorage.setItem('hb_token', res.data.token);
+    localStorage.setItem('hb_session', JSON.stringify(res.data.user));
+    localStorage.setItem('hb_after_login', 'seller');
+    window.location.reload();
+  })
+  .catch(function(){
+    if (btn) { btn.innerHTML='Login to Seller Dashboard &#8594;'; btn.disabled=false; }
+    showToast('Cannot reach server. Please try again.','error');
+  });
 }
 
 // Seller register
@@ -2660,19 +2737,28 @@ function doSellerRegister() {
 function doAdminLogin() {
   var email = (document.getElementById('aLoginEmail')||{value:''}).value.trim().toLowerCase();
   var pass  = (document.getElementById('aLoginPass') ||{value:''}).value;
-  if (!email || !pass) { showToast('Please fill credentials','error'); return; }
-  if (typeof callLoginAPI === 'function') {
-    callLoginAPI(email, pass, 'admin', null);
-  } else {
-    fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
-    .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
-    .then(function(res){
-      if(!res.ok){showToast(res.data.error||'Login failed','error');return;}
-      if(res.data.token){localStorage.setItem('hb_token',res.data.token);if(window.api)window.api.token=res.data.token;}
-      loginSuccess(res.data.user);
-    })
-    .catch(function(){showToast('Cannot reach server. Please try again.','error');});
-  }
+  if (!email || !pass) { showToast('Please enter admin credentials','error'); return; }
+  var btn = document.querySelector('#adminPortal .portal-submit');
+  if (btn) { btn.textContent='Please wait...'; btn.disabled=true; }
+  fetch('/api/auth/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email:email, password:pass})
+  })
+  .then(function(r){ return r.json().then(function(d){return{ok:r.ok,data:d};}); })
+  .then(function(res){
+    if (btn) { btn.innerHTML='&#9878; Access Admin Panel &#8594;'; btn.disabled=false; }
+    if (!res.ok) { showToast(res.data.error||'Login failed','error'); return; }
+    if (res.data.user.role!=='admin') { showToast('Admin access required','error'); return; }
+    localStorage.setItem('hb_token', res.data.token);
+    localStorage.setItem('hb_session', JSON.stringify(res.data.user));
+    localStorage.setItem('hb_after_login', 'admin');
+    window.location.reload();
+  })
+  .catch(function(){
+    if (btn) { btn.innerHTML='&#9878; Access Admin Panel &#8594;'; btn.disabled=false; }
+    showToast('Cannot reach server. Please try again.','error');
+  });
 }
 
 // ── renderAccountPage — shows portal choice or logged-in dashboard ──
@@ -3361,12 +3447,17 @@ function renderSelProducts(myProds, el) {
 }
 
 function sellerProductRow(p) {
+  p = p || {};
+  p.price = p.price || p.orig || 0;
+  p.orig  = p.orig  || p.originalPrice || p.price || 0;
+  p.name  = p.name  || 'Product';
+  p.id    = p.id    || '';
   var disc = Math.round((1-(p.price||0)/(p.orig||1))*100);
   return '<div id="sprow-'+p.id+'" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">'
-    + '<span style="font-size:2.5rem;flex-shrink:0">'+p.icon+'</span>'
+    + '<span style="font-size:2.5rem;flex-shrink:0">'+(p.image?'<img src="'+p.image+'" style="width:48px;height:48px;object-fit:cover;border-radius:8px">':'<span style="font-size:2rem">'+p.icon+'</span>')+'</span>'
     + '<div style="flex:1;min-width:160px">'
     + '<div style="font-weight:700;font-size:14px">'+p.name+'</div>'
-    + '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+p.brand+' &bull; '+p.cat+' &bull; Stock: '+(p.stock||'N/A')+'</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+(p.brand||'')+' &bull; '+(p.cat||p.category||'')+' &bull; Stock: '+(p.stock||'N/A')+'</div>'
     + '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'
     + (p.badge ? '<span class="chip chip-delivered" style="font-size:10px">'+p.badge+'</span>' : '')
     + (p.eco ? '<span class="chip chip-delivered" style="font-size:10px">&#9851; ECO</span>' : '')
@@ -3438,10 +3529,10 @@ function sellerOrderCard(o) {
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
     + '<div>'
     + '<div style="font-weight:700;font-size:14px">#'+o.id+'</div>'
-    + '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+o.date+' &bull; '+o.payment+' &bull; '+o.address.substring(0,35)+'...</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+( o.date||o.createdAt||'' )+' &bull; '+(o.payment||o.paymentMethod||'')+' &bull; '+(typeof o.address==='object'?(o.address.city||''):(o.address||'').toString().substring(0,35))+'...</div>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-    + '<span class="chip chip-'+o.status+'">'+o.status.toUpperCase()+'</span>'
+    + '<span class="chip chip-'+(o.status||'')+'">'+((o.status||'').toUpperCase())+'</span>'
     + '<span style="font-weight:900;font-size:15px">&#8377;'+o.total.toLocaleString('en-IN')+'</span>'
     + '</div>'
     + '</div>'
@@ -3565,7 +3656,9 @@ function renderSelAddProduct(el) {
     + '</div>'
     + '</div>'
 
-    // Submit
+    // Image Upload
+    + '<div style="margin-bottom:20px">'    + '<label style="display:block;font-weight:600;margin-bottom:8px;font-size:14px">Product Image</label>'    + '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'    + '<div id="prodImgPreview" style="width:88px;height:88px;background:var(--bg4);border:2px dashed var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;flex-shrink:0;overflow:hidden">'    + (ep&&ep.image ? '<img src="'+ep.image+'" style="width:100%;height:100%;object-fit:cover">' : (ep&&ep.icon||'&#128247;'))    + '</div>'    + '<div style="flex:1;min-width:180px">'    + '<input type="file" id="selProdImageFile" accept="image/*" style="display:none" onchange="uploadProductImage(this)">'    + '<button type="button" class="btn-ghost" style="width:100%;padding:10px;font-size:13px;margin-bottom:8px" onclick="document.getElementById(\'selProdImageFile\').click()">&#128247; Upload Photo</button>'    + '<select id="selProdIcon" onchange="var p=document.getElementById(\'prodImgPreview\');if(this.value){p.innerHTML=this.value;p.style.fontSize=\'2.6rem\';}" style="width:100%;padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">'    + '<option value="">-- Or pick emoji icon --</option>'    + ['&#128247;','&#128084;','&#128085;','&#128521;','&#128149;','&#9917;','&#127947;','&#128295;','&#127822;','&#128640;','&#127774;','&#128256;','&#127979;','&#128188;','&#127968;','&#128396;','&#127811;','&#128100;'].map(function(e){return '<option value="'+e+'"'+(ep&&ep.icon===e?' selected':'')+'>'+e+'</option>';}).join('')    + '</select>'    + '</div>'    + '</div>'    + '</div>'
+                // Submit
     + '<div style="display:flex;gap:12px">'
     + '<button class="btn-grad" style="padding:13px 28px;font-size:14px;border-radius:8px" onclick="saveSellerProduct()">'+(isEdit?'Save Changes &#10003;':'List Product &#8594;')+'</button>'
     + (isEdit ? '' : '<button class="btn-ghost" style="padding:12px 20px;font-size:14px;border-radius:8px" onclick="switchSelTab(\'products\')">Cancel</button>')
@@ -3587,7 +3680,10 @@ function saveSellerProduct() {
   var orig    = parseInt((document.getElementById('np_orig')||{value:'0'}).value)||0;
   var stock   = parseInt((document.getElementById('np_stock')||{value:'0'}).value)||0;
   var cat     = (document.getElementById('np_cat')||{value:'fashion'}).value;
-  var icon    = (document.getElementById('np_icon')||{value:'&#128230;'}).value || '&#128230;';
+  var iconEl  = document.getElementById('selProdIcon');
+  var icon    = (iconEl && iconEl.value) ? iconEl.value : ((document.getElementById('np_icon')||{value:'&#128230;'}).value || '&#128230;');
+  var imgPrev = document.getElementById('prodImgPreview');
+  var image   = (imgPrev && imgPrev.dataset.s3Url) ? imgPrev.dataset.s3Url : '';
   var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
   var sizesRaw= (document.getElementById('np_sizes')||{value:''}).value;
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
@@ -3595,46 +3691,52 @@ function saveSellerProduct() {
   var listed  = (document.getElementById('np_listed')||{checked:true}).checked;
   var sizes   = sizesRaw.split(',').map(function(s){return s.trim();}).filter(Boolean);
 
-  if (!name)  { showToast('Product name is required','error'); document.getElementById('np_name').classList.add('error'); return; }
-  if (!brand) { showToast('Brand is required','error'); document.getElementById('np_brand').classList.add('error'); return; }
-  if (!price || price <= 0) { showToast('Please enter a valid selling price','error'); return; }
-  if (!orig  || orig  <= 0) { showToast('Please enter a valid MRP','error'); return; }
+  if (!name)  { showToast('Product name is required','error'); return; }
+  if (!brand) { showToast('Brand is required','error'); return; }
+  if (!price || price <= 0) { showToast('Enter a valid selling price','error'); return; }
+  if (!orig  || orig  <= 0) { showToast('Enter a valid MRP','error'); return; }
   if (price >= orig)        { showToast('Selling price must be less than MRP','error'); return; }
-  if (stock <= 0)           { showToast('Please enter valid stock quantity','error'); return; }
+  if (stock <= 0)           { showToast('Enter valid stock quantity','error'); return; }
 
-  if (sellerEditProductId) {
-    // Update existing
-    var existing = PRODUCTS[sellerEditProductId]
-      || (SELLER_OWN_PRODUCTS[currentUser.id]||[]).find(function(p){return p.id===sellerEditProductId;})
-      || (SELLER_PRODUCTS_DB[currentUser.id]||[]).find(function(p){return p.id===sellerEditProductId;});
-    if (existing) {
-      existing.name = name; existing.brand = brand; existing.price = price;
-      existing.orig = orig; existing.stock = stock; existing.cat = cat;
-      existing.icon = icon; existing.description = desc; existing.sizes = sizes;
-      existing.badge = badge; existing.eco = eco; existing.listed = listed;
-      showToast('&#10003; "'+name+'" updated successfully!', 'success');
+  var token = localStorage.getItem('hb_token');
+  var method = sellerEditProductId ? 'PUT' : 'POST';
+  var url    = sellerEditProductId ? '/api/products/' + sellerEditProductId : '/api/products';
+
+  var body = {
+    name: name, brand: brand, category: cat,
+    price: price, originalPrice: orig, stock: stock,
+    icon: icon, image: image, description: desc,
+    sizes: sizes, badge: badge, eco: eco, listed: listed,
+    sellerId: currentUser.id
+  };
+
+  var btn = document.querySelector('#selTabContent .btn-grad');
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+
+  fetch(url, {
+    method: method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(body)
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res){
+    if (btn) { btn.innerHTML = 'List Product &#8594;'; btn.disabled = false; }
+    if (!res.ok) { showToast(res.data.error || 'Failed to save product', 'error'); return; }
+    // Also add to local PRODUCTS so it shows immediately
+    var p = res.data.product;
+    if (p) {
+      p.orig = p.originalPrice || p.price;
+      p.cat  = p.category;
+      PRODUCTS[p.id] = p;
     }
     sellerEditProductId = null;
+    showToast('&#127881; "' + name + '" listed successfully!', 'success');
     switchSelTab('products');
-  } else {
-    // Create new
-    var newProd = {
-      id: 'sp_'+Date.now(),
-      name: name, brand: brand, cat: cat,
-      price: price, orig: orig, stock: stock,
-      icon: icon, rating: 0, reviews: 0,
-      eco: eco, badge: badge,
-      sizes: sizes, inStock: true,
-      sellerId: currentUser.id,
-      description: desc,
-      listed: listed
-    };
-    if (!SELLER_PRODUCTS_DB[currentUser.id]) SELLER_PRODUCTS_DB[currentUser.id] = [];
-    SELLER_PRODUCTS_DB[currentUser.id].push(newProd);
-    if (listed) PRODUCTS[newProd.id] = newProd;  // make visible in shop too
-    showToast('&#127881; "'+name+'" listed successfully!', 'success');
-    switchSelTab('products');
-  }
+  })
+  .catch(function(err){
+    if (btn) { btn.innerHTML = 'List Product &#8594;'; btn.disabled = false; }
+    showToast('Could not save product: ' + err.message, 'error');
+  });
 }
 
 // ── PAYOUTS TAB ──────────────────────────────────────────────────
@@ -3795,8 +3897,7 @@ function adminStat(icon, val, label, color) {
 
 function computeAdminStats() {
   var allUsers    = Object.values(Object.assign({}, DEMO_USERS, registeredUsers));
-  var allProducts = Object.values(PRODUCTS);
-  var totalRev    = ORDERS_DB.filter(function(o) { return o.status !== 'cancelled'; })
+    var totalRev    = ORDERS_DB.filter(function(o) { return o.status !== 'cancelled'; })
                              .reduce(function(s, o) { return s + o.total; }, 0);
   return {
     totalOrders:     ORDERS_DB.length,
@@ -6100,14 +6201,43 @@ initNotifications();
 // ── Restore session from API token ────────────────────────────────
 (function() {
   var savedSession = localStorage.getItem('hb_session');
-  var token        = localStorage.getItem('hb_token');
+  var token        = localStorage.getItem('hb_token') || localStorage.getItem('token');
   if (savedSession && !currentUser) {
     try {
       var u = JSON.parse(savedSession);
       if (u && u.id) { currentUser = u; }
     } catch(_) {}
   }
+  // If token exists but no session, restore from API
+  if (token && !currentUser) {
+    fetch('/api/auth/me', {headers:{'Authorization':'Bearer '+token}})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.user) {
+        currentUser = d.user;
+        localStorage.setItem('hb_session', JSON.stringify(d.user));
+        try { updateHeaderAuth(); } catch(e) {}
+        try { renderNav(); } catch(e) {}
+      }
+    }).catch(function(){});
+  }
   if (token && window.api) { window.api.token = token; }
+  // Navigate to target page after login redirect
+  var afterLogin = localStorage.getItem('hb_after_login');
+  if (afterLogin) {
+    localStorage.removeItem('hb_after_login');
+    // Wait for session restore to complete before navigating
+    var navAttempts = 0;
+    var navInterval = setInterval(function() {
+      navAttempts++;
+      if (currentUser || navAttempts > 20) {
+        clearInterval(navInterval);
+        if (currentUser) {
+          try { showPage(afterLogin); } catch(e) {}
+        }
+      }
+    }, 100);
+  }
 })();
 
 
@@ -6115,38 +6245,122 @@ initNotifications();
 
 
 
-// ── Service Worker ──
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-      console.log('[PWA] SW registered:', reg.scope);
-    }).catch(function(err) {
-      console.warn('[PWA] SW failed:', err.message);
-    });
+// Service Worker disabled — prevents caching issues
+
+
+
+
+
+
+
+// SW disabled
+
+
+
+
+// SW disabled
+
+
+
+
+
+
+// SW disabled
+
+
+
+
+// SW disabled
+
+
+function renderPayoutsTab(p) {
+  p = p || {};
+  var net     = p.netPayout     || p.net_payout    || 0;
+  var paid    = p.paidOut       || p.paid_out       || 0;
+  var pending = p.pending       || p.pending_payout || 0;
+  return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:28px">'
+    + '<h4 style="font-weight:700;font-size:16px;margin-bottom:20px">&#128184; Payout Summary</h4>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">'
+    + '<div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">'
+    + '<div style="font-size:22px;font-weight:900;color:var(--green)">&#8377;'+net.toLocaleString('en-IN')+'</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-top:4px">Net Payout (90%)</div></div>'
+    + '<div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">'
+    + '<div style="font-size:22px;font-weight:900;color:var(--blue)">&#8377;'+paid.toLocaleString('en-IN')+'</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-top:4px">Paid Out</div></div>'
+    + '<div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">'
+    + '<div style="font-size:22px;font-weight:900;color:var(--yellow)">&#8377;'+pending.toLocaleString('en-IN')+'</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-top:4px">Pending</div></div>'
+    + '</div>'
+    + '<div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:18px">'
+    + '<h5 style="font-weight:700;margin-bottom:14px">Bank Account</h5>'
+    + '<div style="color:var(--text3);font-size:13px">No bank account linked yet.</div>'
+    + '<button class="btn-ghost" style="margin-top:12px;padding:10px 20px;font-size:13px" onclick="showToast(\'Bank linking coming soon\',\'info\')">&#10133; Add Bank Account</button>'
+    + '</div>'
+    + '<p style="font-size:12px;color:var(--text3);margin-top:16px">Payouts are processed every Monday. Commission: 10% per sale.</p>'
+    + '</div>';
+}
+
+function uploadProductImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
+  var preview = document.getElementById('prodImgPreview');
+  // Show local preview immediately
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    if (preview) {
+      preview.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
+      preview.dataset.imageData = e.target.result;
+    }
+  };
+  reader.readAsDataURL(file);
+  // Try uploading to server
+  var formData = new FormData();
+  formData.append('image', file);
+  var token = localStorage.getItem('hb_token');
+  fetch('/api/upload', {
+    method: 'POST',
+    headers: token ? {'Authorization': 'Bearer ' + token} : {},
+    body: formData
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.url) {
+      if (preview) preview.dataset.imageUrl = d.url;
+      showToast('Image uploaded!', 'success');
+    }
+  })
+  .catch(function(){
+    // Keep local preview, image stored as base64
+    showToast('Image saved locally', 'info');
   });
 }
 
-
-
-
-
-
-
-// ── Service Worker ──
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-      console.log('[PWA] SW registered:', reg.scope);
-    }).catch(function(err) {
-      console.warn('[PWA] SW failed:', err.message);
-    });
+// Global grid update function callable from app.js
+window.updateProductGrids = function() {
+  var allP = Object.values(PRODUCTS);
+  allP.sort(function(a,b){
+    var aNew = a.id && a.id.indexOf('p_')===0 ? 1 : 0;
+    var bNew = b.id && b.id.indexOf('p_')===0 ? 1 : 0;
+    if (bNew !== aNew) return bNew - aNew;
+    return (b.reviews||0) - (a.reviews||0);
   });
-}
-
+  var trendGrid = document.getElementById('trendGridEl');
+  if (trendGrid) trendGrid.innerHTML = allP.slice(0,12).map(makeCard).join('');
+  var fashGrid = document.getElementById('fashionScrollEl');
+  if (fashGrid) fashGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='fashion';}).map(makeCard).join('');
+  var elecGrid = document.getElementById('electronicsScrollEl');
+  if (elecGrid) elecGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='electronics';}).map(makeCard).join('');
+  var handGrid = document.getElementById('handmadeScrollEl');
+  if (handGrid) handGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='handmade';}).map(makeCard).join('');
+};
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
 <script src="/js/payments.js"></script>
-<script src="/js/pwa.js"></script>
+<!-- pwa.js disabled -->
+
 </body>
-</html>
+</html
+
+<script>>
