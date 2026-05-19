@@ -1,6 +1,9 @@
+/**
+ * HUBOOZE — MongoDB Connection via Mongoose
+ */
 const mongoose = require('mongoose');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Lucky:ddoHwXYNG1TRW9Z5@atlascluster.mjgrzvm.mongodb.net/hubooze?retryWrites=true&w=majority&appName=AtlasCluster';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Lucky:Hubooze@atlascluster.mjgrzvm.mongodb.net/hubooze?retryWrites=true&w=majority&appName=AtlasCluster';
 
 let isConnected = false;
 

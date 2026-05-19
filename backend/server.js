@@ -11,7 +11,6 @@ const app = express();
 // Trust proxy — required for nginx/AWS
 app.set('trust proxy', 1);
 
-// Allow all origins — frontend and backend on same server
 app.use(cors({ origin: '*', credentials: false }));
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -37,13 +36,15 @@ app.use('/api/upload',        require('./routes/upload'));
 
 // Health check
 app.get('/api/health', (req, res) => {
+  const dba = require('./dbAdapter');
   const { DB } = require('./db');
   res.json({
-    status:  'ok',
-    version: '1.0.0',
-    env:     process.env.NODE_ENV || 'development',
-    uptime:  Math.floor(process.uptime()) + 's',
-    counts:  { users: DB.users.length, products: DB.products.length, orders: DB.orders.length },
+    status:   'ok',
+    version:  '1.0.0',
+    env:      process.env.NODE_ENV || 'development',
+    uptime:   Math.floor(process.uptime()) + 's',
+    db:       dba.useMongo() ? 'mongodb' : 'in-memory',
+    counts:   { users: DB.users.length, products: DB.products.length, orders: DB.orders.length },
   });
 });
 
@@ -66,16 +67,19 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = parseInt(process.env.PORT) || 3000;
-app.listen(PORT, () => {
-  console.log(`
+
+// Connect MongoDB then start server
+const dba = require('./dbAdapter');
+dba.init().then(() => {
+  app.listen(PORT, () => {
+    console.log(`
 ╔══════════════════════════════════════════╗
 ║       🛒  HUBOOZE API SERVER v1.0        ║
 ╠══════════════════════════════════════════╣
 ║  http://localhost:${PORT}                   ║
-║  priya@demo.com    / demo123 (customer)  ║
-║  amit@demo.com     / demo123 (seller)    ║
-║  admin@hubooze.in  / admin123 (admin)    ║
+║  DB: ${dba.useMongo() ? 'MongoDB Atlas ✅        ' : 'In-Memory ⚠️          '}           ║
 ╚══════════════════════════════════════════╝`);
+  });
 });
 
 module.exports = app;
