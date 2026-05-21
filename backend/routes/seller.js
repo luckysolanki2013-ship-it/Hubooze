@@ -163,6 +163,8 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
       }
     });
 
+    console.log('Brand docs save result:', JSON.stringify(await dba.findUser({id: req.user.id})));
+    console.log('Brand docs save result:', JSON.stringify(await dba.findUser({id: req.user.id})));
     res.json({
       message: 'Brand documents submitted for review! We will verify within 2-3 business days.',
       documents: uploads,
