@@ -413,6 +413,14 @@ function renderAdminSettings(el, promo, headers) {
     + '<h4 style="font-weight:700;margin-bottom:6px">🏦 Seller Bank Details</h4>'
     + '<button onclick="adminViewSellerBanks()" class="btn-ghost" style="padding:9px 18px;font-size:13px">📊 View All Seller Banks</button>'
     + '</div>'
+    
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
+    + '<h4 style="font-weight:700;margin-bottom:14px">🎨 Theme</h4>'
+    + '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
+    + '<button onclick="setTheme(\'dark\')" style="padding:10px 24px;border-radius:10px;border:2px solid var(--border2);background:#0a0a0a;color:#fff;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600">🌙 Dark Mode</button>'
+    + '<button onclick="setTheme(\'light\')" style="padding:10px 24px;border-radius:10px;border:2px solid var(--border2);background:#fff;color:#111;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600">☀️ Light Mode</button>'
+    + '<span id="currentThemeLabel" style="font-size:13px;color:var(--text3)">Current: Dark</span>'
+    + '</div></div>'
     + '</div>';
 
   // Attach hero banner upload
@@ -877,3 +885,17 @@ document.addEventListener('click', function(e) {
 });
 
 console.log('✅ admin.js loaded');
+
+function setTheme(theme) {
+  var root = document.documentElement;
+  if (theme === 'light') {
+    root.setAttribute('data-theme', 'light');
+    localStorage.setItem('hb_theme', 'light');
+  } else {
+    root.removeAttribute('data-theme');
+    localStorage.setItem('hb_theme', 'dark');
+  }
+  var label = document.getElementById('currentThemeLabel');
+  if (label) label.textContent = 'Current: ' + (theme === 'light' ? 'Light ☀️' : 'Dark 🌙');
+  showToast('Theme changed to ' + theme + ' mode!', 'success');
+}
