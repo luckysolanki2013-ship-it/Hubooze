@@ -41,7 +41,8 @@ async function createUser(data) {
 
 async function updateUser(id, update) {
   if (useMongo) {
-    return await Models.User.findOneAndUpdate({id}, {$set: update}, {new:true}).lean();
+    const query = String(id).length === 24 ? {_id: id} : {id: id};
+    return await Models.User.findOneAndUpdate(query, {$set: update}, {new:true}).lean();
   }
   const idx = DB.users.findIndex(u => u.id === id);
   if (idx >= 0) { Object.assign(DB.users[idx], update); return DB.users[idx]; }

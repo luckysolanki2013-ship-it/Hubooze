@@ -153,7 +153,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
     }
 
     // Save to user record
-    await dba.updateUser(req.user.id, {
+    await dba.updateUser(req.user.id || req.user._id, {
       brandDocuments: {
         trademark:     uploads.trademark     || null,
         authorization: uploads.authorization || null,
@@ -175,7 +175,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
 // ── GET BRAND STATUS ──────────────────────────────────────────────
 router.get('/brand/status', protect, requireSeller, async (req, res) => {
   try {
-    const user = await dba.findUser({ id: req.user.id });
+    const user = await dba.findUser({ id: req.user.id }) || await dba.findUser({ id: req.user._id?.toString() });
     res.json({
       brandDocuments: user?.brandDocuments || null,
       approved: user?.brandApproved || false,
