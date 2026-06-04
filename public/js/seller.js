@@ -561,6 +561,13 @@ async function renderBrandApproval(el) {
     + '<h4 style="font-weight:700;margin-bottom:6px">🏪 Brand Approval</h4>'
     + '<p style="color:var(--text3);font-size:13px;margin-bottom:16px">Submit brand documents for verification. Approved brands get a verified badge.</p>'
     + statusBanner + docStatusHtml
+    + '<div style="display:grid;gap:14px;margin-bottom:16px">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">GST Number</label>'
+    + '<input id="seller_gst" placeholder="e.g. 22AAAAA0000A1Z5" value="'+(docs.gstNumber||'')+'" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;font-size:13px"></div>'
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">PAN Number</label>'
+    + '<input id="seller_pan" placeholder="e.g. AAAAA0000A" value="'+(docs.panNumber||'')+'" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;font-size:13px"></div>'
+    + '</div></div>'
     + '<div style="display:grid;gap:14px" id="brandDocRows">'
     + brandDocRow('trademark',     '®',  'Trademark Certificate',     'PDF/JPG - Official trademark registration')
     + brandDocRow('authorization', '📄', 'Brand Authorization Letter', 'PDF/JPG - Letter authorizing you to sell')
@@ -601,7 +608,11 @@ async function submitBrandDocs() {
       hasFile = true;
     }
   });
-  if (!hasFile) { showToast('Please select at least one document','error'); return; }
+  var gst = (document.getElementById('seller_gst')||{value:''}).value.trim().toUpperCase();
+  var pan = (document.getElementById('seller_pan')||{value:''}).value.trim().toUpperCase();
+  if (gst) formData.append('gstNumber', gst);
+  if (pan) formData.append('panNumber', pan);
+  if (!hasFile && !gst && !pan) { showToast('Please fill GST/PAN or upload at least one document','error'); return; }
   var btn = document.getElementById('brandSubmitBtn');
   if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
   showToast('Uploading documents...','info');

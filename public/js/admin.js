@@ -281,6 +281,8 @@ function adminSellerRow(s) {
           + (docs.authorization ? '<a href="'+docs.authorization+'" target="_blank" style="padding:5px 10px;background:var(--bg3);border:1px solid var(--green);border-radius:6px;color:var(--green);font-size:12px;text-decoration:none">✅ Auth Letter</a>' : '<span style="padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:12px">❌ Auth Letter</span>')
           + (docs.invoice ? '<a href="'+docs.invoice+'" target="_blank" style="padding:5px 10px;background:var(--bg3);border:1px solid var(--green);border-radius:6px;color:var(--green);font-size:12px;text-decoration:none">✅ Invoice</a>' : '<span style="padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:12px">❌ Invoice</span>')
           + '</div>'
+          + (docs.gstNumber ? '<div style="font-size:12px;margin-top:8px">🏛️ <strong>GST:</strong> '+docs.gstNumber+'</div>' : '')
+          + (docs.panNumber ? '<div style="font-size:12px;margin-top:4px">🪪 <strong>PAN:</strong> '+docs.panNumber+'</div>' : '')
         : '<div style="font-size:12px;color:var(--text3);margin-bottom:12px">No documents submitted yet</div>')
     + '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
     + '<div style="display:flex;align-items:center;gap:6px;background:var(--bg3);padding:6px 10px;border-radius:8px">'

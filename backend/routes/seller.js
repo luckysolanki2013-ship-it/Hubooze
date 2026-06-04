@@ -147,7 +147,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
       await client.send(new PutObjectCommand({
         Bucket: bucket, Key: key,
         Body: file.buffer, ContentType: file.mimetype,
-        ACL: 'private', // documents are private
+        ACL: 'public-read',
       }));
       uploads[field] = `https://${bucket}.s3.${process.env.AWS_REGION||'eu-north-1'}.amazonaws.com/${key}`;
     }
@@ -158,6 +158,8 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
         trademark:     uploads.trademark     || null,
         authorization: uploads.authorization || null,
         invoice:       uploads.invoice       || null,
+        gstNumber:     req.body.gstNumber    || null,
+        panNumber:     req.body.panNumber    || null,
         submittedAt:   new Date().toISOString(),
         status:        'pending_review',
       }
