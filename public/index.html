@@ -1404,6 +1404,10 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
           </div>
 
           <!-- Customer Login Form -->
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button onclick="showLoginMethod('password')" id="loginMethodPassword" style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--green);background:var(--green);color:#000;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700">🔑 Password</button>
+            <button onclick="showLoginMethod('otp')" id="loginMethodOtp" style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">📧 Email OTP</button>
+          </div>
           <div id="cLoginForm">
             <div class="form-field"><label class="form-label">Email Address</label>
               <input class="form-input portal-input" id="loginEmail" type="email" placeholder="your&#64;email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -1411,7 +1415,23 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
               <input class="form-input portal-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
             <button class="btn-grad portal-submit" onclick="doLogin()">Login to My Account &#8594;</button>
             <div class="portal-divider"><span>or try demo</span></div>
-            <button class="portal-demo-btn" onclick="quickLogin('customer')">&#128722; Login as Demo Customer</button>
+            <button class="portal-demo-btn" onclick="quickLogin('customer')">&#128722; Login as </button>
+          </div>
+          <!-- OTP Login Form -->
+          <div id="cOtpForm" style="display:none">
+            <div class="form-field">
+              <label class="form-label">Email Address</label>
+              <input class="form-input portal-input" id="otpEmail" type="email" placeholder="your@email.com">
+            </div>
+            <div id="otpStep2" style="display:none">
+              <div class="form-field" style="margin-top:12px">
+                <label class="form-label">Enter 6-digit OTP sent to your email</label>
+                <input class="form-input portal-input" id="otpCode" type="text" maxlength="6" placeholder="123456" style="letter-spacing:8px;font-size:20px;text-align:center">
+              </div>
+              <div id="otpTimer" style="font-size:12px;color:var(--text3);text-align:center;margin-top:8px"></div>
+            </div>
+            <button id="otpSendBtn" onclick="sendOTP()" class="btn-grad" style="width:100%;padding:14px;font-size:15px;margin-top:16px">Send OTP</button>
+            <button id="otpVerifyBtn" onclick="verifyOTP()" class="btn-grad" style="width:100%;padding:14px;font-size:15px;margin-top:16px;display:none">Verify &amp; Login</button>
           </div>
 
           <!-- Customer Register Form -->
@@ -1464,7 +1484,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
               <input class="form-input portal-input" id="sLoginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSellerLogin()"></div>
             <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="doSellerLogin()">Login to Seller Dashboard &#8594;</button>
             <div class="portal-divider"><span>or try demo</span></div>
-            <button class="portal-demo-btn" style="border-color:rgba(0,161,255,.3);color:var(--blue)" onclick="quickLogin('seller')">&#129489; Login as Demo Seller</button>
+            <button class="portal-demo-btn" style="border-color:rgba(0,161,255,.3);color:var(--blue)" onclick="quickLogin('seller')">&#129489; Login as </button>
           </div>
 
           <!-- Seller Register Form -->
@@ -2682,8 +2702,8 @@ updateCartBadge(false);
 //  AUTH / USER SYSTEM
 // ════════════════════════════════════════════════════════════════
 var DEMO_USERS = {
-  'priya@demo.com': {id:'u1', name:'Priya Sharma', email:'priya@demo.com', phone:'9999999999', city:'Indore', password:'demo123', role:'customer'},
-  'amit@demo.com':  {id:'u2', name:'Amit Kumar',   email:'amit@demo.com',  phone:'8888888888', city:'Pithampur', password:'demo123', role:'seller', businessName:'AK Textiles'},
+  '': {id:'u1', name:'Priya Sharma', email:'', phone:'9999999999', city:'Indore', password:'', role:'customer'},
+  '':  {id:'u2', name:'Amit Kumar',   email:'',  phone:'8888888888', city:'Pithampur', password:'', role:'seller', businessName:'AK Textiles'},
   'admin@hubooze.in':{id:'u3',name:'Admin User',   email:'admin@hubooze.in',phone:'7777777777',city:'Indore', password:'admin123', role:'admin'}
 };
 
@@ -2802,7 +2822,7 @@ function updateHeaderAuth() {
 }
 
 function fillDemo(type) {
-  var map = {customer:{e:'priya@demo.com',p:'demo123'}, seller:{e:'amit@demo.com',p:'demo123'}, admin:{e:'admin@hubooze.in',p:'admin123'}};
+  var map = {customer:{e:'',p:''}, seller:{e:'',p:''}, admin:{e:'admin@hubooze.in',p:'admin123'}};
   var d = map[type]; if (!d) return;
   var ei = document.getElementById('loginEmail'); if(ei) ei.value = d.e;
   var pi = document.getElementById('loginPass');  if(pi) pi.value = d.p;
@@ -2887,8 +2907,8 @@ function switchPortalTab(portal, tab) {
 // Quick demo login — one click auto-login
 function quickLogin(type) {
   var map = {
-    customer:{email:'priya@demo.com',password:'demo123'},
-    seller:{email:'amit@demo.com',password:'demo123'},
+    customer:{email:'',password:''},
+    seller:{email:'',password:''},
     admin:{email:'admin@hubooze.in',password:'admin123'}
   };
   var c = map[type]; if (!c) return;
@@ -3466,7 +3486,7 @@ function renderSellerPage() {
     el.innerHTML = sellerGate(
       '&#129489;',
       'Seller Account Required',
-      'Your account role is <strong>' + currentUser.role + '</strong>. Register a new account with "Register as Seller" checked, or use:<br><br><code style="background:var(--bg4);padding:4px 8px;border-radius:4px;font-size:12px">amit@demo.com / demo123</code>',
+      'Your account role is <strong>' + currentUser.role + '</strong>. Register a new account with "Register as Seller" checked, or use:<br><br><code style="background:var(--bg4);padding:4px 8px;border-radius:4px;font-size:12px"> / </code>',
       'Switch Account',
       "showPage('account')"
     );
