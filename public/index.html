@@ -1451,7 +1451,16 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
                 <input class="form-input" id="regCity" placeholder="Indore"></div>
             </div>
             <input type="hidden" id="regIsSeller" value="false">
-            <button class="btn-grad portal-submit" onclick="doRegister()">Create Customer Account &#8594;</button>
+            <div id="regOtpSection" style="display:none;margin-top:12px">
+              <div class="form-field">
+                <label class="form-label">Enter OTP sent to your email</label>
+                <input class="form-input" id="regOtpCode" type="text" maxlength="6" placeholder="123456" style="letter-spacing:6px;font-size:20px;text-align:center">
+                <div id="regOtpTimer" style="font-size:12px;color:var(--text3);text-align:center;margin-top:6px"></div>
+              </div>
+              <button class="btn-grad portal-submit" onclick="verifyRegisterOTP()">Verify &amp; Create Account &#8594;</button>
+              <button onclick="sendRegisterOTP()" style="width:100%;padding:10px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-top:6px">Resend OTP</button>
+            </div>
+            <button class="btn-grad portal-submit" id="regSendOtpBtn" onclick="sendRegisterOTP()">Send OTP to Verify &#8594;</button>
           </div>
         </div>
       </div>
@@ -6631,6 +6640,172 @@ function applyAnnouncement() {
 document.addEventListener('DOMContentLoaded', function() {
   loadSiteConfig();
 });
+
+function showLoginMethod(method) {
+  var passForm = document.getElementById('cLoginForm');
+  var otpForm  = document.getElementById('cOtpForm');
+  var passBtn  = document.getElementById('loginMethodPassword');
+  var otpBtn   = document.getElementById('loginMethodOtp');
+  if (method === 'otp') {
+    if (passForm) passForm.style.display = 'none';
+    if (otpForm)  otpForm.style.display  = 'block';
+    if (passBtn)  { passBtn.style.background='var(--bg3)'; passBtn.style.color='var(--text)'; passBtn.style.border='2px solid var(--border2)'; passBtn.style.fontWeight='400'; }
+    if (otpBtn)   { otpBtn.style.background='var(--green)'; otpBtn.style.color='#000'; otpBtn.style.border='2px solid var(--green)'; otpBtn.style.fontWeight='700'; }
+  } else {
+    if (passForm) passForm.style.display = 'block';
+    if (otpForm)  otpForm.style.display  = 'none';
+    if (passBtn)  { passBtn.style.background='var(--green)'; passBtn.style.color='#000'; passBtn.style.border='2px solid var(--green)'; passBtn.style.fontWeight='700'; }
+    if (otpBtn)   { otpBtn.style.background='var(--bg3)'; otpBtn.style.color='var(--text)'; otpBtn.style.border='2px solid var(--border2)'; otpBtn.style.fontWeight='400'; }
+  }
+}
+
+async function sendOTP() {
+  var email = (document.getElementById('otpEmail')||{value:''}).value.trim();
+  if (!email || !email.includes('@')) { showToast('Enter a valid email address','error'); return; }
+  var btn = document.getElementById('otpSendBtn');
+  if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
+  try {
+    var r = await fetch('/api/otp/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+    var d = await r.json();
+    if (d.success) {
+      showToast('OTP sent to ' + email + '! Check your inbox.','success');
+      var step2 = document.getElementById('otpStep2');
+      if (step2) step2.style.display = 'block';
+      if (btn) { btn.textContent = 'Resend OTP'; btn.disabled = false; }
+      var verifyBtn = document.getElementById('otpVerifyBtn');
+      if (verifyBtn) verifyBtn.style.display = 'block';
+      var timer = document.getElementById('otpTimer');
+      var seconds = 600;
+      var interval = setInterval(function() {
+        seconds--;
+        var m = Math.floor(seconds/60); var s = seconds%60;
+        if (timer) timer.textContent = 'OTP expires in '+m+':'+(s<10?'0':'')+s;
+        if (seconds<=0) { clearInterval(interval); if(timer) timer.textContent='OTP expired. Please resend.'; }
+      }, 1000);
+    } else {
+      showToast(d.error||'Failed to send OTP','error');
+      if (btn) { btn.textContent = 'Send OTP'; btn.disabled = false; }
+    }
+  } catch(e) { showToast('Error: '+e.message,'error'); if(btn){btn.textContent='Send OTP';btn.disabled=false;} }
+}
+
+async function verifyOTP() {
+  var email = (document.getElementById('otpEmail')||{value:''}).value.trim();
+  var otp   = (document.getElementById('otpCode')||{value:''}).value.trim();
+  if (!otp || otp.length < 6) { showToast('Enter the 6-digit OTP','error'); return; }
+  var btn = document.getElementById('otpVerifyBtn');
+  if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
+  try {
+    var r = await fetch('/api/otp/verify', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,otp:otp})});
+    var d = await r.json();
+    if (d.success && d.token) {
+      localStorage.setItem('hb_token', d.token);
+      currentUser = d.user;
+      hideLoginOverlay();
+      showToast('Welcome '+d.user.name+'!','success');
+      if (d.user.role==='seller') showPage('seller');
+      else if (d.user.role==='admin') showPage('admin');
+      else showPage('home');
+    } else {
+      showToast(d.error||'Invalid OTP','error');
+      if (btn) { btn.textContent = 'Verify & Login'; btn.disabled = false; }
+    }
+  } catch(e) { showToast('Error: '+e.message,'error'); if(btn){btn.textContent='Verify & Login';btn.disabled=false;} }
+}
+
+
+async function sendRegisterOTP() {
+  var email = (document.getElementById('regEmail')||{value:''}).value.trim();
+  var name  = (document.getElementById('regName')||{value:''}).value.trim();
+  var pass  = (document.getElementById('regPass')||{value:''}).value.trim();
+  if (!name)  { showToast('Full name is required','error'); return; }
+  if (!email || !email.includes('@')) { showToast('Valid email required','error'); return; }
+  if (!pass || pass.length < 6) { showToast('Password must be at least 6 characters','error'); return; }
+
+  var btn = document.getElementById('regSendOtpBtn');
+  if (btn) { btn.textContent = 'Sending OTP...'; btn.disabled = true; }
+
+  try {
+    var r = await fetch('/api/otp/send', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email: email})
+    });
+    var d = await r.json();
+    if (d.success) {
+      showToast('OTP sent to ' + email + '! Check inbox.','success');
+      var otpSection = document.getElementById('regOtpSection');
+      if (otpSection) otpSection.style.display = 'block';
+      if (btn) btn.style.display = 'none';
+      // Countdown
+      var timer = document.getElementById('regOtpTimer');
+      var seconds = 600;
+      var interval = setInterval(function() {
+        seconds--;
+        var m = Math.floor(seconds/60); var s = seconds%60;
+        if (timer) timer.textContent = 'OTP expires in '+m+':'+(s<10?'0':'')+s;
+        if (seconds<=0) { clearInterval(interval); if(timer) timer.textContent='OTP expired. Please resend.'; }
+      }, 1000);
+    } else {
+      showToast(d.error||'Failed to send OTP','error');
+      if (btn) { btn.textContent = 'Send OTP to Verify →'; btn.disabled = false; }
+    }
+  } catch(e) {
+    showToast('Error: '+e.message,'error');
+    if (btn) { btn.textContent = 'Send OTP to Verify →'; btn.disabled = false; }
+  }
+}
+
+async function verifyRegisterOTP() {
+  var email = (document.getElementById('regEmail')||{value:''}).value.trim();
+  var otp   = (document.getElementById('regOtpCode')||{value:''}).value.trim();
+  var name  = (document.getElementById('regName')||{value:''}).value.trim();
+  var pass  = (document.getElementById('regPass')||{value:''}).value.trim();
+  var phone = (document.getElementById('regPhone')||{value:''}).value.trim();
+  var city  = (document.getElementById('regCity')||{value:''}).value.trim();
+
+  if (!otp || otp.length < 6) { showToast('Enter the 6-digit OTP','error'); return; }
+
+  try {
+    // First verify OTP
+    var r = await fetch('/api/otp/verify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email: email, otp: otp, name: name, role: 'customer'})
+    });
+    var d = await r.json();
+    if (d.success && d.token) {
+      // OTP verified - now register with password
+      var r2 = await fetch('/api/auth/register', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name, email, password: pass, phone, city, role:'customer', verified: true})
+      });
+      var d2 = await r2.json();
+      if (d2.token) {
+        localStorage.setItem('hb_token', d2.token);
+        currentUser = d2.user;
+        hideLoginOverlay();
+        showToast('Welcome to Hubooze, '+name+'! 🎉','success');
+        showPage('home');
+      } else if (d2.error && d2.error.includes('exists')) {
+        // User already exists - just login with the OTP token
+        localStorage.setItem('hb_token', d.token);
+        currentUser = d.user;
+        hideLoginOverlay();
+        showToast('Welcome back, '+d.user.name+'!','success');
+        showPage('home');
+      } else {
+        showToast(d2.error||'Registration failed','error');
+      }
+    } else {
+      showToast(d.error||'Invalid OTP','error');
+    }
+  } catch(e) {
+    showToast('Error: '+e.message,'error');
+  }
+}
+
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
