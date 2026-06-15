@@ -23,7 +23,7 @@ router.post('/send', async (req, res) => {
     otpStore.set(email.toLowerCase(), { otp, expiresAt, attempts: 0 });
 
     await resend.emails.send({
-      from: 'Hubooze <onboarding@resend.dev>',
+      from: 'Hubooze <noreply@hubooze.in>',
       to: email,
       subject: 'Your Hubooze Login OTP',
       html: `
