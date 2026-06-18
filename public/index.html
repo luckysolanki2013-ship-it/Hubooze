@@ -1517,7 +1517,16 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
             <div style="background:rgba(0,255,143,.06);border:1px solid rgba(0,255,143,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--green);margin-bottom:16px">
               &#127881; Free listing &bull; Zero commission for 3 months &bull; Weekly payouts
             </div>
-            <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="doSellerRegister()">Create Seller Account &#8594;</button>
+            <div id="sRegOtpSection" style="display:none;margin-top:12px">
+              <div class="form-field">
+                <label class="form-label">Enter OTP sent to your email</label>
+                <input class="form-input" id="sRegOtpCode" type="text" maxlength="6" placeholder="123456" style="letter-spacing:6px;font-size:20px;text-align:center">
+                <div id="sRegOtpTimer" style="font-size:12px;color:var(--text3);text-align:center;margin-top:6px"></div>
+              </div>
+              <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="verifySellerRegisterOTP()">Verify &amp; Create Seller Account &#8594;</button>
+              <button onclick="sendSellerRegisterOTP()" style="width:100%;padding:10px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-top:6px">Resend OTP</button>
+            </div>
+            <button class="btn-grad portal-submit" id="sRegSendOtpBtn" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="sendSellerRegisterOTP()">Send OTP to Verify &#8594;</button>
           </div>
         </div>
       </div>
@@ -6804,6 +6813,77 @@ async function verifyRegisterOTP() {
   } catch(e) {
     showToast('Error: '+e.message,'error');
   }
+}
+
+
+async function sendSellerRegisterOTP() {
+  var email = (document.getElementById('sRegEmail')||{value:''}).value.trim();
+  var name  = (document.getElementById('sRegName')||{value:''}).value.trim();
+  var pass  = (document.getElementById('sRegPass')||{value:''}).value.trim();
+  var biz   = (document.getElementById('sRegBusiness')||{value:''}).value.trim();
+  if (!name)  { showToast('Your name is required','error'); return; }
+  if (!biz)   { showToast('Business name is required','error'); return; }
+  if (!email || !email.includes('@')) { showToast('Valid email required','error'); return; }
+  if (!pass || pass.length < 6) { showToast('Password must be at least 6 characters','error'); return; }
+  var btn = document.getElementById('sRegSendOtpBtn');
+  if (btn) { btn.textContent = 'Sending OTP...'; btn.disabled = true; }
+  try {
+    var r = await fetch('/api/otp/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+    var d = await r.json();
+    if (d.success) {
+      showToast('OTP sent to '+email+'! Check inbox.','success');
+      var otpSection = document.getElementById('sRegOtpSection');
+      if (otpSection) otpSection.style.display = 'block';
+      if (btn) btn.style.display = 'none';
+      var timer = document.getElementById('sRegOtpTimer');
+      var seconds = 600;
+      var interval = setInterval(function() {
+        seconds--;
+        var m = Math.floor(seconds/60); var s = seconds%60;
+        if (timer) timer.textContent = 'OTP expires in '+m+':'+(s<10?'0':'')+s;
+        if (seconds<=0) { clearInterval(interval); if(timer) timer.textContent='OTP expired. Please resend.'; }
+      }, 1000);
+    } else {
+      showToast(d.error||'Failed to send OTP','error');
+      if (btn) { btn.textContent = 'Send OTP to Verify →'; btn.disabled = false; }
+    }
+  } catch(e) { showToast('Error: '+e.message,'error'); if(btn){btn.textContent='Send OTP to Verify →';btn.disabled=false;} }
+}
+
+async function verifySellerRegisterOTP() {
+  var email = (document.getElementById('sRegEmail')||{value:''}).value.trim();
+  var otp   = (document.getElementById('sRegOtpCode')||{value:''}).value.trim();
+  var name  = (document.getElementById('sRegName')||{value:''}).value.trim();
+  var pass  = (document.getElementById('sRegPass')||{value:''}).value.trim();
+  var phone = (document.getElementById('sRegPhone')||{value:''}).value.trim();
+  var city  = (document.getElementById('sRegCity')||{value:''}).value.trim();
+  var biz   = (document.getElementById('sRegBusiness')||{value:''}).value.trim();
+  if (!otp || otp.length < 6) { showToast('Enter the 6-digit OTP','error'); return; }
+  try {
+    var r = await fetch('/api/otp/verify', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,otp:otp,name:name,role:'seller'})});
+    var d = await r.json();
+    if (d.success && d.token) {
+      var r2 = await fetch('/api/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass,phone,city,role:'seller',businessName:biz,verified:true})});
+      var d2 = await r2.json();
+      if (d2.token) {
+        localStorage.setItem('hb_token', d2.token);
+        currentUser = d2.user;
+        hideLoginOverlay();
+        showToast('Welcome to Hubooze, '+name+'! Start selling now 🎉','success');
+        showPage('seller');
+      } else if (d2.error && d2.error.includes('exists')) {
+        localStorage.setItem('hb_token', d.token);
+        currentUser = d.user;
+        hideLoginOverlay();
+        showToast('Welcome back, '+d.user.name+'!','success');
+        showPage('seller');
+      } else {
+        showToast(d2.error||'Registration failed','error');
+      }
+    } else {
+      showToast(d.error||'Invalid OTP','error');
+    }
+  } catch(e) { showToast('Error: '+e.message,'error'); }
 }
 
 </script>
