@@ -61,15 +61,28 @@ const orderSchema = new mongoose.Schema({
   subtotal:         Number,
   discount:         Number,
   couponDiscount:   Number,
+  couponCode:       String,
   deliveryFee:      Number,
+  giftWrap:         Number,
   total:            Number,
   status:           { type: String, default: 'processing' },
   paymentMethod:    String,
   paymentStatus:    String,
+  paymentId:        String,
+  paidAmount:       mongoose.Schema.Types.Mixed,
+  paidAt:           Date,
+  note:             String,
   estimatedDelivery:String,
+  trackingNumber:   String,
+  courierName:      String,
+  pickupAddress:    { type: mongoose.Schema.Types.Mixed },
+  timeline:         [{ type: mongoose.Schema.Types.Mixed }],
+  cancelledAt:      Date,
+  cancelReason:     String,
+  shippedAt:        Date,
   deliveredAt:      Date,
   createdAt:        { type: Date, default: Date.now },
-}, { timestamps: false });
+}, { timestamps: false, strict: false });
 
 // ── RETURN ────────────────────────────────────────────────────────
 const returnSchema = new mongoose.Schema({

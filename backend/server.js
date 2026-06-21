@@ -34,6 +34,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/payments',      require('./routes/payments'));
 app.use('/api/upload',        require('./routes/upload'));
 app.use('/api/otp',          require('./routes/otp'));
+app.use('/api/ccavenue',     require('./routes/ccavenue'));
 
 // Health check
 app.get('/api/health', (req, res) => {

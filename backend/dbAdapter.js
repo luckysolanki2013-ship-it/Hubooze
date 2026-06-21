@@ -80,7 +80,7 @@ async function createProduct(data) {
 }
 
 async function updateProduct(id, update) {
-  if (useMongo) return await Models.Product.findOneAndUpdate({id}, update, {new:true}).lean();
+  if (useMongo) return await Models.Product.findOneAndUpdate({id}, {$set: update}, {new:true}).lean();
   const idx = DB.products.findIndex(p => p.id === id);
   if (idx >= 0) { Object.assign(DB.products[idx], update); return DB.products[idx]; }
   return null;
@@ -117,7 +117,7 @@ async function createOrder(data) {
 }
 
 async function updateOrder(id, update) {
-  if (useMongo) return await Models.Order.findOneAndUpdate({$or:[{id},{orderId:id}]}, update, {new:true}).lean();
+  if (useMongo) return await Models.Order.findOneAndUpdate({$or:[{id},{orderId:id}]}, {$set: update}, {new:true}).lean();
   const idx = DB.orders.findIndex(o => o.id === id || o.orderId === id);
   if (idx >= 0) { Object.assign(DB.orders[idx], update); return DB.orders[idx]; }
   return null;
