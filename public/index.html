@@ -5329,75 +5329,92 @@ function renderReviewStep() {
 // ════════════════════════════════════════════════════════════════
 //  PLACE ORDER
 // ════════════════════════════════════════════════════════════════
-function placeOrderFinal() {
+async function placeOrderFinal() {
   if (!currentUser) return;
   if (!checkoutAddrId) { showToast('Please select a delivery address', 'error'); goToStep(1); return; }
-
   var tc = document.getElementById('tcCheck');
   if (tc && !tc.checked) { showToast('Please accept the Terms & Conditions', 'error'); return; }
-
   var btn = document.getElementById('placeOrderBtn');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '&#9203; Placing Order...';
-    btn.style.opacity = '0.7';
-  }
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Placing Order...'; btn.style.opacity = '0.7'; }
 
   var addr = ADDRESSES_DB.find(function(a) { return a.id === checkoutAddrId; });
-  var sub     = cartSubtotal();
-  var disc    = cartDiscount();
-  var couponD = couponDiscount();
-  var deliv   = deliveryFee();
-  var total   = cartTotal() + (checkoutGiftWrap ? 49 : 0);
+  var itemsPayload = cartItems.map(function(ci) {
+    return { productId: ci.productId, qty: ci.qty, size: ci.size || null };
+  });
 
-  // Simulate network delay
-  setTimeout(function() {
-    var orderId = 'ORD' + Date.now();
-    var order = {
-      id: orderId,
-      userId: currentUser.id,
-      items: cartItems.map(function(ci) {
-        var p = PRODUCTS[ci.productId];
-        return {
-          productId: ci.productId,
-          name:  p ? p.name  : 'Unknown',
-          icon:  p ? p.icon  : '&#128230;',
-          price: p ? p.price : 0,
-          qty:   ci.qty,
-          size:  ci.size || null
-        };
-      }),
-      subtotal:  sub,
-      discount:  disc,
-      couponD:   couponD,
-      giftWrap:  checkoutGiftWrap ? 49 : 0,
-      delivery:  deliv,
-      total:     total,
-      status:    'processing',
-      address:   addr ? (addr.line1 + ', ' + addr.city + ' - ' + addr.pincode) : '',
-      addrFull:  addr || {},
-      payment:   checkoutPayment,
-      payRef:    checkoutPayRef,
-      note:      checkoutNote,
-      couponCode:appliedCoupon ? appliedCoupon.code : null,
-      date:      new Date().toLocaleDateString('en-IN'),
-      estimatedDelivery: getEstimatedDelivery()
-    };
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({
+        items: itemsPayload,
+        address: addr,
+        paymentMethod: checkoutPayment,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        note: checkoutNote,
+        giftWrap: checkoutGiftWrap
+      })
+    });
+    var d = await r.json();
+    if (!r.ok) {
+      showToast(d.error || 'Could not place order', 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Place Order &#8594;'; btn.style.opacity = '1'; }
+      return;
+    }
 
-    ORDERS_DB.unshift(order);
-    lastPlacedOrder = order;
+    var order = d.order;
+    order.payment = order.paymentMethod;
+    order.couponD = order.couponDiscount;
 
-    // Clear cart
-    cartItems = [];
-    appliedCoupon = null;
-    saveCartState();
-    updateCartBadge(false);
-    checkoutGiftWrap = false;
-    checkoutNote = '';
-
-    renderOrderConfirmation(order);
-    window.scrollTo(0, 0);
-  }, 1800);
+    if ((checkoutPayment||'COD').toUpperCase() === 'COD') {
+      lastPlacedOrder = order;
+      cartItems = [];
+      appliedCoupon = null;
+      saveCartState();
+      updateCartBadge(false);
+      checkoutGiftWrap = false;
+      checkoutNote = '';
+      renderOrderConfirmation(order);
+      window.scrollTo(0, 0);
+    } else {
+      var payR = await fetch('/api/ccavenue/initiate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          orderId: order.id,
+          amount: order.total,
+          name: addr.name,
+          email: currentUser.email,
+          phone: addr.phone,
+          address: addr.line1,
+          city: addr.city,
+          pincode: addr.pincode
+        })
+      });
+      var payD = await payR.json();
+      if (!payR.ok || !payD.encRequest) {
+        showToast(payD.error || 'Could not initiate payment', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Place Order &#8594;'; btn.style.opacity = '1'; }
+        return;
+      }
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = payD.ccavenueUrl;
+      form.style.display = 'none';
+      var f1 = document.createElement('input'); f1.name='encRequest'; f1.value=payD.encRequest; form.appendChild(f1);
+      var f2 = document.createElement('input'); f2.name='access_code'; f2.value=payD.accessCode; form.appendChild(f2);
+      document.body.appendChild(form);
+      cartItems = [];
+      appliedCoupon = null;
+      saveCartState();
+      updateCartBadge(false);
+      form.submit();
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Place Order &#8594;'; btn.style.opacity = '1'; }
+  }
 }
 
 function getEstimatedDelivery() {
@@ -6884,6 +6901,46 @@ async function verifySellerRegisterOTP() {
       showToast(d.error||'Invalid OTP','error');
     }
   } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+
+// ── CCAVENUE PAYMENT RETURN HANDLER ───────────────────────────────
+async function handlePaymentReturn() {
+  var params = new URLSearchParams(window.location.search);
+  var payment = params.get('payment');
+  var orderId = params.get('order');
+  if (!payment || !orderId) return;
+
+  // Clean URL
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  if (payment === 'success') {
+    showToast('Payment successful! Confirming your order...', 'success');
+    try {
+      var token = localStorage.getItem('hb_token');
+      var r = await fetch('/api/orders/' + orderId, { headers: {'Authorization':'Bearer '+token} });
+      var d = await r.json();
+      if (d.order) {
+        var order = d.order;
+        order.payment = order.paymentMethod;
+        order.couponD = order.couponDiscount;
+        lastPlacedOrder = order;
+        showPage('checkout');
+        setTimeout(function() { renderOrderConfirmation(order); window.scrollTo(0,0); }, 300);
+      }
+    } catch(e) { showToast('Could not load order details','error'); }
+  } else if (payment === 'cancelled') {
+    showToast('Payment was cancelled. Your order is saved — you can retry payment from My Orders.', 'info');
+  } else {
+    showToast('Payment failed. Please try again or choose Cash on Delivery.', 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(handlePaymentReturn, 500);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(handlePaymentReturn, 500);
 }
 
 </script>
