@@ -6251,32 +6251,7 @@ function loginSuccess(user) {
 }
 
 // ── After order placed ────────────────────────────────────────────
-var _origPlaceOrderFinal = placeOrderFinal;
-function placeOrderFinal() {
-  _origPlaceOrderFinal();
-  // Hook fires after order is added — watch for lastPlacedOrder
-  setTimeout(function() {
-    if (lastPlacedOrder) {
-      var o = lastPlacedOrder;
-      var channels = [];
-      if (NOTIF_PREFS.order_placed_wa)    channels.push('wa');
-      if (NOTIF_PREFS.order_placed_email) channels.push('email');
-      channels.push('push');
-
-      addNotification('order',
-        'Order Confirmed! &#127881;',
-        'Your order #' + o.id + ' for &#8377;' + o.total.toLocaleString('en-IN') + ' is confirmed. Delivery by ' + (o.estimatedDelivery || '3-5 days') + '.',
-        channels,
-        {
-          orderId: o.id,
-          order:   o,
-          waMsg:   '*Hubooze* &#128722;\n\n*Order Confirmed!* &#127881;\n\nOrder ID: *#' + o.id + '*\nAmount: &#8377;' + o.total.toLocaleString('en-IN') + '\nDelivery by: ' + (o.estimatedDelivery || '3-5 days') + '\n\n_Reply ORDER for tracking_',
-          emailHtml: true
-        }
-      );
-    }
-  }, 2000);
-}
+// (placeOrderFinal wrapper removed)
 
 // ── After return submitted ────────────────────────────────────────
 var _origSubmitReturn = submitReturn;

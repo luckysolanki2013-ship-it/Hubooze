@@ -77,47 +77,7 @@ async function initiateRazorpayPayment(orderData, huboozeOrderId) {
 }
 
 // Override placeOrderFinal to use Razorpay for non-COD
-async function placeOrderFinal() {
-  if (!currentUser) return;
-  if (!checkoutAddrId) { showToast('Please select a delivery address', 'error'); goToStep(1); return; }
 
-  const tc = document.getElementById('tcCheck');
-  if (tc && !tc.checked) { showToast('Please accept the Terms & Conditions', 'error'); return; }
-
-  const btn = document.getElementById('placeOrderBtn');
-  const total = cartTotal() + (checkoutGiftWrap ? 49 : 0);
-
-  // COD — skip payment gateway
-  if (checkoutPayment === 'COD') {
-    return placeOrderAPI(btn, total);
-  }
-
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Opening Payment...'; btn.style.opacity = '.7'; }
-
-  try {
-    // First create the order record (unpaid)
-    const orderPayload = buildOrderPayload();
-    const result = await api.placeOrder({ ...orderPayload, paymentStatus: 'pending' });
-    const order  = result.order;
-
-    // Then open Razorpay
-    const payment = await initiateRazorpayPayment(order, order.orderId || order.id);
-    console.log('✅ Payment verified:', payment.razorpay_payment_id);
-
-    // Clear cart and show confirmation
-    cartItems = []; appliedCoupon = null; saveCartState(); updateCartBadge(false);
-    checkoutGiftWrap = false; checkoutNote = '';
-    lastPlacedOrder  = order;
-
-    showToast('🎉 Payment successful! Order placed.', 'success');
-    renderOrderConfirmation(order);
-    startConfetti();
-
-  } catch (err) {
-    if (btn) { btn.disabled = false; btn.innerHTML = '🛒 Place Order — ₹' + total.toLocaleString('en-IN'); btn.style.opacity = '1'; }
-    showToast(err.message || 'Payment failed. Please try again.', 'error');
-  }
-}
 
 async function placeOrderAPI(btn, total) {
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Placing Order...'; btn.style.opacity = '.7'; }
