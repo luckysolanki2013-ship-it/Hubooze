@@ -1,6 +1,12 @@
 const router = require('express').Router();
 const { protect, requireAdmin } = require('../middleware');
 const dba = require('../dbAdapter');
+
+async function getCustomUserId(req) {
+  if (req.user.id && req.user.id.startsWith('u')) return req.user.id;
+  const u = await dba.findUser({ _id: req.user._id || req.user.id });
+  return (u && u.id) ? u.id : req.user.id;
+}
 const { notifyOrderConfirmed, notifyOrderShipped } = require('../utils/notifications');
 
 const FREE_DELIVERY_MIN = 499;
@@ -36,7 +42,7 @@ router.post('/', protect, async (req, res) => {
     const { items, addressId, address, paymentMethod, couponCode, note, giftWrap } = req.body;
     if (!items?.length) return res.status(400).json({ error: 'Cart is empty.' });
 
-    const userId = req.user.id || req.user._id?.toString();
+    const userId = await getCustomUserId(req);
     const user = await dba.findUser({ id: userId }) || await dba.findUser({ _id: userId });
     let addr = address || (user?.addresses || []).find(a => a.id === addressId);
     if (!addr) return res.status(400).json({ error: 'Delivery address required.' });
