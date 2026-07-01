@@ -1,0 +1,12 @@
+backend/server.js:27:app.use('/api/auth',          require('./routes/auth'));
+backend/server.js:28:app.use('/api/products',      require('./routes/products'));
+backend/server.js:29:app.use('/api/orders',        require('./routes/orders'));
+backend/server.js:30:app.use('/api/returns',       require('./routes/returns'));
+backend/server.js:31:app.use('/api/seller',        require('./routes/seller'));
+backend/server.js:32:app.use('/api/admin',         require('./routes/admin'));
+backend/server.js:33:app.use('/api/notifications', require('./routes/notifications'));
+backend/server.js:34:app.use('/api/payments',      require('./routes/payments'));
+backend/server.js:35:app.use('/api/upload',        require('./routes/upload'));
+backend/server.js:36:app.use('/api/otp',          require('./routes/otp'));
+backend/server.js:37:app.use('/api/ccavenue',     require('./routes/ccavenue'));
+backend/server.js:54:app.use('/api', (req, res) =>
