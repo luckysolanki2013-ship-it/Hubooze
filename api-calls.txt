@@ -1,0 +1,195 @@
+public/index.html:2747:  fetch('/api/auth/login', {
+public/index.html:2785:  fetch('/api/auth/login', {
+public/index.html:2953:  fetch('/api/auth/login', {
+public/index.html:3008:  fetch('/api/auth/login', {
+public/index.html:5347:    var r = await fetch('/api/orders', {
+public/index.html:5381:      var payR = await fetch('/api/ccavenue/initiate', {
+public/index.html:6385:    fetch('/api/health').catch(function(){});
+public/index.html:6422:    fetch('/api/auth/me', {headers:{'Authorization':'Bearer '+token}})
+public/index.html:6530:  fetch('/api/upload', {
+public/index.html:6581:    var r = await fetch('/api/admin/promotions');
+public/index.html:6669:    var r = await fetch('/api/otp/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+public/index.html:6700:    var r = await fetch('/api/otp/verify', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,otp:otp})});
+public/index.html:6730:    var r = await fetch('/api/otp/send', {
+public/index.html:6772:    var r = await fetch('/api/otp/verify', {
+public/index.html:6780:      var r2 = await fetch('/api/auth/register', {
+public/index.html:6823:    var r = await fetch('/api/otp/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+public/index.html:6855:    var r = await fetch('/api/otp/verify', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,otp:otp,name:name,role:'seller'})});
+public/index.html:6858:      var r2 = await fetch('/api/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass,phone,city,role:'seller',businessName:biz,verified:true})});
+public/index.html:6896:      var r = await fetch('/api/orders/' + orderId, { headers: {'Authorization':'Bearer '+token} });
+public/js/admin.js:28:    var r = await fetch('/api/admin/stats', { headers: headers });
+public/js/admin.js:105:      var r = await fetch('/api/admin/products', {headers:headers});
+public/js/admin.js:121:      var r = await fetch('/api/admin/orders', {headers:headers});
+public/js/admin.js:139:      var r = await fetch('/api/admin/returns', {headers:headers});
+public/js/admin.js:151:      var r = await fetch('/api/admin/users', {headers:headers});
+public/js/admin.js:170:      var r = await fetch('/api/admin/sellers', {headers:headers});
+public/js/admin.js:182:      var r = await fetch('/api/admin/promotions', {headers:headers});
+public/js/admin.js:193:      var r = await fetch('/api/admin/promotions', {headers:headers});
+public/js/admin.js:451:    var r = await fetch('/api/admin/products/'+pid+'/toggle', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+public/js/admin.js:462:    var r = await fetch('/api/admin/products/'+pid, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/admin.js:473:    var r = await fetch('/api/admin/orders/'+oid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status:status})});
+public/js/admin.js:483:    var r = await fetch('/api/admin/returns/'+rid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status:status})});
+public/js/admin.js:495:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({role:newRole})});
+public/js/admin.js:506:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({suspended:true})});
+public/js/admin.js:517:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({approved:true})});
+public/js/admin.js:528:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({approved:false})});
+public/js/admin.js:542:    var r = await fetch('/api/admin/sellers/'+uid+'/commission', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({commission:commission})});
+public/js/admin.js:554:    var r = await fetch('/api/admin/promotions/flash-sale', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({discount:Number(discount),label:label,durationHours:Number(hours)})});
+public/js/admin.js:564:    await fetch('/api/admin/promotions/flash-sale', {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/admin.js:574:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({announcement:text})});
+public/js/admin.js:587:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(data)});
+public/js/admin.js:607:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(data)});
+public/js/admin.js:619:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(data)});
+public/js/admin.js:632:    var r = await fetch('/api/admin/hero-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/admin.js:646:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({heroBgImage:''})});
+public/js/admin.js:667:    await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({siteIcons:icons})});
+public/js/admin.js:689:      var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/admin.js:706:    var r = await fetch('/api/admin/sellers', {headers:{'Authorization':'Bearer '+token}});
+public/js/admin.js:816:    var r = await fetch('/api/admin/products/'+pid, {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(update)});
+public/js/admin.js:832:    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js:41:  fetch('/api/auth/login', {
+public/js/app.js:67:  fetch('/api/auth/login', {
+public/js/app.js:96:  fetch('/api/auth/login', {
+public/js/app.js:126:  fetch('/api/auth/register', {
+public/js/app.js:253:      var r = await fetch('/api/seller/products', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js:268:        var r = await fetch('/api/seller/orders', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js:396:  fetch('/api/health').catch(function(){});
+public/js/app.js:438:    var res = await fetch('/api/upload/product-image', {
+public/js/app.js:461:    var res = await fetch('/api/products?limit=200', { headers: headers });
+public/js/app.js:511:  fetch('/api/products/' + pid, {
+public/js/app.js:553:    var r = await fetch('/api/admin/stats', {headers});
+public/js/app.js:617:      var r = await fetch('/api/admin/products', {headers});
+public/js/app.js:634:      var r = await fetch('/api/admin/orders', {headers});
+public/js/app.js:653:      var r = await fetch('/api/admin/returns', {headers});
+public/js/app.js:665:      var r = await fetch('/api/admin/users', {headers});
+public/js/app.js:685:      var r = await fetch('/api/admin/sellers', {headers});
+public/js/app.js:697:      var r = await fetch('/api/admin/promotions', {headers});
+public/js/app.js:733:      var r2 = await fetch('/api/admin/promotions', {headers});
+public/js/app.js:884:    var r = await fetch('/api/admin/products/'+pid+'/toggle', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js:895:    var r = await fetch('/api/admin/products/'+pid, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js:960:    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js:982:    var r = await fetch('/api/upload/product-image', {
+public/js/app.js:1022:    var r = await fetch('/api/admin/products/'+pid, {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(update)});
+public/js/app.js:1033:    var r = await fetch('/api/admin/orders/'+oid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js:1043:    var r = await fetch('/api/admin/returns/'+rid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js:1056:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({role:newRole})});
+public/js/app.js:1067:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({suspended:true})});
+public/js/app.js:1080:    var r = await fetch('/api/admin/promotions/flash-sale', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({discount:Number(discount),label,durationHours:Number(hours)})});
+public/js/app.js:1090:    await fetch('/api/admin/promotions/flash-sale', {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js:1100:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({announcement:text})});
+public/js/app.js:1110:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({freeDeliveryMin:min})});
+public/js/app.js:1149:    var r = await fetch('/api/admin/hero-image', {
+public/js/app.js:1175:    await fetch('/api/admin/promotions', {
+public/js/app.js:1195:    var r = await fetch('/api/admin/promotions', {
+public/js/app.js:1219:    await fetch('/api/admin/promotions', {
+public/js/app.js:1301:      var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js:1341:    await fetch('/api/admin/promotions', {
+public/js/app.js:1399:    var r = await fetch('/api/admin/promotions');
+public/js/app.js:1521:    var r = await fetch('/api/seller/orders/'+oid+'/status', {
+public/js/app.js:1568:    var r = await fetch('/api/seller/orders/'+oid+'/pickup-address', {
+public/js/app.js:1622:    var r = await fetch('/api/seller/brand/documents', {
+public/js/app.js:1674:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js:1689:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js:1707:    var r = await fetch('/api/admin/sellers/'+uid+'/commission', {
+public/js/app.js.bak2:41:  fetch('/api/auth/login', {
+public/js/app.js.bak2:67:  fetch('/api/auth/login', {
+public/js/app.js.bak2:96:  fetch('/api/auth/login', {
+public/js/app.js.bak2:126:  fetch('/api/auth/register', {
+public/js/app.js.bak2:253:      var r = await fetch('/api/seller/products', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak2:268:        var r = await fetch('/api/seller/orders', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak2:396:  fetch('/api/health').catch(function(){});
+public/js/app.js.bak2:438:    var res = await fetch('/api/upload/product-image', {
+public/js/app.js.bak2:461:    var res = await fetch('/api/products?limit=200', { headers: headers });
+public/js/app.js.bak2:511:  fetch('/api/products/' + pid, {
+public/js/app.js.bak2:553:    var r = await fetch('/api/admin/stats', {headers});
+public/js/app.js.bak2:617:      var r = await fetch('/api/admin/products', {headers});
+public/js/app.js.bak2:634:      var r = await fetch('/api/admin/orders', {headers});
+public/js/app.js.bak2:653:      var r = await fetch('/api/admin/returns', {headers});
+public/js/app.js.bak2:665:      var r = await fetch('/api/admin/users', {headers});
+public/js/app.js.bak2:685:      var r = await fetch('/api/admin/sellers', {headers});
+public/js/app.js.bak2:697:      var r = await fetch('/api/admin/promotions', {headers});
+public/js/app.js.bak2:733:      var r2 = await fetch('/api/admin/promotions', {headers});
+public/js/app.js.bak2:884:    var r = await fetch('/api/admin/products/'+pid+'/toggle', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak2:895:    var r = await fetch('/api/admin/products/'+pid, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak2:960:    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js.bak2:982:    var r = await fetch('/api/upload/product-image', {
+public/js/app.js.bak2:1022:    var r = await fetch('/api/admin/products/'+pid, {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(update)});
+public/js/app.js.bak2:1033:    var r = await fetch('/api/admin/orders/'+oid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js.bak2:1043:    var r = await fetch('/api/admin/returns/'+rid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js.bak2:1056:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({role:newRole})});
+public/js/app.js.bak2:1067:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({suspended:true})});
+public/js/app.js.bak2:1080:    var r = await fetch('/api/admin/promotions/flash-sale', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({discount:Number(discount),label,durationHours:Number(hours)})});
+public/js/app.js.bak2:1090:    await fetch('/api/admin/promotions/flash-sale', {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak2:1100:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({announcement:text})});
+public/js/app.js.bak2:1110:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({freeDeliveryMin:min})});
+public/js/app.js.bak2:1149:    var r = await fetch('/api/admin/hero-image', {
+public/js/app.js.bak2:1175:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak2:1195:    var r = await fetch('/api/admin/promotions', {
+public/js/app.js.bak2:1219:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak2:1301:      var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js.bak2:1341:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak2:1399:    var r = await fetch('/api/admin/promotions');
+public/js/app.js.bak2:1521:    var r = await fetch('/api/seller/orders/'+oid+'/status', {
+public/js/app.js.bak2:1568:    var r = await fetch('/api/seller/orders/'+oid+'/pickup-address', {
+public/js/app.js.bak2:1622:    var r = await fetch('/api/seller/brand/documents', {
+public/js/app.js.bak2:1674:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js.bak2:1689:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js.bak2:1707:    var r = await fetch('/api/admin/sellers/'+uid+'/commission', {
+public/js/app.js.bak:41:  fetch('/api/auth/login', {
+public/js/app.js.bak:67:  fetch('/api/auth/login', {
+public/js/app.js.bak:96:  fetch('/api/auth/login', {
+public/js/app.js.bak:126:  fetch('/api/auth/register', {
+public/js/app.js.bak:253:      var r = await fetch('/api/seller/products', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:268:        var r = await fetch('/api/seller/orders', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:393:      var r = await fetch('/api/admin/sellers', {headers});
+public/js/app.js.bak:405:      var r = await fetch('/api/admin/promotions', {headers});
+public/js/app.js.bak:441:      var r2 = await fetch('/api/admin/promotions', {headers});
+public/js/app.js.bak:487:  fetch('/api/health').catch(function(){});
+public/js/app.js.bak:529:    var res = await fetch('/api/upload/product-image', {
+public/js/app.js.bak:552:    var res = await fetch('/api/products?limit=200', { headers: headers });
+public/js/app.js.bak:602:  fetch('/api/products/' + pid, {
+public/js/app.js.bak:644:    var r = await fetch('/api/admin/stats', {headers});
+public/js/app.js.bak:708:      var r = await fetch('/api/admin/products', {headers});
+public/js/app.js.bak:725:      var r = await fetch('/api/admin/orders', {headers});
+public/js/app.js.bak:744:      var r = await fetch('/api/admin/returns', {headers});
+public/js/app.js.bak:756:      var r = await fetch('/api/admin/users', {headers});
+public/js/app.js.bak:975:    var r = await fetch('/api/admin/products/'+pid+'/toggle', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:986:    var r = await fetch('/api/admin/products/'+pid, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:1051:    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js.bak:1073:    var r = await fetch('/api/upload/product-image', {
+public/js/app.js.bak:1113:    var r = await fetch('/api/admin/products/'+pid, {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(update)});
+public/js/app.js.bak:1124:    var r = await fetch('/api/admin/orders/'+oid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js.bak:1134:    var r = await fetch('/api/admin/returns/'+rid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status})});
+public/js/app.js.bak:1147:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({role:newRole})});
+public/js/app.js.bak:1158:    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({suspended:true})});
+public/js/app.js.bak:1171:    var r = await fetch('/api/admin/promotions/flash-sale', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({discount:Number(discount),label,durationHours:Number(hours)})});
+public/js/app.js.bak:1181:    await fetch('/api/admin/promotions/flash-sale', {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:1191:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({announcement:text})});
+public/js/app.js.bak:1201:    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({freeDeliveryMin:min})});
+public/js/app.js.bak:1240:    var r = await fetch('/api/admin/hero-image', {
+public/js/app.js.bak:1266:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak:1286:    var r = await fetch('/api/admin/promotions', {
+public/js/app.js.bak:1310:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak:1392:      var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/app.js.bak:1432:    await fetch('/api/admin/promotions', {
+public/js/app.js.bak:1490:    var r = await fetch('/api/admin/promotions');
+public/js/app.js.bak:1612:    var r = await fetch('/api/seller/orders/'+oid+'/status', {
+public/js/app.js.bak:1659:    var r = await fetch('/api/seller/orders/'+oid+'/pickup-address', {
+public/js/app.js.bak:1678:    var r = await fetch('/api/seller/brand/status', {headers:{'Authorization':'Bearer '+token}});
+public/js/app.js.bak:1746:    var r = await fetch('/api/seller/brand/documents', {
+public/js/app.js.bak:1806:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js.bak:1821:    var r = await fetch('/api/admin/sellers/'+uid+'/approve', {
+public/js/app.js.bak:1839:    var r = await fetch('/api/admin/sellers/'+uid+'/commission', {
+public/js/seller.js:32:    var r = await fetch('/api/seller/dashboard', { headers: headers });
+public/js/seller.js:119:      var r = await fetch('/api/seller/products', {headers:headers});
+public/js/seller.js:136:      var r = await fetch('/api/seller/orders', {headers:headers});
+public/js/seller.js:156:      var r = await fetch('/api/seller/orders', {headers:headers});
+public/js/seller.js:176:      var r = await fetch('/api/seller/payouts', {headers:headers});
+public/js/seller.js:426:    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/seller.js:442:    var r = await fetch('/api/products/'+pid, {method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({listed:newListed,active:newListed})});
+public/js/seller.js:482:    var r = await fetch('/api/seller/orders/'+oid+'/status', {method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status:status,trackingNumber:tracking,courierName:courier})});
+public/js/seller.js:522:    var r = await fetch('/api/seller/orders/'+oid+'/pickup-address', {method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({pickupAddress:addr})});
+public/js/seller.js:535:    var r = await fetch('/api/seller/brand/status', {headers:{'Authorization':'Bearer '+token}});
+public/js/seller.js:621:    var r = await fetch('/api/seller/brand/documents', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+public/js/seller.js:668:    var r = await fetch('/api/seller/bank', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({bankDetails:data})});
+public/sw.js:99:      await fetch('/api/orders', {
