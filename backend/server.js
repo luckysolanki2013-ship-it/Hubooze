@@ -7,6 +7,7 @@ const path    = require('path');
 const { apiLimiter } = require('./middleware');
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Trust proxy — required for nginx/AWS
 app.set('trust proxy', 1);
@@ -57,11 +58,20 @@ app.use('/api', (req, res) =>
 
 // Serve frontend
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'), err => {
-    if (err) res.send('<h1>Hubooze API Running</h1><a href="/api/health">Health</a>');
+  const filePath = path.join(__dirname, "..", "public", "index.html");
+
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      if (!res.headersSent) {
+        return res
+          .status(404)
+          .send("<h1>Hubooze API Running</h1><a href='/api/health'>Health</a>");
+      }
+
+      console.error("sendFile error:", err.message);
+    }
   });
 });
-
 // Error handler
 app.use((err, req, res, _next) => {
   console.error('ERROR:', err.message);

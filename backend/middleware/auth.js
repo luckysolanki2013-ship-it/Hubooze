@@ -1,48 +1,104 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const userRepository = require("../repositories/userRepository");
 
 // Verify JWT token
 exports.protect = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.startsWith('Bearer ')
-      ? req.headers.authorization.split(' ')[1]
-      : req.cookies?.token;
+    try {
 
-    if (!token) return res.status(401).json({ error: 'Not authenticated. Please login.' });
+        const token = req.headers.authorization?.startsWith("Bearer ")
+            ? req.headers.authorization.split(" ")[1]
+            : req.cookies?.token;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user    = await User.findById(decoded.id).select('-password -otp');
-    if (!user || !user.isActive) return res.status(401).json({ error: 'User not found or deactivated.' });
+        if (!token) {
+            return res.status(401).json({
+                error: "Not authenticated. Please login."
+            });
+        }
 
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid or expired token. Please login again.' });
-  }
-};
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-// Require seller or admin
-exports.sellerOnly = (req, res, next) => {
-  if (req.user.role !== 'seller' && req.user.role !== 'admin')
-    return res.status(403).json({ error: 'Seller access required.' });
-  next();
-};
+        let user = await userRepository.findOne({
+            id: decoded.id
+        });
 
-// Require admin
-exports.adminOnly = (req, res, next) => {
-  if (req.user.role !== 'admin')
-    return res.status(403).json({ error: 'Admin access required.' });
-  next();
-};
+        // Support Mongo ObjectId tokens
+        if (!user) {
+            user = await userRepository.findOne({
+                _id: decoded.id
+            });
+        }
 
-// Optional auth (don't fail if no token)
-exports.optionalAuth = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password -otp');
+        if (!user) {
+            return res.status(401).json({
+                error: "User not found."
+            });
+        }
+
+        req.user = user;
+
+        next();
+
+    } catch (err) {
+
+        return res.status(401).json({
+            error: "Invalid or expired token."
+        });
+
     }
-  } catch (_) {}
-  next();
+};
+
+// Seller
+exports.sellerOnly = (req, res, next) => {
+
+    if (
+        req.user.role !== "seller" &&
+        req.user.role !== "admin"
+    ) {
+        return res.status(403).json({
+            error: "Seller access required."
+        });
+    }
+
+    next();
+};
+
+// Admin
+exports.adminOnly = (req, res, next) => {
+
+    if (req.user.role !== "admin") {
+        return res.status(403).json({
+            error: "Admin access required."
+        });
+    }
+
+    next();
+};
+
+// Optional Authentication
+exports.optionalAuth = async (req, res, next) => {
+
+    try {
+
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (token) {
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            let user = await userRepository.findOne({
+                id: decoded.id
+            });
+
+            if (!user) {
+                user = await userRepository.findOne({
+                    _id: decoded.id
+                });
+            }
+
+            req.user = user || null;
+        }
+
+    } catch (_) {}
+
+    next();
 };
