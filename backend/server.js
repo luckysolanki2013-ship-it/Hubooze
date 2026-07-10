@@ -7,7 +7,6 @@ const path    = require('path');
 const { apiLimiter } = require('./middleware');
 
 const app = express();
-app.set("trust proxy", 1);
 
 // Trust proxy — required for nginx/AWS
 app.set('trust proxy', 1);

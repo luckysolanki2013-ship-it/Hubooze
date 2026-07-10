@@ -42,10 +42,54 @@ async function login(req, res) {
     }
 }
 
+// Send OTP
+async function sendOTP(req, res) {
+    try {
+        const { email } = req.body;
+
+        const result = await authService.sendOTP(email);
+
+        return res.json({
+            success: true,
+            ...result
+        });
+
+    } catch (err) {
+        return res.status(400).json({
+            success: false,
+            error: err.message
+        });
+    }
+}
+
+// Verify OTP
+async function verifyOTP(req, res) {
+    try {
+        const { email, otp } = req.body;
+
+        const result = await authService.verifyOTP(email, otp);
+
+        return res.json({
+            success: true,
+            message: "OTP verified successfully.",
+            token: result.token,
+            user: result.user
+        });
+
+    } catch (err) {
+        return res.status(400).json({
+            success: false,
+            error: err.message
+        });
+    }
+}
+
 // Get Profile
 async function me(req, res) {
     try {
-        const user = await authService.getProfile(req.user.id || req.user._id);
+        const user = await authService.getProfile(
+            req.user.id || req.user._id
+        );
 
         return res.json({
             success: true,
@@ -85,6 +129,8 @@ async function updateProfile(req, res) {
 module.exports = {
     register,
     login,
+    sendOTP,
+    verifyOTP,
     me,
     updateProfile
 };

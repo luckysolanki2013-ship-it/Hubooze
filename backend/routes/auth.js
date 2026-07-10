@@ -1,23 +1,10 @@
 const authController = require("../controllers/authController");
 const router = require("express").Router();
 
-const jwt = require("jsonwebtoken");   // <-- Add this
-
 const { protect, authLimiter, otpLimiter } = require("../middleware");
 const { DB } = require("../db");
-const SECRET = process.env.JWT_SECRET || "hubooze_secret";
 
-const signToken = (user) =>
-    jwt.sign(
-        {
-            id: user.id || user._id,
-            email: user.email,
-            role: user.role,
-            name: user.name
-        },
-        SECRET,
-        { expiresIn: "7d" }
-    );
+
 
 // POST /api/auth/register
 router.post("/register", authLimiter, authController.register);
@@ -26,43 +13,10 @@ router.post("/register", authLimiter, authController.register);
 router.post("/login", authLimiter, authController.login);
 
 // POST /api/auth/send-otp
-router.post('/send-otp', otpLimiter, async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email required.' });
-    const user = DB.users.find(u => u.email === email.toLowerCase());
-    if (!user) return res.status(404).json({ error: 'No account found with this email.' });
-
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 min
-    user.otp = { code: otp, expiresAt };
-
-    // In production: send via email/WhatsApp using notifications util
-    console.log(`🔐 OTP for ${email}: ${otp}`);
-    res.json({ message: 'OTP sent to your email and WhatsApp.', otp_dev: otp }); // remove otp_dev in prod
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post("/send-otp", otpLimiter, authController.sendOTP);
 
 // POST /api/auth/verify-otp
-router.post('/verify-otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ error: 'Email and OTP required.' });
-    const user = DB.users.find(u => u.email === email.toLowerCase());
-    if (!user || !user.otp) return res.status(400).json({ error: 'No OTP requested.' });
-    if (Date.now() > user.otp.expiresAt) return res.status(400).json({ error: 'OTP expired. Request a new one.' });
-    if (user.otp.code !== String(otp)) return res.status(400).json({ error: 'Incorrect OTP.' });
-
-    user.otp = null;
-    const token = signToken(user);
-    const { password: _, ...safeUser } = user;
-    res.json({ token, user: safeUser, message: 'OTP verified successfully!' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post("/verify-otp", authController.verifyOTP);
 
 // GET /api/auth/me
 router.get("/me", protect, authController.me);
