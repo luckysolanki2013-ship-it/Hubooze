@@ -1,16 +1,18 @@
 const router = require('express').Router();
 const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const dba = require('../dbAdapter');
 
-// Store OTPs temporarily (in memory - good enough for now)
+// Initialize Resend ONLY if API key exists, otherwise null
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
 const otpStore = new Map();
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Send OTP
 router.post('/send', async (req, res) => {
   try {
     const { email } = req.body;
@@ -18,36 +20,32 @@ router.post('/send', async (req, res) => {
       return res.status(400).json({ error: 'Valid email required' });
 
     const otp = generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
+    const expiresAt = Date.now() + 10 * 60 * 1000;
     otpStore.set(email.toLowerCase(), { otp, expiresAt, attempts: 0 });
 
-    await resend.emails.send({
-      from: 'Hubooze <noreply@hubooze.in>',
-      to: email,
-      subject: 'Your Hubooze Login OTP',
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
-          <h2 style="color:#00c853;margin-bottom:8px">Hubooze</h2>
-          <p style="color:#555;margin-bottom:24px">India ki Eco Commerce</p>
-          <div style="background:#f5f5f5;border-radius:12px;padding:24px;text-align:center">
-            <p style="font-size:14px;color:#555;margin-bottom:12px">Your login OTP is:</p>
-            <div style="font-size:42px;font-weight:900;letter-spacing:8px;color:#111">${otp}</div>
-            <p style="font-size:12px;color:#999;margin-top:12px">Valid for 10 minutes</p>
-          </div>
-          <p style="font-size:12px;color:#999;margin-top:24px">If you didn't request this, ignore this email.</p>
-        </div>
-      `
-    });
-
-    res.json({ message: 'OTP sent to ' + email, success: true });
+    if (resend) {
+      await resend.emails.send({
+        from: 'Hubooze <noreply@hubooze.in>',
+        to: email,
+        subject: 'Your Hubooze Login OTP',
+        html: `<div style="font-family:sans-serif;text-align:center"><h2>Hubooze</h2><p>Your OTP is: <strong>${otp}</strong></p></div>`
+      });
+      res.json({ message: 'OTP sent', success: true });
+    } else {
+      // MOCK MODE: Log to console instead of crashing
+      console.log(`\n🔐 [MOCK OTP] Email: ${email} | OTP: ${otp}\n`);
+      res.json({ 
+        message: 'OTP sent (Check server console)', 
+        success: true, 
+        mockOtp: otp 
+      });
+    }
   } catch(e) {
     console.error('OTP send error:', e);
-    res.status(500).json({ error: 'Failed to send OTP: ' + e.message });
+    res.status(500).json({ error: 'Failed to send OTP' });
   }
 });
 
-// Verify OTP and login/register
 router.post('/verify', async (req, res) => {
   try {
     const { email, otp, name, role } = req.body;
@@ -56,32 +54,27 @@ router.post('/verify', async (req, res) => {
 
     const stored = otpStore.get(email.toLowerCase());
     if (!stored) 
-      return res.status(400).json({ error: 'OTP expired or not found. Please request a new one.' });
+      return res.status(400).json({ error: 'OTP expired or not found' });
 
     if (Date.now() > stored.expiresAt) {
       otpStore.delete(email.toLowerCase());
-      return res.status(400).json({ error: 'OTP expired. Please request a new one.' });
+      return res.status(400).json({ error: 'OTP expired' });
     }
 
     stored.attempts = (stored.attempts || 0) + 1;
     if (stored.attempts > 5) {
       otpStore.delete(email.toLowerCase());
-      return res.status(400).json({ error: 'Too many attempts. Please request a new OTP.' });
+      return res.status(400).json({ error: 'Too many attempts' });
     }
 
     if (stored.otp !== otp.toString()) 
-      return res.status(400).json({ error: 'Invalid OTP. ' + (5 - stored.attempts) + ' attempts remaining.' });
+      return res.status(400).json({ error: 'Invalid OTP' });
 
-    // OTP valid - clear it
     otpStore.delete(email.toLowerCase());
 
-    // Find or create user
     let user = await dba.findUser({ email: email.toLowerCase() });
     
     if (!user) {
-      // New user - register
-      const bcrypt = require('bcryptjs');
-      const jwt = require('jsonwebtoken');
       const newId = 'u' + Date.now();
       user = await dba.createUser({
         id: newId,
@@ -95,7 +88,6 @@ router.post('/verify', async (req, res) => {
       });
     }
 
-    const jwt = require('jsonwebtoken');
     const token = jwt.sign(
       { id: user._id || user.id, role: user.role },
       process.env.JWT_SECRET || 'hubooze-secret-2024',
@@ -105,12 +97,7 @@ router.post('/verify', async (req, res) => {
     res.json({
       success: true,
       token,
-      user: {
-        id: user.id || user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: { id: user.id || user._id, name: user.name, email: user.email, role: user.role },
       isNew: !user.createdAt || (Date.now() - new Date(user.createdAt).getTime() < 5000),
     });
   } catch(e) {
