@@ -11,8 +11,8 @@ function getUserId(req) {
 }
 
 async function getSellerCustomId(req) {
-  // req.user.id from JWT is MongoDB _id, we need the custom id field
-  const dbaUser = await dba.findUser({ _id: req.user._id || req.user.id });
+  // Use email to find user reliably
+  const dbaUser = await dba.findUser({ email: req.user.email });
   return (dbaUser && dbaUser.id) ? dbaUser.id : req.user.id;
 }
 
@@ -164,7 +164,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
     }
 
     // Save to user record
-    await dba.updateUser(req.user._id || req.user.id, {
+    await dba.updateUser((await dba.findUser({email:req.user.email}))?.id || req.user.id, {
       brandDocuments: {
         trademark:     uploads.trademark     || null,
         authorization: uploads.authorization || null,
@@ -188,7 +188,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
 // ── GET BRAND STATUS ──────────────────────────────────────────────
 router.get('/brand/status', protect, requireSeller, async (req, res) => {
   try {
-    const user = await dba.findUser({ _id: req.user._id || req.user.id }) || await dba.findUser({ id: req.user._id?.toString() });
+    const user = await dba.findUser({ email: req.user.email }) || await dba.findUser({ id: req.user._id?.toString() });
     res.json({
       brandDocuments: user?.brandDocuments || null,
       approved: user?.brandApproved || false,

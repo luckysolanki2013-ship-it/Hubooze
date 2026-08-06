@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { protect, requireSeller, optionalAuth } = require('../middleware');
 const { DB } = require('../db');
+const dba = require('../dbAdapter');
 
 // GET /api/products  — with filters, search, pagination
 router.get('/', optionalAuth, (req, res) => {
@@ -42,25 +43,26 @@ router.get('/:id', optionalAuth, (req, res) => {
 });
 
 // POST /api/products  — seller creates product
-router.post('/', protect, requireSeller, (req, res) => {
+router.post('/', protect, requireSeller, async (req, res) => {
   try {
-    const { name, brand, category, price, originalPrice, stock, description, sizes, colors, badge, eco, icon } = req.body;
-    if (!name || !brand || !category || !price || !originalPrice || stock === undefined)
-      return res.status(400).json({ error: 'Name, brand, category, price, originalPrice, stock are required.' });
-    if (price >= originalPrice) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
-
+    const { name, brand, category, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, listed } = req.body;
+    if (!name || !brand || !category || !price || stock === undefined)
+      return res.status(400).json({ error: 'Name, brand, category, price and stock are required.' });
+    const mrp = Number(originalPrice || orig || price);
+    if (Number(price) >= mrp && mrp > 0) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
+    const sellerUser = await dba.findUser({ email: req.user.email });
+    const sellerId = (sellerUser && sellerUser.id) ? sellerUser.id : String(req.user._id || req.user.id);
     const product = {
-      id: 'p_' + Date.now(), name, brand, category,
-      price: Number(price), originalPrice: Number(originalPrice),
+      id: 'p_' + Date.now(), name, brand, category: category||'other', cat: category||'other',
+      price: Number(price), originalPrice: mrp, orig: mrp,
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
-      badge: badge || null, eco: !!eco, icon: icon || '📦',
-      sellerId: req.user.id, active: true, listed: true,
+      badge: badge || null, eco: !!eco, icon: icon || '📦', image: image || '',
+      sellerId: sellerId, active: true, listed: listed !== false,
       rating: 0, reviews: 0, reviewCount: 0,
-      images: [], createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
-    DB.products.push(product);
-    res.status(201).json({ product, message: `"${name}" listed successfully!` });
+    const saved = await dba.createProduct(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
