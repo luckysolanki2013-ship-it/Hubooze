@@ -62,7 +62,9 @@ router.post('/', protect, requireSeller, async (req, res) => {
       rating: 0, reviews: 0, reviewCount: 0,
       createdAt: new Date().toISOString(),
     };
+    console.log('Creating product:', JSON.stringify(product));
     const saved = await dba.createProduct(product);
+    console.log('Saved product:', saved ? saved.id : 'NULL');
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
