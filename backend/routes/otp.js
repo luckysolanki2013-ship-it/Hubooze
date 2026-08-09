@@ -97,7 +97,7 @@ router.post('/verify', async (req, res) => {
 
     const jwt = require('jsonwebtoken');
     const token = jwt.sign(
-      { id: user._id || user.id, role: user.role },
+      { id: user._id || user.id, customId: user.id, email: user.email, role: user.role, name: user.name },
       process.env.JWT_SECRET || 'hubooze-secret-2024',
       { expiresIn: '30d' }
     );

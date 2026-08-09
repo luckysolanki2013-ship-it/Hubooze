@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { protect, requireSeller, optionalAuth } = require('../middleware');
 const { DB } = require('../db');
+const dba = require('../dbAdapter');
 
 // GET /api/products  — with filters, search, pagination
 router.get('/', optionalAuth, (req, res) => {
@@ -42,7 +43,7 @@ router.get('/:id', optionalAuth, (req, res) => {
 });
 
 // POST /api/products  — seller creates product
-router.post('/', protect, requireSeller, (req, res) => {
+router.post('/', protect, requireSeller, async (req, res) => {
   try {
     const { name, brand, category, price, originalPrice, stock, description, sizes, colors, badge, eco, icon } = req.body;
     if (!name || !brand || !category || !price || !originalPrice || stock === undefined)
@@ -55,12 +56,12 @@ router.post('/', protect, requireSeller, (req, res) => {
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
       badge: badge || null, eco: !!eco, icon: icon || '📦',
-      sellerId: req.user.id, active: true, listed: true,
+      sellerId: req.user.customId || req.user.id, active: true, listed: listed !== false,
       rating: 0, reviews: 0, reviewCount: 0,
       images: [], createdAt: new Date().toISOString(),
     };
-    DB.products.push(product);
-    res.status(201).json({ product, message: `"${name}" listed successfully!` });
+    const saved = await dba.createProduct(product);
+    res.status(201).json({ product: saved, message: `"${name}" listed successfully!` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

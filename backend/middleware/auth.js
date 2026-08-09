@@ -15,6 +15,7 @@ exports.protect = async (req, res, next) => {
     if (!user || !user.isActive) return res.status(401).json({ error: 'User not found or deactivated.' });
 
     req.user = user;
+    req.user.customId = user.id; // custom id field
     next();
   } catch (err) {
     res.status(401).json({ error: 'Invalid or expired token. Please login again.' });
