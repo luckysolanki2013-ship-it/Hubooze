@@ -2,10 +2,8 @@ const router = require('express').Router();
 const { protect, requireAdmin } = require('../middleware');
 const dba = require('../dbAdapter');
 
-async function getCustomUserId(req) {
-  if (req.user.id && req.user.id.startsWith('u')) return req.user.id;
-  const u = await dba.findUser({ _id: req.user._id || req.user.id });
-  return (u && u.id) ? u.id : req.user.id;
+function getCustomUserId(req) {
+  return req.user.customId || req.user.id;
 }
 const { notifyOrderConfirmed, notifyOrderShipped } = require('../utils/notifications');
 
@@ -22,7 +20,7 @@ const COUPONS = {
 // GET /api/orders — user's orders
 router.get('/', protect, async (req, res) => {
   try {
-    const orders = await dba.findOrders({ userId: req.user.id || req.user._id?.toString() });
+    const orders = await dba.findOrders({ userId: getCustomUserId(req) });
     res.json({ orders });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -42,7 +40,7 @@ router.post('/', protect, async (req, res) => {
     const { items, addressId, address, paymentMethod, couponCode, note, giftWrap } = req.body;
     if (!items?.length) return res.status(400).json({ error: 'Cart is empty.' });
 
-    const userId = await getCustomUserId(req);
+    const userId = getCustomUserId(req);
     const user = await dba.findUser({ id: userId }) || await dba.findUser({ _id: userId });
     let addr = address || (user?.addresses || []).find(a => a.id === addressId);
     if (!addr) return res.status(400).json({ error: 'Delivery address required.' });
@@ -110,7 +108,7 @@ router.patch('/:id/cancel', protect, async (req, res) => {
   try {
     const order = await dba.findOrder(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found.' });
-    if (order.userId !== (req.user.id || req.user._id?.toString()) && req.user.role !== 'admin') return res.status(403).json({ error: 'Not authorized.' });
+    if (order.userId !== getCustomUserId(req) && req.user.role !== 'admin') return res.status(403).json({ error: 'Not authorized.' });
     if (!['processing','confirmed','pending_payment'].includes(order.status)) return res.status(400).json({ error: 'Order cannot be cancelled at this stage.' });
 
     for (const it of order.items) {

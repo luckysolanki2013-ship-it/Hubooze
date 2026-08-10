@@ -10,16 +10,14 @@ function getUserId(req) {
   return req.user.id || req.user._id?.toString();
 }
 
-async function getSellerCustomId(req) {
-  // req.user.id from JWT is MongoDB _id, we need the custom id field
-  const dbaUser = await dba.findUser({ _id: req.user._id || req.user.id });
-  return (dbaUser && dbaUser.id) ? dbaUser.id : req.user.id;
+function getSellerCustomId(req) {
+  return req.user.customId || req.user.id;
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────
 router.get('/dashboard', protect, requireSeller, async (req, res) => {
   try {
-    const allProducts = await dba.findProducts({ sellerId: await getSellerCustomId(req) });
+    const allProducts = await dba.findProducts({ sellerId: getSellerCustomId(req) });
     const myIds       = allProducts.map(p => p.id);
     const allOrders   = await dba.findOrders({});
     const myOrders    = allOrders.filter(o => o.items && o.items.some(it => myIds.includes(it.productId)));
@@ -40,7 +38,7 @@ router.get('/dashboard', protect, requireSeller, async (req, res) => {
 // ── PRODUCTS ──────────────────────────────────────────────────────
 router.get('/products', protect, requireSeller, async (req, res) => {
   try {
-    const products = await dba.findProducts({ sellerId: await getSellerCustomId(req) });
+    const products = await dba.findProducts({ sellerId: getSellerCustomId(req) });
     res.json({ products });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -48,7 +46,7 @@ router.get('/products', protect, requireSeller, async (req, res) => {
 // ── ORDERS ────────────────────────────────────────────────────────
 router.get('/orders', protect, requireSeller, async (req, res) => {
   try {
-    const myProds   = await dba.findProducts({ sellerId: await getSellerCustomId(req) });
+    const myProds   = await dba.findProducts({ sellerId: getSellerCustomId(req) });
     const myIds     = myProds.map(p => p.id);
     const allOrders = await dba.findOrders({});
     let orders = allOrders.filter(o => o.items && o.items.some(it => myIds.includes(it.productId)));
@@ -124,7 +122,7 @@ router.patch('/orders/:id/pickup-address', protect, requireSeller, async (req, r
 // ── PAYOUTS ───────────────────────────────────────────────────────
 router.get('/payouts', protect, requireSeller, async (req, res) => {
   try {
-    const myProds   = await dba.findProducts({ sellerId: await getSellerCustomId(req) });
+    const myProds   = await dba.findProducts({ sellerId: getSellerCustomId(req) });
     const myIds     = myProds.map(p => p.id);
     const allOrders = await dba.findOrders({});
     const orders    = allOrders.filter(o => o.items && o.items.some(it => myIds.includes(it.productId)) && o.status !== 'cancelled');
@@ -176,8 +174,6 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
       }
     });
 
-    console.log('Brand docs save result:', JSON.stringify(await dba.findUser({id: req.user.id})));
-    console.log('Brand docs save result:', JSON.stringify(await dba.findUser({id: req.user.id})));
     res.json({
       message: 'Brand documents submitted for review! We will verify within 2-3 business days.',
       documents: uploads,
@@ -188,7 +184,7 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
 // ── GET BRAND STATUS ──────────────────────────────────────────────
 router.get('/brand/status', protect, requireSeller, async (req, res) => {
   try {
-    const user = await dba.findUser({ _id: req.user._id || req.user.id }) || await dba.findUser({ id: req.user._id?.toString() });
+    const user = await dba.findUser({ id: req.user.customId || req.user.id });
     res.json({
       brandDocuments: user?.brandDocuments || null,
       approved: user?.brandApproved || false,

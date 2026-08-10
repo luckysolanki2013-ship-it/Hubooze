@@ -4,10 +4,10 @@ const { DB } = require('../db');
 const dba = require('../dbAdapter');
 
 // GET /api/products  — with filters, search, pagination
-router.get('/', optionalAuth, (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const { category, search, sort, eco, badge, page = 1, limit = 12 } = req.query;
-    let products = DB.products.filter(p => p.active !== false);
+    let products = (await dba.findProducts({})).filter(p => p.active !== false && p.listed !== false);
     if (category && category !== 'all') products = products.filter(p => p.category === category);
     if (eco === 'true') products = products.filter(p => p.eco);
     if (badge) products = products.filter(p => p.badge === badge.toUpperCase());
@@ -36,27 +36,28 @@ router.get('/', optionalAuth, (req, res) => {
 });
 
 // GET /api/products/:id
-router.get('/:id', optionalAuth, (req, res) => {
-  const product = DB.products.find(p => p.id === req.params.id);
+router.get('/:id', optionalAuth, async (req, res) => {
+  const product = await dba.findProduct(req.params.id);
   if (!product) return res.status(404).json({ error: 'Product not found.' });
-  res.json({ product: { ...product, discount: Math.round((1 - product.price / product.originalPrice) * 100) } });
+  const mrp = product.originalPrice || product.orig || product.price;
+  res.json({ product: { ...product, discount: mrp ? Math.round((1 - product.price / mrp) * 100) : 0 } });
 });
 
 // POST /api/products  — seller creates product
 router.post('/', protect, requireSeller, async (req, res) => {
   try {
-    const { name, brand, category, price, originalPrice, stock, description, sizes, colors, badge, eco, icon } = req.body;
-    if (!name || !brand || !category || !price || !originalPrice || stock === undefined)
-      return res.status(400).json({ error: 'Name, brand, category, price, originalPrice, stock are required.' });
-    if (price >= originalPrice) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
-
+    const { name, brand, category, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, listed } = req.body;
+    if (!name || !brand || !category || !price || stock === undefined)
+      return res.status(400).json({ error: 'Name, brand, category, price, stock are required.' });
+    const mrp = Number(originalPrice || orig || price);
+    if (Number(price) >= mrp && mrp > 0) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
     const product = {
-      id: 'p_' + Date.now(), name, brand, category,
-      price: Number(price), originalPrice: Number(originalPrice),
+      id: 'p_' + Date.now(), name, brand, category, cat: category,
+      price: Number(price), originalPrice: mrp, orig: mrp,
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
       badge: badge || null, eco: !!eco, icon: icon || '📦',
-      sellerId: req.user.customId || req.user.id, active: true, listed: listed !== false,
+      badge: badge || null, eco: !!eco, icon: icon || '📦', image: image || '',
       rating: 0, reviews: 0, reviewCount: 0,
       images: [], createdAt: new Date().toISOString(),
     };
@@ -68,15 +69,15 @@ router.post('/', protect, requireSeller, async (req, res) => {
 });
 
 // PUT /api/products/:id
-router.put('/:id', protect, requireSeller, (req, res) => {
-  const product = DB.products.find(p => p.id === req.params.id);
+router.put('/:id', protect, requireSeller, async (req, res) => {
+  const product = await dba.findProduct(req.params.id);
   if (!product) return res.status(404).json({ error: 'Product not found.' });
-  if (product.sellerId !== req.user.id && req.user.role !== 'admin')
+  const myId = req.user.customId || req.user.id;
+  if (product.sellerId !== myId && req.user.role !== 'admin')
     return res.status(403).json({ error: 'Not authorized.' });
-
-  const allowed = ['name','brand','price','originalPrice','stock','description','sizes','colors','badge','eco','icon','active','listed'];
-  allowed.forEach(f => { if (req.body[f] !== undefined) product[f] = req.body[f]; });
-  res.json({ product, message: 'Product updated.' });
+  const allowed = ['name','brand','category','cat','price','originalPrice','orig','stock','description','sizes','colors','badge','eco','icon','image','active','listed'];
+  const update = {}; allowed.forEach(f => { if (req.body[f] !== undefined) update[f] = req.body[f]; });
+  const saved = await dba.updateProduct(req.params.id, update); res.json({ product: saved, message: 'Product updated.' });
 });
 
 // POST /api/products/:id/reviews
