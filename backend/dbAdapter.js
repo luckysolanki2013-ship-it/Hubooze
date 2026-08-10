@@ -22,6 +22,9 @@ async function init() {
 // ── USERS ─────────────────────────────────────────────────────────
 async function findUser(query) {
   if (useMongo) {
+    if (query._id && typeof query._id === 'string' && !query._id.match(/^[0-9a-fA-F]{24}$/)) {
+      return await Models.User.findOne({ id: query._id }).lean();
+    }
     return await Models.User.findOne(query).lean();
   }
   if (query.email) return DB.users.find(u => u.email === query.email) || null;

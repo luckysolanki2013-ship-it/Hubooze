@@ -41,7 +41,7 @@ router.post('/', protect, async (req, res) => {
     if (!items?.length) return res.status(400).json({ error: 'Cart is empty.' });
 
     const userId = getCustomUserId(req);
-    const user = await dba.findUser({ id: userId }) || await dba.findUser({ _id: userId });
+    const user = await dba.findUser({ id: userId });
     let addr = address || (user?.addresses || []).find(a => a.id === addressId);
     if (!addr) return res.status(400).json({ error: 'Delivery address required.' });
 
