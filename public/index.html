@@ -3229,19 +3229,20 @@ var ORDERS_DB = [
 
 var ordTabActive = 'all';
 
-function renderOrdersPage() {
+async function renderOrdersPage() {
   if (!currentUser) { showPage('account'); return; }
 
   ss('ordTitleEl', 'My Orders', false);
   ss('ordBcEl', 'My Orders', false);
 
   var TABS = [
-    {key:'all',key2:'',label:'All Orders'},
+    {key:'all', label:'All Orders'},
     {key:'processing', label:'Processing'},
-    {key:'shipped',    label:'Shipped'},
-    {key:'delivered',  label:'Delivered'},
-    {key:'cancelled',  label:'Cancelled'},
-    {key:'returned',   label:'Returned'}
+    {key:'accepted', label:'Accepted'},
+    {key:'packed', label:'Packed'},
+    {key:'shipped', label:'Shipped'},
+    {key:'delivered', label:'Delivered'},
+    {key:'cancelled', label:'Cancelled'}
   ];
 
   var te = document.getElementById('ordTabsEl');
@@ -3251,14 +3252,21 @@ function renderOrdersPage() {
     }).join('');
   }
 
-  var myOrders = ORDERS_DB.filter(function(o) {
-    if (o.userId !== currentUser.id) return false;
-    if (ordTabActive && ordTabActive !== 'all' && o.status !== ordTabActive) return false;
-    return true;
-  });
-
   var el = document.getElementById('ordListEl');
   if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">Loading your orders...</div>';
+
+  var token = localStorage.getItem('hb_token');
+  var myOrders = [];
+  try {
+    var r = await fetch('/api/orders', {headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    myOrders = d.orders || [];
+  } catch(e) {}
+
+  if (ordTabActive && ordTabActive !== 'all') {
+    myOrders = myOrders.filter(function(o) { return o.status === ordTabActive; });
+  }
 
   if (!myOrders.length) {
     el.innerHTML = '<div style="text-align:center;padding:48px;background:var(--bg3);border:1px solid var(--border);border-radius:14px">'
@@ -3271,52 +3279,62 @@ function renderOrdersPage() {
   }
 
   el.innerHTML = myOrders.map(function(o) {
-    var disc = o.discount + o.couponD;
+    var addr = typeof o.address === 'object' ? (o.address.line1 + ', ' + o.address.city + ' - ' + o.address.pincode) : (o.address||'');
+    var disc = (o.discount||0) + (o.couponDiscount||0);
     return '<div class="ord-card">'
-      // Header
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px">'
       + '<div>'
-      + '<div style="font-weight:700;font-size:15px">Order #' + o.id + '</div>'
+      + '<div style="font-weight:700;font-size:15px">Order #' + (o.orderId||o.id) + '</div>'
       + '<div style="font-size:12px;color:var(--text3);margin-top:2px">'
-      + o.date + (o.deliveredOn ? ' &bull; Delivered: ' + o.deliveredOn : '') + ' &bull; ' + o.payment
+      + (o.createdAt||'').toString().substring(0,10) + ' &bull; ' + (o.paymentMethod||'')
       + '</div>'
       + '</div>'
       + '<span class="chip chip-' + o.status + '">' + o.status.toUpperCase() + '</span>'
       + '</div>'
-      // Items
       + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">'
-      + o.items.map(function(it) {
+      + (o.items||[]).map(function(it) {
+          var iconHtml = (it.icon && (it.icon.indexOf('/')===0 || it.icon.indexOf('http')===0))
+            ? '<img src="' + it.icon + '" style="width:2rem;height:2rem;object-fit:cover;border-radius:6px">'
+            : (it.icon || '&#128230;');
           return '<div class="ord-item-row">'
-            + '<span class="ord-item-icon">' + it.icon + '</span>'
+            + '<span class="ord-item-icon">' + iconHtml + '</span>'
             + '<div style="flex:1;min-width:0">'
             + '<div style="font-size:13px;font-weight:600">' + it.name + '</div>'
-            + '<div style="font-size:11px;color:var(--text3)">Qty: ' + it.qty + (it.size ? ' &bull; ' + it.size : '') + '</div>'
+            + '<div style="font-size:11px;color:var(--text3)">Qty: ' + (it.qty||it.quantity) + (it.size ? ' &bull; ' + it.size : '') + '</div>'
             + '</div>'
-            + '<div style="font-weight:700;flex-shrink:0">&#8377;' + (it.price * it.qty).toLocaleString('en-IN') + '</div>'
+            + '<div style="font-weight:700;flex-shrink:0">&#8377;' + (it.price * (it.qty||it.quantity)).toLocaleString('en-IN') + '</div>'
             + '</div>';
         }).join('')
       + '</div>'
-      // Summary row
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px">'
       + '<div style="font-size:13px;color:var(--text2)">'
-      + '&#128205; ' + o.address.substring(0, 35) + (o.address.length > 35 ? '...' : '')
+      + '&#128205; ' + addr.substring(0, 35) + (addr.length > 35 ? '...' : '')
       + (disc > 0 ? ' &nbsp;&bull;&nbsp; <span style="color:var(--green);font-weight:600">Saved &#8377;' + disc.toLocaleString('en-IN') + '</span>' : '')
       + '</div>'
       + '<div style="font-weight:900;font-size:1.1rem">&#8377;' + o.total.toLocaleString('en-IN') + '</div>'
       + '</div>'
-      // Actions
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
       + (o.status === 'delivered'
-          ? '<button class="btn-ghost" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="openReturnModal(\'' + o.id + '\')">&#128260; Return / Refund</button>'
+          ? '<button class="btn-ghost" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="openReturnModal(\'' + (o.orderId||o.id) + '\')">&#128260; Return / Refund</button>'
           : '')
-      + (o.status === 'processing'
-          ? '<button class="btn-danger" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="cancelOrder(\'' + o.id + '\')">Cancel Order</button>'
+      + (['processing','confirmed','accepted'].indexOf(o.status) > -1
+          ? '<button class="btn-danger" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="cancelOrderAPI(\'' + (o.orderId||o.id) + '\')">Cancel Order</button>'
           : '')
-      + '<button class="btn-ghost" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="showToast(\'Tracking info for #' + o.id + '\', \'info\')">Track Order &#128666;</button>'
-      + '<button class="btn-ghost" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="reorderItems(\'' + o.id + '\')">&#128257; Reorder</button>'
+      + '<button class="btn-ghost" style="padding:8px 14px;font-size:12px;border-radius:7px" onclick="showToast(\'Tracking info for #' + (o.orderId||o.id) + '\', \'info\')">Track Order &#128666;</button>'
       + '</div>'
       + '</div>';
   }).join('');
+}
+
+async function cancelOrderAPI(orderId) {
+  if (!confirm('Cancel order #' + orderId + '?')) return;
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/orders/' + orderId + '/cancel', {method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({reason:'Customer request'})});
+    var d = await r.json();
+    showToast(d.message || 'Order cancelled', 'success');
+    renderOrdersPage();
+  } catch(e) { showToast('Error: '+e.message,'error'); }
 }
 
 function switchOrdTab(key) { ordTabActive = key; renderOrdersPage(); }
