@@ -6937,6 +6937,28 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(handlePaymentReturn, 500);
 }
 
+
+async function approveReturn(returnId) {
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/returns/' + returnId + '/approve', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    showToast(d.message || 'Return approved & refund initiated!', 'success');
+    if (typeof renderSellerPage === 'function') renderSellerPage();
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+async function rejectReturn(returnId) {
+  if (!confirm('Reject this return request?')) return;
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/returns/' + returnId + '/reject', {method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    showToast(d.message || 'Return rejected', 'info');
+    if (typeof renderSellerPage === 'function') renderSellerPage();
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
