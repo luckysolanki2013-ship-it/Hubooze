@@ -1332,9 +1332,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
             <button class="portal-btn" style="background:var(--grad);color:#000">
               Shop Now &#8594;
             </button>
-            <div class="portal-demo" onclick="event.stopPropagation();quickLogin('customer')">
-              Demo: tap to login as customer
-            </div>
           </div>
 
           <!-- Seller Portal -->
@@ -1353,9 +1350,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
             <button class="portal-btn" style="background:linear-gradient(135deg,#00a1ff,#9c27b0);color:#fff">
               Start Selling &#8594;
             </button>
-            <div class="portal-demo" onclick="event.stopPropagation();quickLogin('seller')">
-              Demo: tap to login as seller
-            </div>
           </div>
 
           <!-- Admin Portal -->
@@ -1415,7 +1409,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
               <input class="form-input portal-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
             <button class="btn-grad portal-submit" onclick="doLogin()">Login to My Account &#8594;</button>
             <div class="portal-divider"><span>or try demo</span></div>
-            <button class="portal-demo-btn" onclick="quickLogin('customer')">&#128722; Login as </button>
           </div>
           <!-- OTP Login Form -->
           <div id="cOtpForm" style="display:none">
@@ -1493,7 +1486,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
               <input class="form-input portal-input" id="sLoginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSellerLogin()"></div>
             <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#00a1ff,#9c27b0)" onclick="doSellerLogin()">Login to Seller Dashboard &#8594;</button>
             <div class="portal-divider"><span>or try demo</span></div>
-            <button class="portal-demo-btn" style="border-color:rgba(0,161,255,.3);color:var(--blue)" onclick="quickLogin('seller')">&#129489; Login as </button>
           </div>
 
           <!-- Seller Register Form -->
