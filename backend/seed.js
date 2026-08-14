@@ -10,6 +10,13 @@ const { DB } = require('./db');
 async function seed() {
   await connectDB();
   
+  // SAFETY CHECK - require explicit confirmation flag
+  if (process.env.CONFIRM_RESEED !== 'YES_WIPE_ALL_DATA') {
+    console.log('⚠️  SEED BLOCKED: This will DELETE ALL data (users, products, orders).');
+    console.log('⚠️  To confirm, run: CONFIRM_RESEED=YES_WIPE_ALL_DATA node backend/seed.js');
+    process.exit(1);
+  }
+  
   console.log('Seeding...');
 
   // Clear existing

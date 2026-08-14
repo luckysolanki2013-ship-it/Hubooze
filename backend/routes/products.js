@@ -57,7 +57,7 @@ router.post('/', protect, requireSeller, async (req, res) => {
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
       badge: badge || null, eco: !!eco, icon: icon || '📦',
-      badge: badge || null, eco: !!eco, icon: icon || '📦', image: image || '',
+      sellerId: req.user.customId || req.user.id, active: true, listed: listed !== false,
       rating: 0, reviews: 0, reviewCount: 0,
       images: [], createdAt: new Date().toISOString(),
     };
