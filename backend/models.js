@@ -40,6 +40,7 @@ const productSchema = new mongoose.Schema({
   badge:         String,
   icon:          String,
   image:         String,
+  images:        [String],
   rating:        { type: Number, default: 0 },
   reviews:       { type: Number, default: 0 },
   sellerId:      String,

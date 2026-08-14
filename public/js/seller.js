@@ -277,7 +277,8 @@ function sellerOrderCardFull(o) {
 // ── ADD PRODUCT FORM ──────────────────────────────────────────────
 function renderSelAddProduct(el) {
   var ep = sellerEditProductId ? (window.PRODUCTS && window.PRODUCTS[sellerEditProductId]) : null;
-
+  var ep = sellerEditProductId ? (window.PRODUCTS && window.PRODUCTS[sellerEditProductId]) : null;
+  selProdImages = (ep && ep.images && ep.images.length) ? ep.images.slice() : (ep && ep.image ? [ep.image] : []);
   el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
     + '<h4 style="font-weight:700;margin-bottom:20px">'+(ep?'✏️ Edit Product':'➕ Add New Product')+'</h4>'
     + '<div style="display:grid;gap:14px">'
@@ -312,21 +313,18 @@ function renderSelAddProduct(el) {
     + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px"><input type="checkbox" id="np_listed"'+((!ep||ep.listed!==false)?' checked':'')+' style="width:18px;height:18px"> ✅ List immediately</label>'
     + '</div>'
 
-    // Image upload
+    // Image gallery upload (up to 6 images)
     + '<div>'
-    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px">Product Image</label>'
-    + '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'
-    + '<div id="prodImgPreview" style="width:88px;height:88px;background:var(--bg4);border:2px dashed var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;flex-shrink:0;overflow:hidden">'
-    + (ep&&ep.image ? '<img src="'+ep.image+'" style="width:100%;height:100%;object-fit:cover">' : (ep&&ep.icon||'📦'))
-    + '</div>'
-    + '<div style="flex:1;min-width:180px">'
-    + '<input type="file" id="selProdImageFile" accept="image/*" style="display:none">'
-    + '<button type="button" id="selProdImgBtn" class="btn-ghost" style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">📷 Upload Photo</button>'
-    + '<select id="selProdIcon" style="width:100%;padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px">Product Photos (up to 6)</label>'
+    + '<div id="prodImgGallery" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"></div>'
+    + '<input type="file" id="selProdImageFile" accept="image/*" multiple style="display:none">'
+    + '<button type="button" id="selProdImgBtn" class="btn-ghost" style="padding:10px 18px;font-size:13px">\ud83d\udcf7 Add Photos</button>'
+    + '<div style="margin-top:10px">'
+    + '<select id="selProdIcon" style="width:200px;padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">'
     + '<option value="">-- Or pick emoji icon --</option>'
-    + ['📦','👗','📱','🏠','🌿','💄','⚽','📚','🛍️','💍'].map(function(e){return '<option value="'+e+'"'+(ep&&ep.icon===e?' selected':'')+'>'+e+'</option>';}).join('')
+    + ['\ud83d\udce6','\ud83d\udc57','\ud83d\udcf1','\ud83c\udfe0','\ud83c\udf3f','\ud83d\udc84','\u26bd','\ud83d\udcda','\ud83d\uded2\ufe0f','\ud83d\udc8d'].map(function(e){return '<option value="'+e+'"'+(ep&&ep.icon===e?' selected':'')+'>'+e+'</option>';}).join('')
     + '</select>'
-    + '</div></div></div>'
+    + '</div></div>'
 
     // Submit
     + '</div>'
@@ -334,7 +332,6 @@ function renderSelAddProduct(el) {
     + '<button id="selSubmitBtn" class="btn-grad" style="flex:1;padding:14px;font-size:15px">List Product →</button>'
     + '<button onclick="switchSelTab(\'products\')" style="padding:14px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit;font-size:14px">Cancel</button>'
     + '</div></div>';
-
   // Attach events
   setTimeout(function() {
     var imgBtn  = document.getElementById('selProdImgBtn');
@@ -342,9 +339,10 @@ function renderSelAddProduct(el) {
     var submitBtn = document.getElementById('selSubmitBtn');
     if (imgBtn && imgFile) {
       imgBtn.onclick = function() { imgFile.click(); };
-      imgFile.onchange = function() { uploadProductImage(imgFile); };
+      imgFile.onchange = function() { uploadMultipleImages(imgFile); };
     }
     if (submitBtn) submitBtn.onclick = saveSellerProduct;
+    renderProdImgGallery();
   }, 50);
 }
 
@@ -372,8 +370,8 @@ async function saveSellerProduct() {
   var listed  = (document.getElementById('np_listed')||{checked:true}).checked;
   var iconEl  = document.getElementById('selProdIcon');
   var icon    = iconEl && iconEl.value ? iconEl.value : '📦';
-  var imgPrev = document.getElementById('prodImgPreview');
-  var image   = (imgPrev && imgPrev.dataset.s3Url) ? imgPrev.dataset.s3Url : '';
+  var image   = selProdImages.length ? selProdImages[0] : '';
+  var images  = selProdImages.slice();
 
   if (!name)  { showToast('Product name is required','error'); return; }
   if (!brand) { showToast('Brand is required','error'); return; }
@@ -385,7 +383,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, price, originalPrice:orig, orig, stock, icon, image, description:desc, sizes, badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes, badge, eco, listed, sellerId:currentUser.id };
 
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
@@ -406,32 +404,58 @@ async function saveSellerProduct() {
 }
 
 // ── IMAGE UPLOAD ──────────────────────────────────────────────────
-async function uploadProductImage(input) {
-  var file = input.files[0];
-  if (!file) return;
-  if (file.size > 5*1024*1024) { showToast('Image must be under 5MB','error'); return; }
-  // Show preview immediately
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var prev = document.getElementById('prodImgPreview');
-    if (prev) prev.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';
-  };
-  reader.readAsDataURL(file);
-  // Upload to S3
-  showToast('Uploading image...','info');
-  var token = localStorage.getItem('hb_token');
-  var formData = new FormData();
-  formData.append('image', file);
-  try {
-    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
-    var d = await r.json();
-    if (d.url) {
-      var prev = document.getElementById('prodImgPreview');
-      if (prev) prev.dataset.s3Url = d.url;
-      showToast('✅ Image uploaded!','success');
-    } else { showToast(d.error||'Upload failed','error'); }
-  } catch(e) { showToast('Upload failed: '+e.message,'error'); }
+var selProdImages = [];
+
+function renderProdImgGallery() {
+  var gallery = document.getElementById('prodImgGallery');
+  if (!gallery) return;
+  gallery.innerHTML = selProdImages.map(function(url, idx) {
+    return '<div style="position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;border:2px solid var(--border2)">'
+      + '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover">'
+      + '<button type="button" onclick="removeProdImage(' + idx + ')" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(255,0,0,.85);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1">\u2715</button>'
+      + (idx === 0 ? '<span style="position:absolute;bottom:2px;left:2px;background:var(--green);color:#000;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700">MAIN</span>' : '')
+      + '</div>';
+  }).join('')
+  + (selProdImages.length < 6
+      ? '<div onclick="document.getElementById(\'selProdImageFile\').click()" style="width:80px;height:80px;border-radius:10px;border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:1.8rem">+</div>'
+      : '');
 }
+
+function removeProdImage(idx) {
+  selProdImages.splice(idx, 1);
+  renderProdImgGallery();
+}
+
+async function uploadMultipleImages(input) {
+  var files = Array.from(input.files || []);
+  if (!files.length) return;
+  var remaining = 6 - selProdImages.length;
+  if (remaining <= 0) { showToast('Maximum 6 images allowed','error'); return; }
+  files = files.slice(0, remaining);
+
+  var token = localStorage.getItem('hb_token');
+  showToast('Uploading ' + files.length + ' image(s)...', 'info');
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    if (file.size > 5*1024*1024) { showToast(file.name + ' is over 5MB, skipped', 'error'); continue; }
+    var formData = new FormData();
+    formData.append('image', file);
+    try {
+      var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+      var d = await r.json();
+      if (d.url) {
+        selProdImages.push(d.url);
+      } else {
+        showToast(d.error || 'Upload failed for ' + file.name, 'error');
+      }
+    } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
+  }
+  renderProdImgGallery();
+  showToast('\u2705 Images uploaded!', 'success');
+  input.value = '';
+}
+
 
 // ── TOGGLE PRODUCT ────────────────────────────────────────────────
 async function toggleListProduct(pid) {
