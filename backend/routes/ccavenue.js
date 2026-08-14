@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const crypto = require('crypto');
+const express = require('express');
 
 const MERCHANT_ID  = process.env.CCAVENUE_MERCHANT_ID;
 const ACCESS_CODE  = process.env.CCAVENUE_ACCESS_CODE;
@@ -26,7 +27,7 @@ function decrypt(encText) {
 
 router.post('/initiate', async (req, res) => {
   try {
-    const { orderId, amount, name, email, phone, address, city, pincode } = req.body;
+    const { orderId, amount, name, email, phone, address, city, pincode, state } = req.body;
     if (!orderId || !amount) 
       return res.status(400).json({ error: 'Order ID and amount required' });
 
@@ -46,11 +47,13 @@ router.post('/initiate', async (req, res) => {
       `billing_tel=${phone||''}`,
       `billing_address=${address||''}`,
       `billing_city=${city||''}`,
+      `billing_state=${state||'Madhya Pradesh'}`,
       `billing_country=India`,
       `billing_zip=${pincode||''}`,
       `delivery_name=${name||'Customer'}`,
       `delivery_address=${address||''}`,
       `delivery_city=${city||''}`,
+      `delivery_state=${state||'Madhya Pradesh'}`,
       `delivery_country=India`,
       `delivery_zip=${pincode||''}`,
       `delivery_tel=${phone||''}`,
@@ -69,9 +72,19 @@ router.post('/initiate', async (req, res) => {
   }
 });
 
-router.post('/response', async (req, res) => {
+router.post('/response', express.raw({type: '*/*', limit: '2mb'}), async (req, res) => {
   try {
-    const encResponse = req.body.encResp;
+    let encResponse = req.body.encResp;
+    // If body-parser didn't parse it (raw buffer), parse manually
+    if (!encResponse && Buffer.isBuffer(req.body)) {
+      const bodyStr = req.body.toString('utf8');
+      const params = new URLSearchParams(bodyStr);
+      encResponse = params.get('encResp');
+    }
+    if (encResponse) encResponse = encResponse.trim();
+    console.log("Raw encResp length:", encResponse ? encResponse.length : 0);
+    console.log("Raw encResp first 60:", encResponse ? encResponse.substring(0,60) : "NONE");
+    console.log("Raw body type:", typeof req.body, Buffer.isBuffer(req.body));
     if (!encResponse) 
       return res.redirect('https://hubooze.in/?payment=failed');
 
