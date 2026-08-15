@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
   brandDocuments: { type: mongoose.Schema.Types.Mixed, default: null },
   brandApproved:  { type: Boolean, default: false },
   commission:     { type: Number, default: 10 },
+  suspended:      { type: Boolean, default: false },
   bankDetails:    { type: mongoose.Schema.Types.Mixed, default: null },
   wishlist:     [String],
   notifPrefs:   { type: mongoose.Schema.Types.Mixed, default: {} },
@@ -25,7 +26,7 @@ const userSchema = new mongoose.Schema({
   avatar:       String,
   createdAt:    { type: Date, default: Date.now },
   lastLoginAt:  Date,
-}, { timestamps: false });
+}, { timestamps: false, strict: false });
 
 // ── PRODUCT ───────────────────────────────────────────────────────
 const productSchema = new mongoose.Schema({
