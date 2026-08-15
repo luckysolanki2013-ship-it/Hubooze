@@ -211,7 +211,7 @@ router.delete('/promotions/flash-sale', protect, requireAdmin, (req, res) => {
 router.get('/sellers', protect, requireAdmin, async (req, res) => {
   try {
     const users = await dba.getAllUsers();
-    const sellers = users.filter(u=>u.role==='seller'||u.role==='admin')
+    const sellers = users.filter(u=>(u.role==='seller'||u.role==='admin') && !u.suspended)
       .map(u=>{ const {password,...safe}=u; return safe; });
     // Add product count for each seller
     const products = await dba.findProducts({});

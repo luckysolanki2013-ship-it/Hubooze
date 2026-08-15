@@ -245,15 +245,15 @@ function adminReturnRow(ret) {
 }
 
 function adminUserRow(u) {
-  return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">'
-    + '<div style="width:40px;height:40px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">'+(u.role==='admin'?'👑':u.role==='seller'?'🏪':'👤')+'</div>'
-    + '<div style="flex:1;min-width:150px"><div style="font-weight:600">'+u.name+'</div><div style="font-size:12px;color:var(--text3)">'+u.email+' • '+u.role+'</div></div>'
+  var isSuspended = !!u.suspended;
+  return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;'+(isSuspended?'opacity:.55':'')+'">'
+    + '<div style="width:40px;height:40px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">'+(u.role==='admin'?'\ud83d\udc51':u.role==='seller'?'\ud83c\udfea':'\ud83d\udc64')+'</div>'
+    + '<div style="flex:1;min-width:150px"><div style="font-weight:600">'+u.name+(isSuspended?' <span style="color:var(--red);font-size:11px;font-weight:700">(SUSPENDED)</span>':'')+'</div><div style="font-size:12px;color:var(--text3)">'+u.email+' \u2022 '+u.role+'</div></div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
     + (u.role!=='admin' ? '<button data-uid="'+u.id+'" data-urole="'+u.role+'" class="admin-change-role" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text);cursor:pointer;font-size:12px;font-family:inherit">Change Role</button>' : '')
-    + '<button data-uid="'+u.id+'" data-uname="'+u.name+'" class="admin-suspend-user" style="padding:5px 10px;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:12px;font-family:inherit">Suspend</button>'
+    + (isSuspended ? '<button data-uid="'+u.id+'" data-uname="'+u.name+'" class="admin-unsuspend-user" style="padding:5px 10px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;font-size:12px;font-family:inherit">Unsuspend</button>' : '<button data-uid="'+u.id+'" data-uname="'+u.name+'" class="admin-suspend-user" style="padding:5px 10px;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:12px;font-family:inherit">Suspend</button>')
     + '</div></div>';
 }
-
 function adminSellerRow(s) {
   var docs = s.brandDocuments || {};
   var approved = s.brandApproved || false;
@@ -509,6 +509,19 @@ async function adminSuspendUser(uid, name) {
     renderAdminTabContent({});
   } catch(e) { showToast('Error: '+e.message,'error'); }
 }
+
+async function adminUnsuspendUser(uid, name) {
+  if (!confirm('Unsuspend '+name+'?')) return;
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/admin/users/'+uid+'/role', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({suspended:false})});
+    var d = await r.json();
+    showToast(d.message||'User unsuspended','success');
+    renderAdminTabContent({});
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+
 
 async function adminApproveSeller(uid, name) {
   if (!confirm('Approve brand for '+name+'?')) return;
@@ -864,6 +877,8 @@ document.addEventListener('click', function(e) {
   if (btn) { adminChangeRole(btn.dataset.uid, btn.dataset.urole); return; }
   btn = e.target.closest('.admin-suspend-user');
   if (btn) { adminSuspendUser(btn.dataset.uid, btn.dataset.uname); return; }
+  btn = e.target.closest('.admin-unsuspend-user');
+  if (btn) { adminUnsuspendUser(btn.dataset.uid, btn.dataset.uname); return; }
   btn = e.target.closest('.admin-user-filter');
   if (btn) { adminFilterUsers(btn.dataset.ur); return; }
   // Seller actions
