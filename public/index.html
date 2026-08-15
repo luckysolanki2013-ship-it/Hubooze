@@ -7035,10 +7035,15 @@ function prodGalleryNav(dir) {
   var params = new URLSearchParams(window.location.search);
   if (params.get('admin-access') === 'hbz2026secure') {
     setTimeout(function() {
-      openPortal('admin');
-      showToast('Admin login unlocked', 'info');
+      showPage('account');
+      setTimeout(function() {
+        var card = document.getElementById('adminPortalCard');
+        if (card) card.style.display = 'flex';
+        openPortal('admin');
+        showToast('Admin login unlocked', 'info');
+      }, 200);
       window.history.replaceState({}, document.title, window.location.pathname);
-    }, 500);
+    }, 800);
   }
 })();
 
