@@ -2480,8 +2480,10 @@ function renderCatProducts() {
 function doSearch() {
   var q = (document.getElementById('searchInpEl') || {value:''}).value.toLowerCase().trim();
   if (!q) return;
+  var allProducts = Object.values(PRODUCTS);
   var results = allProducts.filter(function(p) {
-    return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
+    var cat = (p.cat || p.category || '').toLowerCase();
+    return p.name.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q) || cat.includes(q);
   });
   showPage('categories');
   catTabActive = 'all';
