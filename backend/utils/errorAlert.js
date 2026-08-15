@@ -5,7 +5,7 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || 'Team.Support@hubooze.in';
+const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || 'luckysolanki2013@gmail.com';
 const recentAlerts = new Map(); // errorKey -> timestamp
 const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
 
