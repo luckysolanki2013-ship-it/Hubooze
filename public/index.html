@@ -1260,6 +1260,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
       </aside>
       <div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="catTabsEl"></div>
+        <div style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:20px;overflow-x:auto;padding-bottom:4px" id="subCatTabsEl"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <span style="font-size:13px;color:var(--text2)" id="showingEl">Showing all products</span>
           <span style="font-size:12px;color:var(--text3)" id="prodCountEl"></span>
@@ -2431,6 +2432,35 @@ function renderHomeContent() {
 //  CATEGORIES PAGE
 // ════════════════════════════════════════════════════════════════
 var catTabActive = 'all';
+var subCatActive = 'all';
+
+var SUBCATEGORIES = {
+  fashion:   { 
+    village: ['Sab','Men ke Kapde','Women ke Kapde','Bachchon ke Kapde','Jute-Chappal','Gehne & Accessories','Ethnic Wear'],
+    normal:  ['All','Men\'s Wear','Women\'s Wear','Kids Wear','Footwear','Accessories','Ethnic Wear'],
+    keys:    ['all','men','women','kids','footwear','accessories','ethnic']
+  },
+  electronics: {
+    village: ['Sab','Mobile-Phone','Laptop-Computer','Gaana Bajane Wala','Ghar ke Saaman','Chhote Gadgets'],
+    normal:  ['All','Mobiles','Laptops','Audio','Smart Home','Accessories'],
+    keys:    ['all','mobiles','laptops','audio','smarthome','accessories']
+  },
+  home: {
+    village: ['Sab','Rasoi ka Saaman','Ghar ki Sajawat','Furniture','Bistar-Chaadar'],
+    normal:  ['All','Kitchen','Home Decor','Furniture','Bedding'],
+    keys:    ['all','kitchen','decor','furniture','bedding']
+  },
+  daily: {
+    village: ['Sab','Kirana Saaman','Nahane-Dhone ka Saaman','Safai ka Saaman'],
+    normal:  ['All','Groceries','Personal Care','Cleaning'],
+    keys:    ['all','groceries','personalcare','cleaning']
+  },
+  handmade: {
+    village: ['Sab','Mitti ke Bartan','Kapde-Bunai','Gehne','Ghar ki Sajawat'],
+    normal:  ['All','Pottery','Textiles','Jewelry','Home Decor'],
+    keys:    ['all','pottery','textiles','jewelry','decor']
+  }
+};
 
 function renderCategoriesPage(cat) {
   if (cat) catTabActive = cat;
@@ -2446,12 +2476,30 @@ function renderCategoriesPage(cat) {
       return '<button style="padding:8px 16px;border-radius:20px;border:1.5px solid '+(catTabActive===key?'var(--green)':'var(--border2)')+';background:'+(catTabActive===key?'rgba(0,255,143,.1)':'var(--bg3)')+';color:'+(catTabActive===key?'var(--green)':'var(--text2)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s" onclick="catTabActive=\''+key+'\';renderCatProducts()">'+tab+'</button>';
     }).join('');
   }
+  subCatActive = 'all';
+  renderSubCatTabs();
   renderCatProducts();
 }
-
+function renderSubCatTabs() {
+  var el = document.getElementById('subCatTabsEl');
+  if (!el) return;
+  var subData = SUBCATEGORIES[catTabActive];
+  if (!subData) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  var isVillage = document.body.className === 'village';
+  var labels = isVillage ? subData.village : subData.normal;
+  el.innerHTML = labels.map(function(label, i) {
+    var key = subData.keys[i];
+    var active = subCatActive === key;
+    return '<button style="padding:6px 14px;border-radius:16px;border:1px solid '+(active?'var(--blue)':'var(--border)')+';background:'+(active?'rgba(0,161,255,.1)':'var(--bg4)')+';color:'+(active?'var(--blue)':'var(--text3)')+';font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0" onclick="subCatActive=\'' + key + '\';renderCatProducts()">'+label+'</button>';
+  }).join('');
+}
 function renderCatProducts() {
   var allProducts = Object.values(PRODUCTS);
   var priceFilter = (document.querySelector('input[name="price"]:checked') || {value:''}).value;
+  var sortVal = (document.getElementById('sortSelectEl') || {value:''}).value;
+  var ecoOnly = (document.getElementById('ecoCheckEl') || {checked:false}).checked;
+  renderSubCatTabs();
   var sortVal = (document.getElementById('sortSelectEl') || {value:''}).value;
   var ecoOnly = (document.getElementById('ecoCheckEl') || {checked:false}).checked;
 
