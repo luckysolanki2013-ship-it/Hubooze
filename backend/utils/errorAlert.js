@@ -5,7 +5,7 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || 'luckysolanki2013@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || 'Team.Support@hubooze.in';
 const recentAlerts = new Map(); // errorKey -> timestamp
 const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -28,7 +28,7 @@ async function sendErrorAlert(errorType, errorMessage, context) {
     }
 
     await resend.emails.send({
-      from: 'Hubooze Alerts <onboarding@resend.dev>',
+      from: 'Hubooze Alerts <noreply@hubooze.in>',
       to: ADMIN_EMAIL,
       subject: `🚨 Hubooze Error: ${errorType}`,
       html: `
