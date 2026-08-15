@@ -59,7 +59,7 @@ router.post('/', protect, requireSeller, async (req, res) => {
       badge: badge || null, eco: !!eco, icon: icon || '📦', image: image || (images&&images[0])||'', images: images||[],
       sellerId: req.user.customId || req.user.id, active: true, listed: listed !== false,
       rating: 0, reviews: 0, reviewCount: 0,
-      images: [], createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
     const saved = await dba.createProduct(product);
     res.status(201).json({ product: saved, message: `"${name}" listed successfully!` });
