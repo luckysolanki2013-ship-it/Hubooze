@@ -299,6 +299,8 @@ function renderSelAddProduct(el) {
         return '<option value="'+c+'"'+(ep&&ep.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';
       }).join('')
     + '</select></div>'
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Sub-Category</label>'
+    + '<select id="np_subcat" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit"><option value="">-- Select category first --</option></select></div>'
 
     + formField('Description', 'np_desc', 'textarea', ep?ep.description:'', 'Describe your product...', false)
     + formField('Available Sizes (comma separated)', 'np_sizes', 'text', ep&&ep.sizes?(ep.sizes.join(', ')):'', 'XS, S, M, L, XL', false)
@@ -343,6 +345,19 @@ function renderSelAddProduct(el) {
     }
     if (submitBtn) submitBtn.onclick = saveSellerProduct;
     renderProdImgGallery();
+    var catSelect = document.getElementById('np_cat');
+    var subcatSelect = document.getElementById('np_subcat');
+    function refreshSubcats() {
+      if (!catSelect || !subcatSelect) return;
+      var subData = (window.SUBCATEGORIES || {})[catSelect.value];
+      if (!subData) { subcatSelect.innerHTML = '<option value="">-- No sub-categories --</option>'; return; }
+      subcatSelect.innerHTML = subData.normal.map(function(label, i) {
+        var key = subData.keys[i];
+        var sel = (ep && ep.subcategory === key) ? ' selected' : '';
+        return '<option value="'+key+'"'+sel+'>'+label+'</option>';
+      }).join('');
+    }
+    if (catSelect) { catSelect.onchange = refreshSubcats; refreshSubcats(); }
   }, 50);
 }
 
@@ -363,7 +378,7 @@ async function saveSellerProduct() {
   var orig    = parseInt((document.getElementById('np_orig')||{value:'0'}).value)||0;
   var stock   = parseInt((document.getElementById('np_stock')||{value:'0'}).value)||0;
   var cat     = (document.getElementById('np_cat')||{value:'other'}).value;
-  var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
+  var subcat  = (document.getElementById('np_subcat')||{value:''}).value;
   var sizes   = ((document.getElementById('np_sizes')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
   var eco     = (document.getElementById('np_eco')||{checked:false}).checked;
@@ -383,8 +398,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes, badge, eco, listed, sellerId:currentUser.id };
-
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 
