@@ -63,9 +63,24 @@ app.use((req, res) => {
 });
 
 // Error handler
+const { sendErrorAlert } = require('./utils/errorAlert');
+
 app.use((err, req, res, _next) => {
   console.error('ERROR:', err.message);
+  sendErrorAlert('API Error', err.message + '\n' + (err.stack || ''), {
+    method: req.method, url: req.originalUrl, ip: req.ip
+  }).catch(() => {});
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+});
+
+// Catch crashes / unhandled errors
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+  sendErrorAlert('Uncaught Exception (Server Crash Risk)', err.message + '\n' + (err.stack || '')).catch(() => {});
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
+  sendErrorAlert('Unhandled Promise Rejection', String(reason && reason.stack || reason)).catch(() => {});
 });
 
 const PORT = parseInt(process.env.PORT) || 3000;
