@@ -7,7 +7,10 @@ const dba = require('../dbAdapter');
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { category, search, sort, eco, badge, page = 1, limit = 12 } = req.query;
-    let products = (await dba.findProducts({})).filter(p => p.active !== false && p.listed !== false);
+    let allProducts = await dba.findProducts({});
+    let allUsers = await dba.getAllUsers();
+    let suspendedSellerIds = new Set(allUsers.filter(u => u.suspended).map(u => u.id));
+    let products = allProducts.filter(p => p.active !== false && p.listed !== false && !suspendedSellerIds.has(p.sellerId));
     if (category && category !== 'all') products = products.filter(p => p.category === category);
     if (eco === 'true') products = products.filter(p => p.eco);
     if (badge) products = products.filter(p => p.badge === badge.toUpperCase());
