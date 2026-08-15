@@ -1397,7 +1397,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
       <!-- Customer Login/Register Screen -->
       <div id="customerPortal" style="display:none">
         <div class="portal-login-header" style="background:linear-gradient(135deg,rgba(0,255,143,.1),rgba(0,161,255,.07));border-color:rgba(0,255,143,.25)">
-          <button class="portal-back-btn" onclick="closePortal()">&#8592; Back</button>
+          <button class="portal-back-btn" onclick="showPage('home')">&#8592; Back</button>
           <div style="text-align:center;flex:1">
             <div style="font-size:2.5rem;margin-bottom:8px">&#128722;</div>
             <h2 class="df" style="font-size:1.4rem;margin-bottom:4px">Customer Portal</h2>
@@ -1470,12 +1470,16 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
             <button class="btn-grad portal-submit" id="regSendOtpBtn" onclick="sendRegisterOTP()">Send OTP to Verify &#8594;</button>
           </div>
         </div>
+        <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+          <p style="font-size:13px;color:var(--text3);margin-bottom:8px">Want to sell on Hubooze?</p>
+          <button onclick="openPortal('seller')" style="background:transparent;border:1px solid rgba(0,161,255,.4);color:var(--blue);padding:10px 24px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600">&#129489; Sell on Hubooze &#8594;</button>
+        </div>
       </div>
 
       <!-- Seller Login/Register Screen -->
       <div id="sellerPortal" style="display:none">
         <div class="portal-login-header" style="background:linear-gradient(135deg,rgba(0,161,255,.1),rgba(156,39,176,.07));border-color:rgba(0,161,255,.25)">
-          <button class="portal-back-btn" onclick="closePortal()">&#8592; Back</button>
+          <button class="portal-back-btn" onclick="openPortal('customer')">&#8592; Back</button>
           <div style="text-align:center;flex:1">
             <div style="font-size:2.5rem;margin-bottom:8px">&#129489;</div>
             <h2 class="df" style="font-size:1.4rem;margin-bottom:4px">Seller Portal</h2>
@@ -1540,7 +1544,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
       <!-- Admin Login Screen -->
       <div id="adminPortal" style="display:none">
         <div class="portal-login-header" style="background:linear-gradient(135deg,rgba(255,77,77,.1),rgba(255,107,53,.07));border-color:rgba(255,77,77,.3)">
-          <button class="portal-back-btn" onclick="closePortal()">&#8592; Back</button>
+          <button class="portal-back-btn" onclick="openPortal('customer')">&#8592; Back</button>
           <div style="text-align:center;flex:1">
             <div style="font-size:2.5rem;margin-bottom:8px">&#9878;</div>
             <h2 class="df" style="font-size:1.4rem;margin-bottom:4px">Admin Portal</h2>
@@ -3057,7 +3061,7 @@ function renderAccountPage() {
   if (!currentUser) {
     loggedOut.style.display = '';
     loggedIn.style.display  = 'none';
-    closePortal();
+    openPortal('customer');
     return;
   }
 
