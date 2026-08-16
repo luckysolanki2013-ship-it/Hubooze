@@ -2394,9 +2394,16 @@ function renderHomeContent() {
   ss('catTitleEl',T.catTitle,true);
   var cg = document.getElementById('catGridEl');
   if (cg) {
+    var catIconMap = { fashion:'navFashionIcon', electronics:'navElecIcon', handmade:'navHandmadeIcon' };
+    var icons = window.SITE_ICONS || {};
     cg.innerHTML = T.cats.map(function(c) {
+      var iconKey = catIconMap[c.cat];
+      var customIcon = iconKey && icons[iconKey];
+      var iconHtml = customIcon
+        ? '<img src="'+customIcon+'" style="width:36px;height:36px;object-fit:contain">'
+        : c.i;
       return '<div class="cat-card' + (c.hl ? ' hl' : '') + '" onclick="showPage(\'categories\',\'' + c.cat + '\')">'
-        + '<div class="cat-icon">' + c.i + '</div>'
+        + '<div class="cat-icon">' + iconHtml + '</div>'
         + '<div class="cat-name">' + c.n + '</div>'
         + '<div class="cat-cnt">' + c.c + '</div>'
         + '</div>';
