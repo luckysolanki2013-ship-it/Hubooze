@@ -378,6 +378,7 @@ function adminIconRow(id, emoji, label, key) {
     + '<div style="font-size:11px;color:var(--text3)">Current: '+(currentUrl ? '<a href="'+currentUrl+'" target="_blank" style="color:var(--blue)">View</a>' : emoji+' (emoji)')+'</div>'
     + '</div>'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+    + '<input type="file" id="iconfile-'+id+'" data-iconkey="'+key+'" class="admin-icon-file" accept="image/*" style="display:none">'
     + '<button data-iconid="'+id+'" data-iconkey="'+key+'" class="admin-upload-icon btn-ghost" style="padding:6px 12px;font-size:12px">📷 Upload</button>'
     + '<input data-iconkey="'+key+'" class="admin-icon-url" placeholder="Paste URL" value="'+currentUrl+'" style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;width:160px">'
     + '<button data-iconid="'+id+'" data-iconkey="'+key+'" class="admin-save-icon" style="padding:6px 12px;background:var(--green);border:none;border-radius:6px;color:#000;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit">✓</button>'
@@ -710,6 +711,26 @@ async function adminClearIcon(id, key) {
   renderAdminTabContent({});
 }
 
+async function handleIconFileSelected(input, key) {
+  var file = input.files[0];
+  if (!file) return;
+  showToast('Uploading icon...','info');
+  var token = localStorage.getItem('hb_token');
+  var formData = new FormData();
+  formData.append('image', file);
+  try {
+    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+    var d = await r.json();
+    if (d.url) {
+      await adminSaveIconToServer(key, d.url);
+      if (!window.SITE_ICONS) window.SITE_ICONS = {};
+      window.SITE_ICONS[key] = d.url;
+      showToast('Icon uploaded!','success');
+      renderAdminTabContent({});
+    } else { showToast(d.error||'Failed','error'); }
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
 function adminUploadIcon(id, key) {
   var input = document.createElement('input');
   input.type = 'file'; input.accept = 'image/*';
@@ -912,7 +933,14 @@ document.addEventListener('click', function(e) {
   if (btn) { adminSaveCommission(btn.dataset.uid); return; }
   // Icon actions
   btn = e.target.closest('.admin-upload-icon');
-  if (btn) { adminUploadIcon(btn.dataset.iconid, btn.dataset.iconkey); return; }
+  if (btn) {
+    var fileInput = document.getElementById('iconfile-'+btn.dataset.iconid);
+    if (fileInput) {
+      fileInput.onchange = function() { handleIconFileSelected(fileInput, btn.dataset.iconkey); };
+      fileInput.click();
+    }
+    return;
+  }
   btn = e.target.closest('.admin-save-icon');
   if (btn) {
     var urlInput = btn.parentNode.querySelector('.admin-icon-url');
