@@ -437,28 +437,7 @@ async function savePromoSections() {
 }
 
 // ── ADMIN ICON MANAGEMENT ─────────────────────────────────────────
-
 // Delegate events for icon management and seller admin
-document.addEventListener('click', function(e) {
-  var btn = e.target.closest('.admin-upload-icon');
-  if (btn) { adminUploadIcon(btn.dataset.id, btn.dataset.key, btn.dataset.emoji); return; }
-  btn = e.target.closest('.admin-save-icon');
-  if (btn) {
-    var urlInput = btn.parentNode.querySelector('.admin-icon-url');
-    if (urlInput) adminSaveIconFromInput(btn.dataset.id, btn.dataset.key, urlInput.value);
-    return;
-  }
-  btn = e.target.closest('.admin-clear-icon');
-  if (btn) { adminClearIcon(btn.dataset.id, btn.dataset.key, btn.dataset.emoji); return; }
-  btn = e.target.closest('.admin-approve-seller');
-  if (btn) { adminApproveSeller(btn.dataset.uid, btn.dataset.name); return; }
-  btn = e.target.closest('.admin-disapprove-seller');
-  if (btn) { adminDisapproveSeller(btn.dataset.uid, btn.dataset.name); return; }
-  btn = e.target.closest('.admin-save-comm');
-  if (btn) { adminSaveCommission(btn.dataset.uid); return; }
-  btn = e.target.closest('.admin-suspend-seller');
-  if (btn) { adminSuspendUser(btn.dataset.uid, btn.dataset.name); return; }
-});
 
 
 window.SITE_ICONS = window.SITE_ICONS || {};
