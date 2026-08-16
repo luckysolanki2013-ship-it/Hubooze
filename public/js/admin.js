@@ -664,8 +664,17 @@ async function clearHeroBanner() {
   } catch(e) { showToast('Error','error'); }
 }
 
+function convertDriveLink(url) {
+  var match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return 'https://drive.google.com/uc?export=view&id=' + match[1];
+  }
+  return url;
+}
+
 async function adminSaveIconFromInput(id, key, url) {
-  await adminSaveIconToServer(key, url.trim());
+  url = convertDriveLink(url.trim());
+  await adminSaveIconToServer(key, url);
   if (!window.SITE_ICONS) window.SITE_ICONS = {};
   window.SITE_ICONS[key] = url.trim();
   showToast('Icon saved!','success');

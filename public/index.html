@@ -7173,6 +7173,63 @@ if (document.readyState !== 'loading') setTimeout(loadSavedLocation, 300);
 // LOCATION PICKER
 
 
+
+// ── APPLY SITE ICONS FROM ADMIN ─────────────────────────────────────
+async function applySiteIcons() {
+  try {
+    var r = await fetch('/api/admin/promotions');
+    var d = await r.json();
+    var icons = (d.promotions && d.promotions.siteIcons) || {};
+    window.SITE_ICONS = icons;
+
+    function iconImg(url, size) {
+      return '<img src="' + url + '" style="width:' + (size||'1.2em') + ';height:' + (size||'1.2em') + ';object-fit:contain;vertical-align:middle;display:inline-block">';
+    }
+
+    // Topbar icons
+    var topbar = document.getElementById('topbarEl');
+    if (topbar) {
+      if (icons.returnIconUrl)   topbar.innerHTML = topbar.innerHTML.replace('&#128260;', iconImg(icons.returnIconUrl));
+      if (icons.deliveryIconUrl) topbar.innerHTML = topbar.innerHTML.replace('&#128640;', iconImg(icons.deliveryIconUrl));
+      if (icons.refundIconUrl)   topbar.innerHTML = topbar.innerHTML.replace('&#9889;', iconImg(icons.refundIconUrl));
+    }
+
+    // Nav icons
+    var navMap = {
+      navDealsIcon: '🔥',
+      navFashionIcon: '😊',
+      navElecIcon: '📱',
+      navHandmadeIcon: '♻️'
+    };
+    Object.keys(navMap).forEach(function(key) {
+      if (icons[key]) {
+        var nav = document.getElementById('mainNavEl');
+        if (nav) nav.innerHTML = nav.innerHTML.split(navMap[key]).join(iconImg(icons[key]));
+      }
+    });
+
+    // Section icons
+    var secMap = {
+      secTrendingIcon: '🔥',
+      secEcoIcon: '♻️',
+      secElecIcon: '📱',
+      secFashionIcon: '😊'
+    };
+    Object.keys(secMap).forEach(function(key) {
+      if (icons[key]) {
+        document.querySelectorAll('.sec-title').forEach(function(el) {
+          el.innerHTML = el.innerHTML.split(secMap[key]).join(iconImg(icons[key], '1.4em'));
+        });
+      }
+    });
+  } catch(e) { console.error('Icon apply error:', e); }
+}
+document.addEventListener('DOMContentLoaded', function() { setTimeout(applySiteIcons, 600); });
+if (document.readyState !== 'loading') setTimeout(applySiteIcons, 600);
+
+
+
+
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>

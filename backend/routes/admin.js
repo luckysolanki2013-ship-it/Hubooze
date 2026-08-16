@@ -175,6 +175,7 @@ let promotions = {
   heroSubtitle: 'Return Karen Free Mein.',
   freeDeliveryMin: 499,
   banners: [],
+  siteIcons: {},
 };
 
 router.get('/promotions', (req, res) => {
