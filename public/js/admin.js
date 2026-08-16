@@ -710,7 +710,7 @@ async function adminClearIcon(id, key) {
   renderAdminTabContent({});
 }
 
-async function adminUploadIcon(id, key) {
+function adminUploadIcon(id, key) {
   var input = document.createElement('input');
   input.type = 'file'; input.accept = 'image/*';
   input.onchange = async function() {
