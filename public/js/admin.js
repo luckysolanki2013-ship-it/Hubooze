@@ -343,6 +343,19 @@ function renderAdminIcons(el, headers) {
     + adminIconRow('nav-handmade', '♻️', 'Desi/Handmade', 'navHandmadeIcon')
     + '</div></div>'
     + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">🏠 Homepage Category Card Icons (All 8)</h4>'
+    + '<p style="color:var(--text3);font-size:13px;margin-bottom:16px">Replace emoji icons on the 8 homepage category cards</p>'
+    + '<div style="display:grid;gap:12px">'
+    + adminIconRow('cat-fashion', '😊', 'Fashion Card', 'catFashionIcon')
+    + adminIconRow('cat-home', '🏠', 'Home & Kitchen Card', 'catHomeIcon')
+    + adminIconRow('cat-daily', '🥦', 'Daily Use Card', 'catDailyIcon')
+    + adminIconRow('cat-electronics', '📱', 'Electronics Card', 'catElecIcon')
+    + adminIconRow('cat-handmade', '♻️', 'Handmade/Rural Card', 'catHandmadeIcon')
+    + adminIconRow('cat-offers', '🎁', 'Offers Card', 'catOffersIcon')
+    + adminIconRow('cat-footwear', '👟', 'Footwear Card', 'catFootwearIcon')
+    + adminIconRow('cat-kids', '🧸', 'Kids & Baby Card', 'catKidsIcon')
+    + '</div></div>'
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
     + '<h4 style="font-weight:700;margin-bottom:6px">🏠 Homepage Section Icons</h4>'
     + '<div style="display:grid;gap:12px">'
     + adminIconRow('sec-trending', '🔥', 'Trending Section', 'secTrendingIcon')

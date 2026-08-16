@@ -2394,10 +2394,19 @@ function renderHomeContent() {
   ss('catTitleEl',T.catTitle,true);
   var cg = document.getElementById('catGridEl');
   if (cg) {
-    var catIconMap = { fashion:'navFashionIcon', electronics:'navElecIcon', handmade:'navHandmadeIcon' };
+    var catIconMapByName = {
+      'Kapde & Fashion':'catFashionIcon', 'Fashion':'catFashionIcon',
+      'Ghar & Rasoi':'catHomeIcon', 'Home & Kitchen':'catHomeIcon',
+      'Roz Ka Saman':'catDailyIcon', 'Daily Use':'catDailyIcon',
+      'Electronics':'catElecIcon',
+      'Desi/Handmade':'catHandmadeIcon', 'Handmade/Rural':'catHandmadeIcon',
+      'Offers':'catOffersIcon',
+      'Joote':'catFootwearIcon', 'Footwear':'catFootwearIcon',
+      'Bacchon ka Saman':'catKidsIcon', 'Kids & Baby':'catKidsIcon'
+    };
     var icons = window.SITE_ICONS || {};
     cg.innerHTML = T.cats.map(function(c) {
-      var iconKey = catIconMap[c.cat];
+      var iconKey = catIconMapByName[c.n];
       var customIcon = iconKey && icons[iconKey];
       var iconHtml = customIcon
         ? '<img src="'+customIcon+'" style="width:36px;height:36px;object-fit:contain">'
