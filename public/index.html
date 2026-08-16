@@ -2409,7 +2409,7 @@ function renderHomeContent() {
       var iconKey = catIconMapByName[c.n];
       var customIcon = iconKey && icons[iconKey];
       var iconHtml = customIcon
-        ? '<img src="'+customIcon+'" style="width:36px;height:36px;object-fit:contain">'
+        ? '<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:var(--bg4)"><img src="'+customIcon+'" style="width:100%;height:100%;object-fit:cover"></div>'
         : c.i;
       return '<div class="cat-card' + (c.hl ? ' hl' : '') + '" onclick="showPage(\'categories\',\'' + c.cat + '\')">'
         + '<div class="cat-icon">' + iconHtml + '</div>'
