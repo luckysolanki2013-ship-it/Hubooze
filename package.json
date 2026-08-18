@@ -10,6 +10,7 @@
     "test": "node -e \"require('./backend/server'); setTimeout(()=>process.exit(0),500)\""
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1112.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

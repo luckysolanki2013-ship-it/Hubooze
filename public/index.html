@@ -7225,19 +7225,27 @@ async function applySiteIcons() {
     });
 
     // Section icons
-    var secMap = {
-      secTrendingIcon: '🔥',
-      secEcoIcon: '♻️',
-      secElecIcon: '📱',
-      secFashionIcon: '😊'
+    var secIdMap = {
+      secTrendingIcon: 'trendTitleEl',
+      secElecIcon: 'elecTitleEl',
+      secFashionIcon: 'fashTitleEl'
     };
-    Object.keys(secMap).forEach(function(key) {
+    Object.keys(secIdMap).forEach(function(key) {
       if (icons[key]) {
-        document.querySelectorAll('.sec-title').forEach(function(el) {
-          el.innerHTML = el.innerHTML.split(secMap[key]).join(iconImg(icons[key], '1.4em'));
-        });
+        var el = document.getElementById(secIdMap[key]);
+        if (el) {
+          var text = el.innerHTML.replace(/^&#\d+;\s*/, '').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
+          el.innerHTML = iconImg(icons[key], '1.4em') + ' ' + text;
+        }
       }
     });
+    if (icons.secEcoIcon) {
+      var ecoEl = document.getElementById('ecoHEl');
+      if (ecoEl && !ecoEl.dataset.iconApplied) {
+        ecoEl.innerHTML = iconImg(icons.secEcoIcon, '1.2em') + ' ' + ecoEl.innerHTML;
+        ecoEl.dataset.iconApplied = 'true';
+      }
+    }
   } catch(e) { console.error('Icon apply error:', e); }
 }
 document.addEventListener('DOMContentLoaded', function() { setTimeout(applySiteIcons, 600); });
