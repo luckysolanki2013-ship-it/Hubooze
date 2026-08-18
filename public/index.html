@@ -7172,12 +7172,30 @@ if (document.readyState !== 'loading') setTimeout(loadSavedLocation, 300);
 
 
 // ── APPLY SITE ICONS FROM ADMIN ─────────────────────────────────────
+function applySiteIconsSync(icons) {
+  window.SITE_ICONS = icons;
+  function iconImg(url, size) {
+    return '<img src="' + url + '" style="width:' + (size||'1.2em') + ';height:' + (size||'1.2em') + ';object-fit:contain;vertical-align:middle;display:inline-block">';
+  }
+  var topbar = document.getElementById('topbarEl');
+  if (topbar) {
+    if (icons.returnIconUrl)   topbar.innerHTML = topbar.innerHTML.replace('&#128260;', iconImg(icons.returnIconUrl));
+    if (icons.deliveryIconUrl) topbar.innerHTML = topbar.innerHTML.replace('&#128640;', iconImg(icons.deliveryIconUrl));
+    if (icons.refundIconUrl)   topbar.innerHTML = topbar.innerHTML.replace('&#9889;', iconImg(icons.refundIconUrl));
+  }
+}
+
 async function applySiteIcons() {
   try {
+    var cached = localStorage.getItem('hb_site_icons');
+    if (cached) {
+      try { applySiteIconsSync(JSON.parse(cached)); } catch(e) {}
+    }
     var r = await fetch('/api/admin/promotions');
     var d = await r.json();
     var icons = (d.promotions && d.promotions.siteIcons) || {};
     window.SITE_ICONS = icons;
+    localStorage.setItem('hb_site_icons', JSON.stringify(icons));
 
     function iconImg(url, size) {
       return '<img src="' + url + '" style="width:' + (size||'1.2em') + ';height:' + (size||'1.2em') + ';object-fit:contain;vertical-align:middle;display:inline-block">';
