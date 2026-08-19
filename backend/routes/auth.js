@@ -3,10 +3,11 @@ const jwt     = require('jsonwebtoken');
 const bcrypt  = require('bcryptjs');
 const { protect, authLimiter, otpLimiter } = require('../middleware');
 const { DB }  = require('../db');
+const dba = require('../dbAdapter');
 
 const SECRET = process.env.JWT_SECRET || 'hubooze_secret';
 const signToken = (user) => jwt.sign(
-  { id: user.id || user._id, email: user.email, role: user.role, name: user.name },
+  { id: user.id || user._id, customId: user.id, email: user.email, role: user.role, name: user.name },
   SECRET, { expiresIn: '7d' }
 );
 
@@ -45,14 +46,11 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
-
-    const user = DB.users.find(u => u.email === email.toLowerCase());
+    const user = await dba.findUser({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
-
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid email or password.' });
-
-    user.lastLoginAt = new Date().toISOString();
+    await dba.updateUser(user.id, { lastLoginAt: new Date().toISOString() });
     const token = signToken(user);
     const { password: _, ...safeUser } = user;
     res.json({ token, user: safeUser, message: `Welcome back, ${user.name.split(' ')[0]}!` });
