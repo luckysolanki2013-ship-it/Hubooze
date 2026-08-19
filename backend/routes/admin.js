@@ -205,23 +205,26 @@ router.put('/promotions', protect, requireAdmin, async (req, res) => {
     res.json({ promotions: updated, message: 'Promotions updated successfully!' });
   } catch(e){ res.status(500).json({error:e.message}); }
 });
-
-router.post('/promotions/flash-sale', protect, requireAdmin, (req, res) => {
+router.post('/promotions/flash-sale', protect, requireAdmin, async (req, res) => {
   try {
     const {discount, label, durationHours} = req.body;
     if (!discount || discount < 1 || discount > 90) 
       return res.status(400).json({error:'Discount must be between 1-90%'});
-    promotions.flashSale = {
+    const current = await getPromotions();
+    const flashSale = {
       active: true, discount: Number(discount),
-      label: label || `Flash Sale — ${discount}% OFF!`,
+      label: label || (`Flash Sale \u2014 ${discount}% OFF!`),
       endTime: new Date(Date.now() + (durationHours||24)*3600000).toISOString(),
     };
-    res.json({ promotions, message: `Flash sale of ${discount}% activated!` });
+    const updated = Object.assign({}, current, { flashSale });
+    await Models.Settings.findOneAndUpdate({ key: 'promotions' }, { data: updated }, { upsert: true });
+    res.json({ promotions: updated, message: `Flash sale of ${discount}% activated!` });
   } catch(e){ res.status(500).json({error:e.message}); }
 });
-
-router.delete('/promotions/flash-sale', protect, requireAdmin, (req, res) => {
-  promotions.flashSale = { active: false, discount: 0, label: '', endTime: null };
+router.delete('/promotions/flash-sale', protect, requireAdmin, async (req, res) => {
+  const current = await getPromotions();
+  const updated = Object.assign({}, current, { flashSale: { active: false, discount: 0, label: '', endTime: null } });
+  await Models.Settings.findOneAndUpdate({ key: 'promotions' }, { data: updated }, { upsert: true });
   res.json({ message: 'Flash sale deactivated.' });
 });
 
@@ -266,7 +269,9 @@ router.post('/hero-image', protect, requireAdmin, upload2.single('image'), async
       ACL: 'public-read',
     }));
     const url = `https://${process.env.AWS_S3_BUCKET||'hubooze-images'}.s3.${process.env.AWS_REGION||'eu-north-1'}.amazonaws.com/${key}`;
-    promotions.heroBgImage = url;
+    const current = await getPromotions();
+    const updated = Object.assign({}, current, { heroBgImage: url });
+    await Models.Settings.findOneAndUpdate({ key: 'promotions' }, { data: updated }, { upsert: true });
     res.json({ url, message: 'Hero banner uploaded!' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
