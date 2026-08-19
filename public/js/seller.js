@@ -379,6 +379,7 @@ async function saveSellerProduct() {
   var stock   = parseInt((document.getElementById('np_stock')||{value:'0'}).value)||0;
   var cat     = (document.getElementById('np_cat')||{value:'other'}).value;
   var subcat  = (document.getElementById('np_subcat')||{value:''}).value;
+  var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
   var sizes   = ((document.getElementById('np_sizes')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
   var eco     = (document.getElementById('np_eco')||{checked:false}).checked;
