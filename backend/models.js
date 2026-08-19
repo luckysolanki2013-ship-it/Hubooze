@@ -104,4 +104,10 @@ const Product = mongoose.models.Product || mongoose.model('Product', productSche
 const Order   = mongoose.models.Order   || mongoose.model('Order',   orderSchema);
 const Return  = mongoose.models.Return  || mongoose.model('Return',  returnSchema);
 
-module.exports = { User, Product, Order, Return };
+const settingsSchema = new mongoose.Schema({
+  key: { type: String, unique: true, required: true },
+  data: { type: mongoose.Schema.Types.Mixed, default: {} },
+}, { strict: false });
+const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
+
+module.exports = { User, Product, Order, Return, Settings };

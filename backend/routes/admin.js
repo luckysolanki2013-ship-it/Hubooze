@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { protect, requireAdmin } = require('../middleware');
 const dba = require('../dbAdapter');
+const Models = require('../models');
 
 // ── STATS ─────────────────────────────────────────────────────────
 router.get('/stats', protect, requireAdmin, async (req, res) => {
@@ -165,12 +166,10 @@ router.get('/analytics', protect, requireAdmin, async (req, res) => {
     res.json({ categoryRevenue: catRevenue, topProducts });
   } catch(e){ res.status(500).json({error:e.message}); }
 });
-
-// ── PROMOTIONS ────────────────────────────────────────────────────
-// In-memory promotions store (upgrade to MongoDB later)
-let promotions = {
+// ── PROMOTIONS (persisted in MongoDB) ──────────────────────────────
+const DEFAULT_PROMOTIONS = {
   flashSale: { active: false, discount: 0, label: '', endTime: null },
-  announcement: '90 Din Easy Return — Kisi bhi condition mein FREE!',
+  announcement: '90 Din Easy Return \u2014 Kisi bhi condition mein FREE!',
   heroTitle: 'Khareedein Aaram Se.',
   heroSubtitle: 'Return Karen Free Mein.',
   freeDeliveryMin: 499,
@@ -178,14 +177,32 @@ let promotions = {
   siteIcons: {},
 };
 
-router.get('/promotions', (req, res) => {
-  res.json({ promotions });
+async function getPromotions() {
+  let doc = await Models.Settings.findOne({ key: 'promotions' }).lean();
+  if (!doc) {
+    await Models.Settings.create({ key: 'promotions', data: DEFAULT_PROMOTIONS });
+    return DEFAULT_PROMOTIONS;
+  }
+  return doc.data;
+}
+
+router.get('/promotions', async (req, res) => {
+  try {
+    const promotions = await getPromotions();
+    res.json({ promotions });
+  } catch(e) { res.json({ promotions: DEFAULT_PROMOTIONS }); }
 });
 
-router.put('/promotions', protect, requireAdmin, (req, res) => {
+router.put('/promotions', protect, requireAdmin, async (req, res) => {
   try {
-    Object.assign(promotions, req.body);
-    res.json({ promotions, message: 'Promotions updated successfully!' });
+    const current = await getPromotions();
+    const updated = Object.assign({}, current, req.body);
+    await Models.Settings.findOneAndUpdate(
+      { key: 'promotions' },
+      { data: updated },
+      { upsert: true }
+    );
+    res.json({ promotions: updated, message: 'Promotions updated successfully!' });
   } catch(e){ res.status(500).json({error:e.message}); }
 });
 
