@@ -119,4 +119,44 @@ router.post('/verify', async (req, res) => {
   }
 });
 
+// Reset password using OTP verification
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword)
+      return res.status(400).json({ error: 'Email, OTP, and new password required' });
+    if (newPassword.length < 6)
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const stored = otpStore.get(email.toLowerCase());
+    if (!stored)
+      return res.status(400).json({ error: 'OTP expired or not found. Please request a new one.' });
+    if (Date.now() > stored.expiresAt) {
+      otpStore.delete(email.toLowerCase());
+      return res.status(400).json({ error: 'OTP expired. Please request a new one.' });
+    }
+    stored.attempts = (stored.attempts || 0) + 1;
+    if (stored.attempts > 5) {
+      otpStore.delete(email.toLowerCase());
+      return res.status(400).json({ error: 'Too many attempts. Please request a new OTP.' });
+    }
+    if (stored.otp !== otp.toString())
+      return res.status(400).json({ error: 'Invalid OTP. ' + (5 - stored.attempts) + ' attempts remaining.' });
+
+    otpStore.delete(email.toLowerCase());
+
+    const user = await dba.findUser({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'No account found with this email.' });
+
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await dba.updateUser(user.id, { password: hashedPassword });
+
+    res.json({ success: true, message: 'Password reset successfully! Please login with your new password.' });
+  } catch(e) {
+    console.error('Reset password error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;

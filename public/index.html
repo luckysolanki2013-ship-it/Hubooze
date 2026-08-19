@@ -1423,8 +1423,8 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
               <input class="form-input portal-input" id="loginEmail" type="email" placeholder="your&#64;email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
             <div class="form-field"><label class="form-label">Password</label>
               <input class="form-input portal-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+            <div style="text-align:right;margin-bottom:14px"><span onclick="openForgotPassword()" style="color:var(--blue);font-size:13px;cursor:pointer">Forgot Password?</span></div>
             <button class="btn-grad portal-submit" onclick="doLogin()">Login to My Account &#8594;</button>
-            <div class="portal-divider"><span>or try demo</span></div>
           </div>
           <!-- OTP Login Form -->
           <div id="cOtpForm" style="display:none">
@@ -7253,6 +7253,77 @@ if (document.readyState !== 'loading') setTimeout(applySiteIcons, 100);
 
 
 
+
+
+// ── UNIVERSAL MODAL SYSTEM ────────────────────────────────────────
+function showModal(innerHtml) {
+  var overlay = document.getElementById('returnModalOverlay');
+  var content = document.getElementById('returnModalContent');
+  if (content) content.innerHTML = innerHtml;
+  if (overlay) overlay.className = 'modal-overlay open';
+}
+function closeModal() {
+  var overlay = document.getElementById('returnModalOverlay');
+  if (overlay) overlay.className = 'modal-overlay';
+}
+
+// ── FORGOT PASSWORD FLOW ──────────────────────────────────────────
+var fpEmail = '';
+function openForgotPassword() {
+  var html = '<div style="padding:24px;max-width:400px">'
+    + '<h4 style="font-weight:700;margin-bottom:16px">Reset Your Password</h4>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Enter your email</label>'
+    + '<input id="fpEmailInput" type="email" placeholder="your@email.com" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<button onclick="sendForgotPasswordOTP()" class="btn-grad" style="width:100%;padding:12px;font-size:14px">Send OTP</button>'
+    + '</div>';
+  showModal(html);
+}
+
+async function sendForgotPasswordOTP() {
+  var email = (document.getElementById('fpEmailInput')||{value:''}).value.trim();
+  if (!email || !email.includes('@')) { showToast('Enter a valid email', 'error'); return; }
+  try {
+    var r = await fetch('/api/otp/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+    var d = await r.json();
+    if (d.success) {
+      fpEmail = email;
+      showForgotPasswordStep2();
+      showToast('OTP sent to ' + email, 'success');
+    } else {
+      showToast(d.error || 'Failed to send OTP', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function showForgotPasswordStep2() {
+  var html = '<div style="padding:24px;max-width:400px">'
+    + '<h4 style="font-weight:700;margin-bottom:8px">Enter OTP &amp; New Password</h4>'
+    + '<p style="font-size:12px;color:var(--text3);margin-bottom:16px">OTP sent to ' + fpEmail + '</p>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">6-digit OTP</label>'
+    + '<input id="fpOtpInput" type="text" maxlength="6" placeholder="123456" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px;text-align:center;letter-spacing:6px;font-size:18px">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">New Password</label>'
+    + '<input id="fpNewPassInput" type="password" placeholder="Min 6 characters" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<button onclick="submitPasswordReset()" class="btn-grad" style="width:100%;padding:12px;font-size:14px">Reset Password</button>'
+    + '</div>';
+  showModal(html);
+}
+
+async function submitPasswordReset() {
+  var otp = (document.getElementById('fpOtpInput')||{value:''}).value.trim();
+  var newPassword = (document.getElementById('fpNewPassInput')||{value:''}).value;
+  if (!otp || otp.length < 6) { showToast('Enter the 6-digit OTP', 'error'); return; }
+  if (!newPassword || newPassword.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  try {
+    var r = await fetch('/api/otp/reset-password', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:fpEmail,otp:otp,newPassword:newPassword})});
+    var d = await r.json();
+    if (d.success) {
+      closeModal();
+      showToast('Password reset! Please login with your new password.', 'success');
+    } else {
+      showToast(d.error || 'Failed to reset password', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
 
 </script>
 <script src="/js/api.js"></script>
