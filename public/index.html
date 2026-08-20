@@ -2649,7 +2649,7 @@ var V = {
   catTabs:['Sab','Fashion','Electronics','Ghar','Roz Ka Saman','Khaana-Peena','Saundarya','Desi/Handmade'],
   catTabKeys:['all','fashion','electronics','home','daily','food','beauty','handmade'],
   showingL:'Products dikh rahe hain:', ecoChkL:'Sirf Recrafted Dikhao',
-  navItems:[{t:'&#128293; Aaj ke Deals',c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#9851; Desi/Handmade',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Seller Bano',c:'',pg:'seller'},{t:'&#128260; Return Policy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
+  navItems:[{t:'&#128293; Aaj ke Deals',c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#127851; Khaana-Peena',c:'',pg:'categories',cat:'food'},{t:'&#128132; Saundarya',c:'',pg:'categories',cat:'beauty'},{t:'&#9851; Desi/Handmade',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Seller Bano',c:'',pg:'seller'},{t:'&#128260; ReturnPolicy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
   fc1:{h:'Shopping',l:['Kapde & Fashion','Electronics','Ghar & Rasoi','Roz Ka Saman','Desi/Handmade','Offers']},
   fc2:{h:'Customer',l:['Mera Account','Order Track Karo','Return Karo','Wishlist','Help & Support']},
   fc3:{h:'Sellers',l:['Seller Bano','Seller Dashboard','Seller Support','Payment Info']},
@@ -2702,7 +2702,7 @@ var N = {
   catTabs:['All','Fashion','Electronics','Home','Daily Use','Food','Beauty','Handmade'],
   catTabKeys:['all','fashion','electronics','home','daily','food','beauty','handmade'],
   showingL:'Showing products:', ecoChkL:'Show Recrafted Only',
-  navItems:[{t:"&#128293; Today's Deals",c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#9851; Handmade/Rural',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Sell on Hubooze',c:'',pg:'seller'},{t:'&#128260; Return Policy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
+  navItems:[{t:"&#128293; Today's Deals",c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#127851; Food',c:'',pg:'categories',cat:'food'},{t:'&#128132; Beauty',c:'',pg:'categories',cat:'beauty'},{t:'&#9851; Handmade/Rural',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Sell on Hubooze',c:'',pg:'seller'},{t:'&#128260; Return Policy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
   fc1:{h:'Shop',l:['Fashion','Electronics','Home & Kitchen','Daily Use','Handmade/Rural','Offers']},
   fc2:{h:'Customer',l:['My Account','Track Order','Return & Refund','Wishlist','Help & Support']},
   fc3:{h:'Sellers',l:['Sell on Hubooze','Seller Dashboard','Seller Support','Payout Info']},
@@ -2811,7 +2811,8 @@ function showPage(name, cat) {
 function renderNav() {
   var nav = document.getElementById('mainNavEl'); if (!nav) return;
   nav.innerHTML = T.navItems.map(function(n) {
-    var cls = 'nav-link ' + n.c + (n.pg === currentPage ? ' nactive' : '');
+    var isMatch = n.pg === currentPage && (n.pg !== 'categories' || (n.cat || '') === (catTabActive || ''));
+    var cls = 'nav-link ' + n.c + (isMatch ? ' nactive' : '');
     if (n.adminOnly && (!currentUser || currentUser.role !== 'admin')) return '';
     var oc = n.pg ? 'onclick="showPage(\'' + n.pg + '\'' + (n.cat ? ',\'' + n.cat + '\'' : '') + ')"' : '';
     return '<span class="' + cls + '" ' + oc + '>' + n.t + '</span>';
