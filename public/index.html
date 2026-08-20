@@ -2520,7 +2520,7 @@ function renderCategoriesPage(cat) {
   if (te) {
     te.innerHTML = T.catTabs.map(function(tab, i) {
       var key = T.catTabKeys[i];
-      return '<button style="padding:8px 16px;border-radius:20px;border:1.5px solid '+(catTabActive===key?'var(--green)':'var(--border2)')+';background:'+(catTabActive===key?'rgba(0,255,143,.1)':'var(--bg3)')+';color:'+(catTabActive===key?'var(--green)':'var(--text2)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s" onclick="catTabActive=\''+key+'\';renderCatProducts()">'+tab+'</button>';
+      return '<button style="padding:8px 16px;border-radius:20px;border:1.5px solid '+(catTabActive===key?'var(--green)':'var(--border2)')+';background:'+(catTabActive===key?'rgba(0,255,143,.1)':'var(--bg3)')+';color:'+(catTabActive===key?'var(--green)':'var(--text2)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s" onclick="catTabActive=\''+key+'\';subCatActive=\'all\';typeActive=\'all\';renderCategoriesPage()">'+tab+'</button>';
     }).join('');
   }
   subCatActive = 'all';
