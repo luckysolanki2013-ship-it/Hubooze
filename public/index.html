@@ -1262,6 +1262,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
       <div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="catTabsEl"></div>
         <div style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:20px;overflow-x:auto;padding-bottom:4px" id="subCatTabsEl"></div>
+        <div style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:20px;overflow-x:auto;padding-bottom:4px" id="typeTabsEl"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <span style="font-size:13px;color:var(--text2)" id="showingEl">Showing all products</span>
           <span style="font-size:12px;color:var(--text3)" id="prodCountEl"></span>
@@ -2329,7 +2330,7 @@ function openProduct(pid) {
           + '</div>';
       })()
     + '<div>'
-    + '<div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + p.brand + '</div>'
+    + '<div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + p.brand + (p.productType ? ' &bull; ' + p.productType : '') + '</div>'
     + '<h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3">' + p.name + '</h2>'
     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
     + '<span style="color:#f59e0b;font-size:14px">' + stars + '</span>'
@@ -2431,6 +2432,44 @@ function renderHomeContent() {
 // ════════════════════════════════════════════════════════════════
 var catTabActive = 'all';
 var subCatActive = 'all';
+var typeActive = 'all';
+
+var PRODUCT_TYPES = {
+  mens: ['T-Shirts','Shirts','Jeans','Trousers','Shorts','Jackets','Hoodies & Sweatshirts','Ethnic Wear','Innerwear'],
+  womens: ['Kurtis','Sarees','Dresses','Tops','T-Shirts','Jeans & Trousers','Suits & Sets','Ethnic Wear'],
+  kids: ['Boys Clothing','Girls Clothing','Infant & Baby Wear','Kids Ethnic Wear'],
+  footwear: ['Sneakers','Casual Shoes','Formal Shoes','Sandals','Slippers','Ethnic Footwear'],
+  bags_accessories: ['Handbags','Backpacks','Wallets','Belts','Caps & Hats','Sunglasses','Watches'],
+  jewellery: ['Earrings','Necklaces','Bangles','Rings','Bracelets'],
+  mobiles_tablets: ['Smartphones','Feature Phones','Tablets','Mobile Accessories'],
+  computers: ['Laptops','Desktops','Keyboards','Mouse','Computer Accessories'],
+  audio: ['Earphones','Headphones','Bluetooth Speakers','Soundbars'],
+  smart_devices: ['Smartwatches','Smart Plugs','Smart Lights','Security Cameras'],
+  power_charging: ['Chargers','Cables','Power Banks','Adapters','Extension Boards'],
+  kitchen: ['Cookware','Kitchen Tools','Storage Containers','Dinnerware','Kitchen Appliances'],
+  home_decor: ['Wall Art','Vases','Decorative Items','Lighting','Curtains','Clocks'],
+  furniture: ['Chairs','Tables','Cabinets','Shelves','Storage Units'],
+  bedding_bath: ['Bedsheets','Pillows','Blankets','Towels','Bath Accessories'],
+  home_utility: ['Organizers','Laundry Products','Cleaning Tools'],
+  groceries: ['Staples','Snacks','Beverages','Dry Fruits','Packaged Foods'],
+  personal_care: ['Skincare','Haircare','Oral Care','Bath & Body'],
+  household_cleaning: ['Detergents','Floor Cleaners','Dishwashing','Cleaning Tools'],
+  stationery: ['Notebooks','Pens','School Supplies','Office Supplies'],
+  chocolates: ['Bars','Boxes','Gift Hampers','Sugar-Free'],
+  snacks: ['Namkeen','Chips','Cookies','Nuts & Dry Fruits'],
+  beverages: ['Tea','Coffee','Juices','Health Drinks'],
+  bakery: ['Cakes','Bread','Rusks'],
+  makeup: ['Lipstick','Foundation','Eyeliner & Kajal','Compact & Powder','Makeup Kits'],
+  skincare: ['Face Wash','Moisturizer','Sunscreen','Face Masks','Serums'],
+  haircare: ['Shampoo','Conditioner','Hair Oil','Hair Styling'],
+  fragrances: ['Perfumes','Deodorants','Body Mist'],
+  pottery: ['Vases','Bowls','Diyas','Decorative Items'],
+  handloom: ['Handwoven Fabrics','Rugs','Dupattas','Traditional Textiles'],
+  bamboo_cane: ['Baskets','Storage','Home Decor','Utility Products'],
+  wooden_crafts: ['Decorative Items','Kitchenware','Toys','Handcrafted Furniture'],
+  handmade_jewellery: ['Beadwork','Handmade Earrings','Handmade Necklaces','Handmade Bangles'],
+  traditional_regional: ['Regional Crafts','Traditional Decor','Artisan Products'],
+};
 
 var SUBCATEGORIES = {
   fashion: {
@@ -2492,14 +2531,29 @@ function renderSubCatTabs() {
   var el = document.getElementById('subCatTabsEl');
   if (!el) return;
   var subData = SUBCATEGORIES[catTabActive];
-  if (!subData) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  if (!subData) { el.innerHTML = ''; el.style.display = 'none'; renderTypeTabs(); return; }
   el.style.display = 'flex';
   var isVillage = document.body.className === 'village';
   var labels = isVillage ? subData.village : subData.normal;
   el.innerHTML = labels.map(function(label, i) {
     var key = subData.keys[i];
     var active = subCatActive === key;
-    return '<button style="padding:6px 14px;border-radius:16px;border:1px solid '+(active?'var(--blue)':'var(--border)')+';background:'+(active?'rgba(0,161,255,.1)':'var(--bg4)')+';color:'+(active?'var(--blue)':'var(--text3)')+';font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0" onclick="subCatActive=\'' + key + '\';renderCatProducts()">'+label+'</button>';
+    return '<button style="padding:6px 14px;border-radius:16px;border:1px solid '+(active?'var(--blue)':'var(--border)')+';background:'+(active?'rgba(0,161,255,.1)':'var(--bg4)')+';color:'+(active?'var(--blue)':'var(--text3)')+';font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0" onclick="subCatActive=\'' + key + '\';typeActive=\'all\';renderCatProducts()">'+label+'</button>';
+  }).join('');
+  renderTypeTabs();
+}
+function renderTypeTabs() {
+  var el = document.getElementById('typeTabsEl');
+  if (!el) return;
+  var types = PRODUCT_TYPES[subCatActive];
+  if (!types || subCatActive === 'all' || !types.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  var allTypes = ['All'].concat(types);
+  var allKeys = ['all'].concat(types);
+  el.innerHTML = allTypes.map(function(label, i) {
+    var key = allKeys[i];
+    var active = typeActive === key;
+    return '<button style="padding:5px 12px;border-radius:14px;border:1px solid '+(active?'var(--green)':'var(--border)')+';background:'+(active?'rgba(0,255,143,.1)':'var(--bg4)')+';color:'+(active?'var(--green)':'var(--text3)')+';font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0" onclick="typeActive=\'' + key + '\';renderCatProducts()">'+label+'</button>';
   }).join('');
 }
 function renderCatProducts() {
@@ -2513,6 +2567,8 @@ function renderCatProducts() {
 
   var filtered = allProducts.filter(function(p) {
     if (catTabActive && catTabActive !== 'all' && p.cat !== catTabActive) return false;
+    if (subCatActive && subCatActive !== 'all' && p.subcategory !== subCatActive) return false;
+    if (typeActive && typeActive !== 'all' && p.productType !== typeActive) return false;
     if (ecoOnly && !p.eco) return false;
     if (priceFilter) {
       var parts = priceFilter.split('-');
