@@ -2469,27 +2469,6 @@ var SUBCATEGORIES = {
     keys: ['all','pottery','handloom','bamboo_cane','wooden_crafts','handmade_jewellery','traditional_regional']
   },
 };
-  electronics: {
-    village: ['Sab','Mobile-Phone','Laptop-Computer','Gaana Bajane Wala','Ghar ke Saaman','Chhote Gadgets'],
-    normal:  ['All','Mobiles','Laptops','Audio','Smart Home','Accessories'],
-    keys:    ['all','mobiles','laptops','audio','smarthome','accessories']
-  },
-  home: {
-    village: ['Sab','Rasoi ka Saaman','Ghar ki Sajawat','Furniture','Bistar-Chaadar'],
-    normal:  ['All','Kitchen','Home Decor','Furniture','Bedding'],
-    keys:    ['all','kitchen','decor','furniture','bedding']
-  },
-  daily: {
-    village: ['Sab','Kirana Saaman','Nahane-Dhone ka Saaman','Safai ka Saaman'],
-    normal:  ['All','Groceries','Personal Care','Cleaning'],
-    keys:    ['all','groceries','personalcare','cleaning']
-  },
-  handmade: {
-    village: ['Sab','Mitti ke Bartan','Kapde-Bunai','Gehne','Ghar ki Sajawat'],
-    normal:  ['All','Pottery','Textiles','Jewelry','Home Decor'],
-    keys:    ['all','pottery','textiles','jewelry','decor']
-  }
-};
 
 function renderCategoriesPage(cat) {
   if (cat) catTabActive = cat;
@@ -2596,7 +2575,7 @@ var V = {
   hcTitle:'Ethnic Festive Collection', hcDesc:'Rural artisans ke haath se bane', hcPrice:'Sirf <span>&#8377;299</span> se',
   flashPill:'&#9889; FLASH SALE',
   catTitle:'Category se <span class="grad-text">Khareedein</span>',
-  cats:[{i:'&#128521;',n:'Kapde & Fashion',c:'12,000+',cat:'fashion',hl:true},{i:'&#127968;',n:'Ghar & Rasoi',c:'8,400+',cat:'home'},{i:'&#129308;',n:'Roz Ka Saman',c:'6,200+',cat:'daily'},{i:'&#128241;',n:'Electronics',c:'5,700+',cat:'electronics'},{i:'&#127866;',n:'Desi/Handmade',c:'3,100+',cat:'handmade',hl:true},{i:'&#127991;',n:'Offers',c:'2,800+',cat:''},{i:'&#128095;',n:'Joote',c:'4,300+',cat:'fashion'},{i:'&#129976;',n:'Bacchon ka Saman',c:'3,600+',cat:'daily'}],
+  cats:[{i:'&#128521;',n:'Kapde & Fashion',c:'12,000+',cat:'fashion',hl:true},{i:'&#127968;',n:'Ghar & Rasoi',c:'8,400+',cat:'home'},{i:'&#129308;',n:'Roz Ka Saman',c:'6,200+',cat:'daily'},{i:'&#128241;',n:'Electronics',c:'5,700+',cat:'electronics'},{i:'&#127866;',n:'Desi/Handmade',c:'3,100+',cat:'handmade',hl:true},{i:'&#127851;',n:'Khaana-Peena',c:'2,900+',cat:'food'},{i:'&#128132;',n:'Saundarya',c:'3,400+',cat:'beauty'},{i:'&#127991;',n:'Offers',c:'2,800+',cat:''}],
   b1t:'Recrafted', b1s:'Return se bana naya product', b3t:'90 Din Return',
   trendTitle:'&#128293; Trending <span class="grad-text">Products</span>',
   ecoH:'Desi Artisans ka Kaam', ecoP:'Yahan har product ek returned item tha.',
@@ -2611,8 +2590,8 @@ var V = {
   selBadge:'Seller Bano', selTitle:'Hubooze pe Bechna Shuru Karo',
   selSub:'Apna samaan list karo &mdash; bilkul free mein.', selBtn:'Seller Bano &#8594;',
   catPageTitle:'Sab Categories', filterTitle:'FILTER & SORT',
-  catTabs:['Sab','Fashion','Electronics','Ghar','Roz Ka Saman','Desi/Handmade'],
-  catTabKeys:['all','fashion','electronics','home','daily','handmade'],
+  catTabs:['Sab','Fashion','Electronics','Ghar','Roz Ka Saman','Khaana-Peena','Saundarya','Desi/Handmade'],
+  catTabKeys:['all','fashion','electronics','home','daily','food','beauty','handmade'],
   showingL:'Products dikh rahe hain:', ecoChkL:'Sirf Recrafted Dikhao',
   navItems:[{t:'&#128293; Aaj ke Deals',c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#9851; Desi/Handmade',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Seller Bano',c:'',pg:'seller'},{t:'&#128260; Return Policy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
   fc1:{h:'Shopping',l:['Kapde & Fashion','Electronics','Ghar & Rasoi','Roz Ka Saman','Desi/Handmade','Offers']},
@@ -2649,7 +2628,7 @@ var N = {
   hcTitle:'Ethnic Festive Collection', hcDesc:'Handcrafted by rural artisans', hcPrice:'From <span>&#8377;299</span>',
   flashPill:'&#9889; FLASH DEALS',
   catTitle:'Shop by <span class="grad-text">Category</span>',
-  cats:[{i:'&#128521;',n:'Fashion',c:'12,000+',cat:'fashion',hl:true},{i:'&#127968;',n:'Home & Kitchen',c:'8,400+',cat:'home'},{i:'&#129308;',n:'Daily Use',c:'6,200+',cat:'daily'},{i:'&#128241;',n:'Electronics',c:'5,700+',cat:'electronics'},{i:'&#127866;',n:'Handmade/Rural',c:'3,100+',cat:'handmade',hl:true},{i:'&#127991;',n:'Offers',c:'2,800+',cat:''},{i:'&#128095;',n:'Footwear',c:'4,300+',cat:'fashion'},{i:'&#129976;',n:'Kids & Baby',c:'3,600+',cat:'daily'}],
+  cats:[{i:'&#128521;',n:'Fashion',c:'12,000+',cat:'fashion',hl:true},{i:'&#127968;',n:'Home & Kitchen',c:'8,400+',cat:'home'},{i:'&#129308;',n:'Daily Use',c:'6,200+',cat:'daily'},{i:'&#128241;',n:'Electronics',c:'5,700+',cat:'electronics'},{i:'&#127866;',n:'Handmade/Rural',c:'3,100+',cat:'handmade',hl:true},{i:'&#127851;',n:'Food & Beverages',c:'2,900+',cat:'food'},{i:'&#128132;',n:'Beauty',c:'3,400+',cat:'beauty'},{i:'&#127991;',n:'Offers',c:'2,800+',cat:''}],
   b1t:'Recrafted', b1s:'From returned items &rarr; new life', b3t:'90-Day Returns',
   trendTitle:'&#128293; Trending <span class="grad-text">Now</span>',
   ecoH:'Recrafted by Rural Artisans', ecoP:'Every product here was once a return.',
@@ -2664,8 +2643,8 @@ var N = {
   selBadge:'Become a Seller', selTitle:'Start Selling on Hubooze Today',
   selSub:'List your products for free. Zero commission for first 3 months!', selBtn:'Register as Seller &#8594;',
   catPageTitle:'All Categories', filterTitle:'FILTER & SORT',
-  catTabs:['All','Fashion','Electronics','Home','Daily Use','Handmade'],
-  catTabKeys:['all','fashion','electronics','home','daily','handmade'],
+  catTabs:['All','Fashion','Electronics','Home','Daily Use','Food','Beauty','Handmade'],
+  catTabKeys:['all','fashion','electronics','home','daily','food','beauty','handmade'],
   showingL:'Showing products:', ecoChkL:'Show Recrafted Only',
   navItems:[{t:"&#128293; Today's Deals",c:'hot',pg:''},{t:'&#127968; Home',c:'nactive',pg:'home'},{t:'&#128521; Fashion',c:'',pg:'categories',cat:'fashion'},{t:'&#128241; Electronics',c:'',pg:'categories',cat:'electronics'},{t:'&#9851; Handmade/Rural',c:'special',pg:'categories',cat:'handmade'},{t:'&#127991; Offers',c:'',pg:'categories',cat:''},{t:'&#129489; Sell on Hubooze',c:'',pg:'seller'},{t:'&#128260; Return Policy',c:'',pg:'returns'},{t:'&#9878; Admin',c:'',pg:'admin',adminOnly:true}],
   fc1:{h:'Shop',l:['Fashion','Electronics','Home & Kitchen','Daily Use','Handmade/Rural','Offers']},
