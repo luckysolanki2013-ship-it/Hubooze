@@ -49,13 +49,13 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // POST /api/products  — seller creates product
 router.post('/', protect, requireSeller, async (req, res) => {
   try {
-    const { name, brand, category, subcategory, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, images, listed } = req.body;
+    const { name, brand, category, subcategory, productType, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, images, listed } = req.body;
     if (!name || !brand || !category || !price || stock === undefined)
       return res.status(400).json({ error: 'Name, brand, category, price, stock are required.' });
     const mrp = Number(originalPrice || orig || price);
     if (Number(price) >= mrp && mrp > 0) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
     const product = {
-      id: 'p_' + Date.now(), name, brand, category, cat: category, subcategory: subcategory || '', subcategory: subcategory || '',
+      id: 'p_' + Date.now(), name, brand, category, cat: category, subcategory: subcategory || '', productType: productType || '', subcategory: subcategory || '',
       price: Number(price), originalPrice: mrp, orig: mrp,
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
@@ -78,7 +78,7 @@ router.put('/:id', protect, requireSeller, async (req, res) => {
   const myId = req.user.customId || req.user.id;
   if (product.sellerId !== myId && req.user.role !== 'admin')
     return res.status(403).json({ error: 'Not authorized.' });
-  const allowed = ['name','brand','category','cat','subcategory','price','originalPrice','orig','stock','description','sizes','colors','badge','eco','icon','image','images','active','listed'];
+  const allowed = ['name','brand','category','cat','subcategory','productType','price','originalPrice','orig','stock','description','sizes','colors','badge','eco','icon','image','images','active','listed'];
   const update = {}; allowed.forEach(f => { if (req.body[f] !== undefined) update[f] = req.body[f]; });
   const saved = await dba.updateProduct(req.params.id, update); res.json({ product: saved, message: 'Product updated.' });
 });

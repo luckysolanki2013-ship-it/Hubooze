@@ -1,3 +1,40 @@
+var PRODUCT_TYPES = {
+  mens: ['T-Shirts','Shirts','Jeans','Trousers','Shorts','Jackets','Hoodies & Sweatshirts','Ethnic Wear','Innerwear'],
+  womens: ['Kurtis','Sarees','Dresses','Tops','T-Shirts','Jeans & Trousers','Suits & Sets','Ethnic Wear'],
+  kids: ['Boys Clothing','Girls Clothing','Infant & Baby Wear','Kids Ethnic Wear'],
+  footwear: ['Sneakers','Casual Shoes','Formal Shoes','Sandals','Slippers','Ethnic Footwear'],
+  bags_accessories: ['Handbags','Backpacks','Wallets','Belts','Caps & Hats','Sunglasses','Watches'],
+  jewellery: ['Earrings','Necklaces','Bangles','Rings','Bracelets'],
+  mobiles_tablets: ['Smartphones','Feature Phones','Tablets','Mobile Accessories'],
+  computers: ['Laptops','Desktops','Keyboards','Mouse','Computer Accessories'],
+  audio: ['Earphones','Headphones','Bluetooth Speakers','Soundbars'],
+  smart_devices: ['Smartwatches','Smart Plugs','Smart Lights','Security Cameras'],
+  power_charging: ['Chargers','Cables','Power Banks','Adapters','Extension Boards'],
+  kitchen: ['Cookware','Kitchen Tools','Storage Containers','Dinnerware','Kitchen Appliances'],
+  home_decor: ['Wall Art','Vases','Decorative Items','Lighting','Curtains','Clocks'],
+  furniture: ['Chairs','Tables','Cabinets','Shelves','Storage Units'],
+  bedding_bath: ['Bedsheets','Pillows','Blankets','Towels','Bath Accessories'],
+  home_utility: ['Organizers','Laundry Products','Cleaning Tools'],
+  groceries: ['Staples','Snacks','Beverages','Dry Fruits','Packaged Foods'],
+  personal_care: ['Skincare','Haircare','Oral Care','Bath & Body'],
+  household_cleaning: ['Detergents','Floor Cleaners','Dishwashing','Cleaning Tools'],
+  stationery: ['Notebooks','Pens','School Supplies','Office Supplies'],
+  chocolates: ['Bars','Boxes','Gift Hampers','Sugar-Free'],
+  snacks: ['Namkeen','Chips','Cookies','Nuts & Dry Fruits'],
+  beverages: ['Tea','Coffee','Juices','Health Drinks'],
+  bakery: ['Cakes','Bread','Rusks'],
+  makeup: ['Lipstick','Foundation','Eyeliner & Kajal','Compact & Powder','Makeup Kits'],
+  skincare: ['Face Wash','Moisturizer','Sunscreen','Face Masks','Serums'],
+  haircare: ['Shampoo','Conditioner','Hair Oil','Hair Styling'],
+  fragrances: ['Perfumes','Deodorants','Body Mist'],
+  pottery: ['Vases','Bowls','Diyas','Decorative Items'],
+  handloom: ['Handwoven Fabrics','Rugs','Dupattas','Traditional Textiles'],
+  bamboo_cane: ['Baskets','Storage','Home Decor','Utility Products'],
+  wooden_crafts: ['Decorative Items','Kitchenware','Toys','Handcrafted Furniture'],
+  handmade_jewellery: ['Beadwork','Handmade Earrings','Handmade Necklaces','Handmade Bangles'],
+  traditional_regional: ['Regional Crafts','Traditional Decor','Artisan Products'],
+};
+
 /**
  * HUBOOZE — Seller Dashboard
  * All seller functionality in one clean file
@@ -295,12 +332,13 @@ function renderSelAddProduct(el) {
     // Category
     + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Category *</label>'
     + '<select id="np_cat" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit">'
-    + ['fashion','electronics','home','daily','handmade','beauty','sports','books','other'].map(function(c){
+    + ['fashion','electronics','home','daily','food','beauty','handmade'].map(function(c){
         return '<option value="'+c+'"'+(ep&&ep.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';
       }).join('')
     + '</select></div>'
     + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Sub-Category</label>'
     + '<select id="np_subcat" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit"><option value="">-- Select category first --</option></select></div>'
+    + '<select id="np_prodtype" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit"><option value="">-- Select sub-category first --</option></select></div>'
 
     + formField('Description', 'np_desc', 'textarea', ep?ep.description:'', 'Describe your product...', false)
     + formField('Available Sizes (comma separated)', 'np_sizes', 'text', ep&&ep.sizes?(ep.sizes.join(', ')):'', 'XS, S, M, L, XL', false)
@@ -347,17 +385,29 @@ function renderSelAddProduct(el) {
     renderProdImgGallery();
     var catSelect = document.getElementById('np_cat');
     var subcatSelect = document.getElementById('np_subcat');
+    var prodtypeSelect = document.getElementById('np_prodtype');
+    function refreshProdTypes() {
+      if (!subcatSelect || !prodtypeSelect) return;
+      var types = (window.PRODUCT_TYPES || {})[subcatSelect.value];
+      if (!types || !types.length) { prodtypeSelect.innerHTML = '<option value="">-- No product types --</option>'; return; }
+      prodtypeSelect.innerHTML = '<option value="">-- Select product type --</option>' + types.map(function(t) {
+        var sel = (ep && ep.productType === t) ? ' selected' : '';
+        return '<option value="'+t+'"'+sel+'>'+t+'</option>';
+      }).join('');
+    }
     function refreshSubcats() {
       if (!catSelect || !subcatSelect) return;
       var subData = (window.SUBCATEGORIES || {})[catSelect.value];
-      if (!subData) { subcatSelect.innerHTML = '<option value="">-- No sub-categories --</option>'; return; }
+      if (!subData) { subcatSelect.innerHTML = '<option value="">-- No sub-categories --</option>'; refreshProdTypes(); return; }
       subcatSelect.innerHTML = subData.normal.map(function(label, i) {
         var key = subData.keys[i];
         var sel = (ep && ep.subcategory === key) ? ' selected' : '';
         return '<option value="'+key+'"'+sel+'>'+label+'</option>';
       }).join('');
+      refreshProdTypes();
     }
     if (catSelect) { catSelect.onchange = refreshSubcats; refreshSubcats(); }
+    if (subcatSelect) { subcatSelect.onchange = refreshProdTypes; }
   }, 50);
 }
 
@@ -379,6 +429,7 @@ async function saveSellerProduct() {
   var stock   = parseInt((document.getElementById('np_stock')||{value:'0'}).value)||0;
   var cat     = (document.getElementById('np_cat')||{value:'other'}).value;
   var subcat  = (document.getElementById('np_subcat')||{value:''}).value;
+  var prodtype= (document.getElementById('np_prodtype')||{value:''}).value;
   var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
   var sizes   = ((document.getElementById('np_sizes')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
@@ -399,7 +450,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, subcategory:subcat, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 
