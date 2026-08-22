@@ -55,7 +55,7 @@ router.post('/', protect, requireSeller, async (req, res) => {
     const mrp = Number(originalPrice || orig || price);
     if (Number(price) >= mrp && mrp > 0) return res.status(400).json({ error: 'Selling price must be less than MRP.' });
     const product = {
-      id: 'p_' + Date.now(), name, brand, category, cat: category, subcategory: subcategory || '', productType: productType || '', subcategory: subcategory || '',
+      id: 'p_' + Date.now(), name, brand, category, cat: category, subcategory: subcategory || '', productType: productType || '',
       price: Number(price), originalPrice: mrp, orig: mrp,
       stock: Number(stock), description: description || '',
       sizes: sizes || [], colors: colors || [],
