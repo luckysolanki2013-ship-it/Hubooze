@@ -2349,6 +2349,7 @@ function openProduct(pid) {
     + '</div>'
     + '<div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)">'
     + '&#128260; 90 Day Easy Return &bull; &#9889; Instant Refund &bull; &#128666; Free Delivery above &#8377;499</div>'
+    + '<div style="margin-top:10px;font-size:11px;color:var(--text3)">Product ID: ' + pid + (p.sku ? ' &bull; SKU: ' + p.sku : '') + '</div>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -2596,7 +2597,9 @@ function doSearch() {
   var allProducts = Object.values(PRODUCTS);
   var results = allProducts.filter(function(p) {
     var cat = (p.cat || p.category || '').toLowerCase();
-    return p.name.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q) || cat.includes(q);
+    var sku = (p.sku || '').toLowerCase();
+    var pid = (p.id || '').toLowerCase();
+    return p.name.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q) || cat.includes(q) || sku.includes(q) || pid.includes(q);
   });
   showPage('categories');
   catTabActive = 'all';

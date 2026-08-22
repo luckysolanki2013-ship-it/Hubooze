@@ -208,6 +208,7 @@ function adminProductRow(p) {
     + '<div style="flex:1;min-width:150px">'
     + '<div style="font-weight:600;font-size:14px">'+p.name+'</div>'
     + '<div style="font-size:12px;color:var(--text3)">'+(p.brand||'')+' • '+(p.category||p.cat||'')+' • ₹'+p.price+'</div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">ID: '+p.id+(p.sku?' • SKU: '+p.sku:'')+'</div>'
     + '</div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
     + '<span style="padding:3px 8px;border-radius:12px;font-size:11px;background:'+(p.active?'rgba(0,200,83,.15)':'rgba(255,59,48,.15)')+';color:'+(p.active?'var(--green)':'var(--red)')+'">'+( p.active?'Active':'Inactive')+'</span>'

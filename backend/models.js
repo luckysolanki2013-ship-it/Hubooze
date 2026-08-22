@@ -36,6 +36,8 @@ const productSchema = new mongoose.Schema({
   category:      String,
   subcategory:   String,
   productType:   String,
+  sku:           String,
+  sku:           String,
   price:         { type: Number, required: true },
   originalPrice: Number,
   stock:         { type: Number, default: 0 },

@@ -249,6 +249,7 @@ function sellerProductRow(p) {
     + '<div style="flex:1;min-width:160px">'
     + '<div style="font-weight:600;font-size:14px">'+p.name+'</div>'
     + '<div style="font-size:12px;color:var(--text3)">'+(p.brand||'')+' • '+(p.cat||p.category||'')+' • Stock: '+(p.stock||0)+'</div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">ID: '+p.id+(p.sku?' • SKU: '+p.sku:'')+'</div>'
     + '</div>'
     + '<div style="text-align:right">'
     + '<div style="font-weight:700">₹'+p.price+'</div>'
@@ -339,6 +340,7 @@ function renderSelAddProduct(el) {
     + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Sub-Category</label>'
     + '<select id="np_subcat" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit"><option value="">-- Select category first --</option></select></div>'
     + '<select id="np_prodtype" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit"><option value="">-- Select sub-category first --</option></select></div>'
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">SKU / Product Code (Optional)</label><input id="np_sku" type="text" value="'+(ep&&ep.sku?ep.sku:'')+'" placeholder="e.g. TSHIRT-BLU-M-001" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box"></div>'
 
     + formField('Description', 'np_desc', 'textarea', ep?ep.description:'', 'Describe your product...', false)
     + formField('Available Sizes (comma separated)', 'np_sizes', 'text', ep&&ep.sizes?(ep.sizes.join(', ')):'', 'XS, S, M, L, XL', false)
@@ -430,6 +432,7 @@ async function saveSellerProduct() {
   var cat     = (document.getElementById('np_cat')||{value:'other'}).value;
   var subcat  = (document.getElementById('np_subcat')||{value:''}).value;
   var prodtype= (document.getElementById('np_prodtype')||{value:''}).value;
+  var sku     = (document.getElementById('np_sku')||{value:''}).value.trim();
   var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
   var sizes   = ((document.getElementById('np_sizes')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
@@ -450,7 +453,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 
