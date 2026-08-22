@@ -37,17 +37,23 @@ app.use('/api/otp',          require('./routes/otp'));
 app.use('/api/ccavenue',     require('./routes/ccavenue'));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const dba = require('./dbAdapter');
-  const { DB } = require('./db');
-  res.json({
-    status:   'ok',
-    version:  '1.0.0',
-    env:      process.env.NODE_ENV || 'development',
-    uptime:   Math.floor(process.uptime()) + 's',
-    db:       dba.useMongo() ? 'mongodb' : 'in-memory',
-    counts:   { users: DB.users.length, products: DB.products.length, orders: DB.orders.length },
-  });
+  try {
+    const [users, products, orders] = await Promise.all([
+      dba.getAllUsers(), dba.findProducts({}), dba.findOrders({})
+    ]);
+    res.json({
+      status:   'ok',
+      version:  '1.0.0',
+      env:      process.env.NODE_ENV || 'development',
+      uptime:   Math.floor(process.uptime()) + 's',
+      db:       dba.useMongo() ? 'mongodb' : 'in-memory',
+      counts:   { users: users.length, products: products.length, orders: orders.length },
+    });
+  } catch(e) {
+    res.json({ status: 'ok', version: '1.0.0', env: process.env.NODE_ENV || 'development', uptime: Math.floor(process.uptime()) + 's', db: dba.useMongo() ? 'mongodb' : 'in-memory', counts: { error: e.message } });
+  }
 });
 
 // 404 for unknown API routes
