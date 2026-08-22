@@ -344,6 +344,7 @@ function renderSelAddProduct(el) {
 
     + formField('Description', 'np_desc', 'textarea', ep?ep.description:'', 'Describe your product...', false)
     + formField('Available Sizes (comma separated)', 'np_sizes', 'text', ep&&ep.sizes?(ep.sizes.join(', ')):'', 'XS, S, M, L, XL', false)
+    + formField('Available Colors (comma separated)', 'np_colors', 'text', ep&&ep.colors?(ep.colors.join(', ')):'', 'Red, Blue, Black', false)
 
     // Badge & Eco
     + '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">'
@@ -435,6 +436,7 @@ async function saveSellerProduct() {
   var sku     = (document.getElementById('np_sku')||{value:''}).value.trim();
   var desc    = (document.getElementById('np_desc')||{value:''}).value.trim();
   var sizes   = ((document.getElementById('np_sizes')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
+  var colors  = ((document.getElementById('np_colors')||{value:''}).value).split(',').map(function(s){return s.trim();}).filter(Boolean);
   var badge   = (document.getElementById('np_badge')||{value:''}).value || null;
   var eco     = (document.getElementById('np_eco')||{checked:false}).checked;
   var listed  = (document.getElementById('np_listed')||{checked:true}).checked;
@@ -453,7 +455,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, colors:colors, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 

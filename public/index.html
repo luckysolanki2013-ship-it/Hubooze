@@ -2310,6 +2310,14 @@ function openProduct(pid) {
       + p.sizes.map(function(s){ return '<button onclick="this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'\';b.style.color=\'\';});this.style.background=\'var(--green)\';this.style.color=\'#fff\';" style="padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">'+s+'</button>'; }).join('')
       + '</div></div>'
     : '';
+  var colorsHtml = (p.colors && p.colors.length)
+    ? '<div style="margin:14px 0"><div style="font-weight:600;margin-bottom:8px">Color</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + p.colors.map(function(c){ return '<button onclick="this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'\';b.style.color=\'\';});this.style.background=\'var(--green)\';this.style.color=\'#fff\';" style="padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">'+c+'</button>'; }).join('')
+      + '</div></div>'
+    : '';
+  var descHtml = p.description
+    ? '<div style="margin:18px 0;padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px"><div style="font-weight:700;margin-bottom:8px;font-size:14px">Product Description</div><div style="font-size:13.5px;color:var(--text2);line-height:1.6;white-space:pre-wrap">'+p.description+'</div></div>'
+    : '';
   el.innerHTML = '<div style="max-width:900px;margin:0 auto;padding:20px 16px">'
     + '<button onclick="showPage(\'home\')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;margin-bottom:20px;font-family:inherit;display:flex;align-items:center;gap:6px">&#8592; Back</button>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px" class="prod-detail-grid">'
@@ -2343,12 +2351,14 @@ function openProduct(pid) {
     + '</div>'
     + (p.eco ? '<div style="color:#16a34a;font-size:13px;margin-bottom:10px">&#9851; Eco Friendly &middot; Supports Rural Jobs</div>' : '')
     + sizesHtml
+    + colorsHtml
     + '<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">'
     + '<button class="btn-ghost" style="flex:1;min-width:130px;padding:14px" onclick="addToCart(\'' + pid + '\')">&#128722; Add to Cart</button>'
     + '<button class="btn-grad" style="flex:1;min-width:130px;padding:14px" onclick="addToCart(\'' + pid + '\');openCart()">&#9889; Buy Now</button>'
     + '</div>'
     + '<div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)">'
     + '&#128260; 90 Day Easy Return &bull; &#9889; Instant Refund &bull; &#128666; Free Delivery above &#8377;499</div>'
+    + descHtml
     + '<div style="margin-top:10px;font-size:11px;color:var(--text3)">Product ID: ' + pid + (p.sku ? ' &bull; SKU: ' + p.sku : '') + '</div>'
     + '</div>'
     + '</div>'
