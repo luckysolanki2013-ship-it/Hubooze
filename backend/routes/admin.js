@@ -248,6 +248,26 @@ router.get('/sellers', protect, requireAdmin, async (req, res) => {
   } catch(e){ res.status(500).json({error:e.message}); }
 });
 
+// LEGAL PAGES CONTENT (persisted in MongoDB)
+router.get('/legal-pages', async (req, res) => {
+  try {
+    let doc = await Models.Settings.findOne({ key: 'legalPages' }).lean();
+    res.json({ pages: doc ? doc.data : {} });
+  } catch(e) { res.json({ pages: {} }); }
+});
+
+router.put('/legal-pages', protect, requireAdmin, async (req, res) => {
+  try {
+    const { type, title, html } = req.body;
+    if (!type || !title || !html) return res.status(400).json({ error: 'type, title, and html are required.' });
+    let doc = await Models.Settings.findOne({ key: 'legalPages' });
+    let data = doc ? doc.data : {};
+    data[type] = { title, html };
+    await Models.Settings.findOneAndUpdate({ key: 'legalPages' }, { data }, { upsert: true });
+    res.json({ message: 'Legal page updated successfully!', pages: data });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
 
 // ── HERO BANNER IMAGE UPLOAD ──────────────────────────────────────

@@ -1,3 +1,79 @@
+
+var LEGAL_PAGE_TYPES = [
+  {type:'about', label:'About Us'},
+  {type:'terms', label:'Terms & Conditions'},
+  {type:'privacy', label:'Privacy Policy'},
+  {type:'refund', label:'Refund & Cancellation'},
+  {type:'pricing', label:'Product/Pricing Structure'},
+  {type:'contact', label:'Contact Us'},
+  {type:'shipping', label:'Delivery & Shipping Policy'}
+];
+
+async function renderAdminLegalPages(el, headers) {
+  el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">Legal & Info Pages</h4>'
+    + '<p style="color:var(--text3);font-size:13px;margin-bottom:16px">Edit the content shown on your site\'s footer legal pages</p>'
+    + '<div id="legalPagesListEl" style="display:grid;gap:10px">Loading...</div>'
+    + '</div>';
+
+  try {
+    var r = await fetch('/api/admin/legal-pages');
+    var d = await r.json();
+    var overrides = d.pages || {};
+    var listEl = document.getElementById('legalPagesListEl');
+    listEl.innerHTML = LEGAL_PAGE_TYPES.map(function(p) {
+      var isEdited = !!overrides[p.type];
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg4);border-radius:8px">'
+        + '<div><div style="font-weight:600;font-size:14px">' + p.label + '</div>'
+        + '<div style="font-size:11px;color:' + (isEdited ? 'var(--green)' : 'var(--text3)') + '">' + (isEdited ? 'Customized' : 'Using default content') + '</div></div>'
+        + '<button data-legaltype="' + p.type + '" class="admin-edit-legal" style="padding:7px 14px;border-radius:6px;border:1px solid var(--blue);background:transparent;color:var(--blue);cursor:pointer;font-size:12px;font-family:inherit">Edit</button>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    document.getElementById('legalPagesListEl').innerHTML = '<p style="color:var(--red)">Failed to load: ' + e.message + '</p>';
+  }
+}
+
+async function openLegalPageEditor(type) {
+  var label = (LEGAL_PAGE_TYPES.find(function(p){return p.type===type;})||{}).label || type;
+  var defaultData = (window.LEGAL_PAGES && window.LEGAL_PAGES[type]) || {title:label, html:''};
+
+  var r = await fetch('/api/admin/legal-pages');
+  var d = await r.json();
+  var current = (d.pages && d.pages[type]) || defaultData;
+
+  var html = '<div style="padding:24px;max-width:600px;max-height:80vh;overflow-y:auto">'
+    + '<h4 style="font-weight:700;margin-bottom:16px">Edit: ' + label + '</h4>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Page Title</label>'
+    + '<input id="legalEditTitle" type="text" value="' + (current.title||'').replace(/"/g,'&quot;') + '" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Content (HTML allowed)</label>'
+    + '<textarea id="legalEditHtml" rows="14" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:monospace;font-size:12.5px;box-sizing:border-box;resize:vertical">' + (current.html||'') + '</textarea>'
+    + '<p style="font-size:11px;color:var(--text3);margin:8px 0 14px">Tip: Use &lt;h3&gt;, &lt;p&gt;, &lt;strong&gt; tags for formatting.</p>'
+    + '<div style="display:flex;gap:10px">'
+    + '<button onclick="saveLegalPage(\'' + type + '\')" class="btn-grad" style="flex:1;padding:12px;font-size:14px">Save Changes</button>'
+    + '<button onclick="closeModal()" style="padding:12px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">Cancel</button>'
+    + '</div></div>';
+
+  showModal(html);
+}
+
+async function saveLegalPage(type) {
+  var title = (document.getElementById('legalEditTitle')||{value:''}).value.trim();
+  var html = (document.getElementById('legalEditHtml')||{value:''}).value;
+  if (!title || !html) { showToast('Title and content are required', 'error'); return; }
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/admin/legal-pages', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({type:type,title:title,html:html})});
+    var d = await r.json();
+    if (r.ok) {
+      closeModal();
+      showToast('Legal page updated!', 'success');
+      renderAdminTabContent({});
+    } else {
+      showToast(d.error || 'Failed to save', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
 /**
  * HUBOOZE — Admin Panel
  * All admin functionality in one clean file
@@ -51,6 +127,7 @@ async function renderAdminPanel() {
     {id:'sellers',    label:'🏪 Sellers'},
     {id:'promotions', label:'📢 Promotions'},
     {id:'icons',      label:'🎨 Icons & Images'},
+    {id:'legal',      label:'📄 Legal Pages'},
     {id:'settings',   label:'⚙️ Settings'},
   ];
 
@@ -187,6 +264,8 @@ async function renderAdminTabContent(stats, headers) {
 
   } else if (adminTabActive === 'icons') {
     renderAdminIcons(el, headers);
+  } else if (adminTabActive === 'legal') {
+    renderAdminLegalPages(el, headers);
 
   } else if (adminTabActive === 'settings') {
     try {
@@ -933,6 +1012,8 @@ document.addEventListener('click', function(e) {
   btn = e.target.closest('.admin-save-comm');
   if (btn) { adminSaveCommission(btn.dataset.uid); return; }
   // Icon actions
+  btn = e.target.closest('.admin-edit-legal');
+  if (btn) { openLegalPageEditor(btn.dataset.legaltype); return; }
   btn = e.target.closest('.admin-upload-icon');
   if (btn) {
     var fileInput = document.getElementById('iconfile-'+btn.dataset.iconid);

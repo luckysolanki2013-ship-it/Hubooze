@@ -1274,6 +1274,12 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
 </div>
 
 <!-- ═══ PAGE: RETURNS ═══ -->
+<div class="page" id="page-legal">
+  <div class="wrap" style="padding-top:28px;padding-bottom:48px;max-width:800px">
+    <div class="bc" style="margin-bottom:20px"><span class="bc-link" onclick="showPage('home')">Home</span> &#10095; <span id="legalBcEl">Page</span></div>
+    <div id="legalContentEl" style="line-height:1.8;font-size:14.5px;color:var(--text2)"></div>
+  </div>
+</div>
 <div class="page" id="page-returns">
   <div class="wrap" style="padding-top:28px;padding-bottom:48px">
     <div class="page-hero" style="padding-top:0">
@@ -1690,7 +1696,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
   <div class="footer-bot wrap">
     <div>&#169; <span id="footCopyEl">2025 Hubooze. All rights reserved.</span></div>
     <div class="pay-icons"><span style="font-size:11px;color:var(--text3)">Pay:</span><div class="pay-icon">UPI</div><div class="pay-icon">VISA</div><div class="pay-icon">MC</div><div class="pay-icon">NB</div><div class="pay-icon">EMI</div><div class="pay-icon">COD</div></div>
-    <div class="f-links"><a onclick="showPage('returns')">Return Policy</a><a>Privacy</a><a>Terms</a></div>
+    <div class="f-links"><a onclick="showPage('returns')">Return Policy</a><a onclick="renderLegalPage('privacy')">Privacy</a><a onclick="renderLegalPage('terms')">Terms</a><a onclick="renderLegalPage('about')">About</a><a onclick="renderLegalPage('refund')">Refund</a><a onclick="renderLegalPage('contact')">Contact</a><a onclick="renderLegalPage('shipping')">Shipping</a><a onclick="renderLegalPage('pricing')">Pricing</a></div>
   </div>
 </footer>
 
@@ -2802,7 +2808,7 @@ var currentPage = 'home';
 
 function showPage(name, cat) {
   currentPage = name;
-  ['home','categories','returns','account','orders','seller','admin','checkout','notifications','product'].forEach(function(p) {
+  ['home','categories','returns','account','orders','seller','admin','checkout','notifications','product','legal'].forEach(function(p) {
     var el = document.getElementById('page-'+p);
     if (el) el.className = 'page' + (p===name?' active':'');
   });
@@ -7403,6 +7409,114 @@ async function submitPasswordReset() {
       showToast(d.error || 'Failed to reset password', 'error');
     }
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+
+// LEGAL / INFO PAGES
+var LEGAL_PAGES = {
+  about: {
+    title: 'About Us',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">About Hubooze</h2>'
+      + '<p style="margin-bottom:14px">Hubooze is India\'s return-to-recycle marketplace, connecting customers with quality products across Fashion, Electronics, Home & Kitchen, Daily Use, Food & Beverages, Beauty, and Handmade/Rural categories.</p>'
+      + '<p style="margin-bottom:14px">We are committed to sustainability &mdash; every returned product is refurbished, recycled, or redistributed to support rural artisans and reduce waste, making shopping better for you and the planet.</p>'
+      + '<p style="margin-bottom:14px">Hubooze is based in India, serving customers across regional and national Indian markets.</p>'
+      + '<p>For any questions about our mission or operations, reach out to us at <strong>Team.Support@hubooze.in</strong>.</p>'
+  },
+  terms: {
+    title: 'Terms & Conditions',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Terms &amp; Conditions</h2>'
+      + '<p style="margin-bottom:14px">By accessing and using Hubooze (hubooze.in), you agree to be bound by these Terms &amp; Conditions. Please read them carefully before using our services.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">1. Use of Service</h3>'
+      + '<p style="margin-bottom:14px">You must be at least 18 years old or have parental consent to make purchases on Hubooze. You agree to provide accurate information during registration and checkout.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">2. Orders &amp; Payments</h3>'
+      + '<p style="margin-bottom:14px">All orders are subject to product availability. Prices are listed in INR and may change without notice. We accept UPI, Cards, Net Banking, EMI, and Cash on Delivery (COD) where applicable.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">3. Seller Responsibility</h3>'
+      + '<p style="margin-bottom:14px">Sellers on Hubooze are independent third parties responsible for the accuracy of their product listings, quality, and fulfillment. Hubooze acts as a marketplace facilitator.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">4. Limitation of Liability</h3>'
+      + '<p style="margin-bottom:14px">Hubooze is not liable for indirect, incidental, or consequential damages arising from use of our platform, to the extent permitted by Indian law.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">5. Governing Law</h3>'
+      + '<p>These terms are governed by the laws of India. Any disputes shall be subject to the jurisdiction of courts in Indore, Madhya Pradesh.</p>'
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Privacy Policy</h2>'
+      + '<p style="margin-bottom:14px">Hubooze respects your privacy. This policy explains how we collect, use, and protect your personal information.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Information We Collect</h3>'
+      + '<p style="margin-bottom:14px">We collect your name, email, phone number, shipping address, and payment information (processed securely via our payment partners) when you register, shop, or contact us.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">How We Use Your Data</h3>'
+      + '<p style="margin-bottom:14px">Your information is used to process orders, provide customer support, send order updates, and improve our services. We do not sell your personal data to third parties.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Data Security</h3>'
+      + '<p style="margin-bottom:14px">We use industry-standard encryption and security practices to protect your data. Payment details are processed via secure, PCI-compliant payment gateways and are never stored on our servers.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Your Rights</h3>'
+      + '<p>You may request access to, correction of, or deletion of your personal data by contacting us at Team.Support@hubooze.in.</p>'
+  },
+  refund: {
+    title: 'Refund & Cancellation Policy',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Refund &amp; Cancellation Policy</h2>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Order Cancellation</h3>'
+      + '<p style="margin-bottom:14px">Orders can be cancelled free of charge before they are shipped. Once shipped, cancellation is not possible, but you may initiate a return after delivery.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Returns</h3>'
+      + '<p style="margin-bottom:14px">Hubooze offers a 90-day easy return window on eligible products, in any condition. Pickup is free, and refunds are processed promptly after the returned item is received and inspected.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Refund Timeline</h3>'
+      + '<p style="margin-bottom:14px">Once your return is approved, refunds are issued to your original payment method (UPI, card, or bank account) typically within 5-7 business days. COD orders are refunded via bank transfer or UPI.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Non-Returnable Items</h3>'
+      + '<p>Certain items such as perishable goods, personal care products once opened, and made-to-order items may not be eligible for return. Check individual product pages for specific return eligibility.</p>'
+  },
+  pricing: {
+    title: 'Product & Pricing Structure',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Product &amp; Service Details with Pricing Structure</h2>'
+      + '<p style="margin-bottom:14px">Hubooze is a marketplace connecting customers with independent sellers across multiple categories: Fashion, Electronics, Home &amp; Kitchen, Daily Use, Food &amp; Beverages, Beauty, and Handmade/Rural products.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Pricing</h3>'
+      + '<p style="margin-bottom:14px">All prices displayed on Hubooze are in Indian Rupees (INR) and are set by individual sellers. Prices are inclusive of applicable taxes unless stated otherwise. MRP and discounted selling price are both shown on each product page.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Delivery Charges</h3>'
+      + '<p style="margin-bottom:14px">Delivery is FREE on orders above &#8377;499. For orders below this threshold, applicable delivery charges are shown at checkout before payment.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Payment Methods</h3>'
+      + '<p>We accept UPI, Credit/Debit Cards, Net Banking, EMI, and Cash on Delivery (COD), depending on product and location eligibility.</p>'
+  },
+  contact: {
+    title: 'Contact Us',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Contact Us</h2>'
+      + '<p style="margin-bottom:14px">We\'re here to help! Reach out to us through any of the following channels:</p>'
+      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">'
+      + '<p style="margin-bottom:10px"><strong>Business Name:</strong> Hubooze</p>'
+      + '<p style="margin-bottom:10px"><strong>Email:</strong> Team.Support@hubooze.in</p>'
+      + '<p style="margin-bottom:10px"><strong>Registered Address:</strong> Indore, Madhya Pradesh, India</p>'
+      + '<p><strong>Support Hours:</strong> Monday to Saturday, 10:00 AM &ndash; 7:00 PM IST</p>'
+      + '</div>'
+      + '<p>For order-related queries, please include your Order ID when contacting us for faster assistance.</p>'
+  },
+  shipping: {
+    title: 'Delivery & Shipping Policy',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Delivery &amp; Shipping Policy</h2>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Delivery Areas</h3>'
+      + '<p style="margin-bottom:14px">Hubooze currently ships across serviceable pin codes in India. Delivery availability is confirmed at checkout based on your address.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Delivery Timeframes</h3>'
+      + '<p style="margin-bottom:14px">Standard delivery typically takes 3-7 business days depending on your location and seller dispatch time. Estimated delivery dates are shown at checkout and on your order confirmation.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Delivery Charges</h3>'
+      + '<p style="margin-bottom:14px">FREE delivery is available on orders above &#8377;499. For orders below this amount, a delivery fee is calculated and shown at checkout.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Order Tracking</h3>'
+      + '<p>Once your order is shipped, you can track its status from the "My Orders" section of your account.</p>'
+  }
+};
+
+async function renderLegalPage(type) {
+  var page = LEGAL_PAGES[type];
+  if (!page) { showPage('home'); return; }
+  showPage('legal');
+  ss('legalBcEl', page.title, false);
+  var el = document.getElementById('legalContentEl');
+  if (el) el.innerHTML = page.html;
+  window.scrollTo(0, 0);
+  // Check for admin-edited override
+  try {
+    var r = await fetch('/api/admin/legal-pages');
+    var d = await r.json();
+    var override = d.pages && d.pages[type];
+    if (override) {
+      ss('legalBcEl', override.title, false);
+      if (el) el.innerHTML = override.html;
+    }
+  } catch(e) {}
 }
 
 </script>
