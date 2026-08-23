@@ -2310,10 +2310,17 @@ function openProduct(pid) {
   var stars = '';
   for (var i=0;i<full;i++) stars += '&#9733;';
   for (var j=0;j<5-full;j++) stars += '&#9734;';
+  window._currentProdVariants = p.variants || {};
+  window._selectedSize = (p.sizes && p.sizes.length) ? p.sizes[0] : null;
   var sizesHtml = (p.sizes && p.sizes.length)
-    ? '<div style="margin:14px 0"><div style="font-weight:600;margin-bottom:8px">Size</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
-      + p.sizes.map(function(s){ return '<button onclick="this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'\';b.style.color=\'\';});this.style.background=\'var(--green)\';this.style.color=\'#fff\';" style="padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">'+s+'</button>'; }).join('')
-      + '</div></div>'
+    ? '<div style="margin:14px 0"><div style="font-weight:600;margin-bottom:8px">Size</div><div style="display:flex;gap:8px;flex-wrap:wrap" id="prodSizeBtnsEl">'
+      + p.sizes.map(function(s, si){
+          var variant = (p.variants && p.variants[s]) || null;
+          var outOfStock = variant && variant.stock <= 0;
+          var isFirst = si === 0;
+          return '<button onclick="selectProductSize(\''+s+'\',this)" '+(outOfStock?'disabled':'')+' style="padding:8px 14px;border:1px solid '+(isFirst?'var(--green)':'var(--border2)')+';border-radius:8px;background:'+(isFirst?'var(--green)':'var(--bg3)')+';color:'+(isFirst?'#fff':(outOfStock?'var(--text3)':'var(--text)'))+';cursor:'+(outOfStock?'not-allowed':'pointer')+';font-family:inherit;font-size:13px;opacity:'+(outOfStock?'0.5':'1')+';text-decoration:'+(outOfStock?'line-through':'none')+'">'+s+'</button>';
+        }).join('')
+      + '</div><div id="prodSizeStockEl" style="font-size:12px;color:var(--text3);margin-top:6px"></div></div>'
     : '';
   var colorsHtml = (p.colors && p.colors.length)
     ? '<div style="margin:14px 0"><div style="font-weight:600;margin-bottom:8px">Color</div><div style="display:flex;gap:8px;flex-wrap:wrap">'
@@ -7517,6 +7524,36 @@ async function renderLegalPage(type) {
       if (el) el.innerHTML = override.html;
     }
   } catch(e) {}
+}
+
+
+function selectProductSize(size, btnEl) {
+  window._selectedSize = size;
+  document.querySelectorAll('#prodSizeBtnsEl button').forEach(function(b) {
+    b.style.background = 'var(--bg3)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = b.disabled ? 'var(--text3)' : 'var(--text)';
+  });
+  btnEl.style.background = 'var(--green)';
+  btnEl.style.borderColor = 'var(--green)';
+  btnEl.style.color = '#fff';
+
+  var variant = (window._currentProdVariants || {})[size];
+  var priceEl = document.querySelector('#page-product [style*="font-size:28px"]');
+  var origEl = document.querySelector('#page-product [style*="text-decoration:line-through"]');
+  var stockEl = document.getElementById('prodSizeStockEl');
+
+  if (variant) {
+    if (priceEl && variant.price) priceEl.textContent = '\u20b9' + variant.price.toLocaleString('en-IN');
+    if (origEl && variant.orig) origEl.textContent = '\u20b9' + variant.orig.toLocaleString('en-IN');
+    if (stockEl) {
+      if (variant.stock <= 0) stockEl.innerHTML = '<span style="color:var(--red)">Out of stock</span>';
+      else if (variant.stock <= 5) stockEl.innerHTML = '<span style="color:var(--orange)">Only ' + variant.stock + ' left!</span>';
+      else stockEl.innerHTML = '<span style="color:var(--green)">In stock</span>';
+    }
+  } else if (stockEl) {
+    stockEl.innerHTML = '';
+  }
 }
 
 </script>
