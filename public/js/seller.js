@@ -1,3 +1,94 @@
+
+var selProdVariants = {};
+
+function openVariantsModal() {
+  var sizesInput = document.getElementById('np_sizes');
+  var sizes = (sizesInput ? sizesInput.value : '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if (!sizes.length) { showToast('Enter sizes first (comma separated)', 'error'); return; }
+
+  var basePriceEl = document.getElementById('np_price');
+  var baseOrigEl = document.getElementById('np_orig');
+  var baseStockEl = document.getElementById('np_stock');
+  var basePrice = basePriceEl ? basePriceEl.value : '';
+  var baseOrig = baseOrigEl ? baseOrigEl.value : '';
+  var baseStock = baseStockEl ? baseStockEl.value : '';
+
+  var rows = sizes.map(function(sz) {
+    var existing = selProdVariants[sz] || {};
+    return {
+      size: sz,
+      price: existing.price || basePrice || '',
+      orig: existing.orig || baseOrig || '',
+      stock: existing.stock !== undefined ? existing.stock : (baseStock || '')
+    };
+  });
+
+  var html = '<div style="padding:24px;max-width:500px;max-height:80vh;overflow-y:auto">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">Per-Size Price &amp; Stock</h4>'
+    + '<p style="font-size:12px;color:var(--text3);margin-bottom:14px">Set individual price and stock for each size</p>'
+    + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:14px;padding:10px;background:var(--bg4);border-radius:8px">'
+    + '<input type="checkbox" id="variantApplyAll" style="width:16px;height:16px"> Apply same values to all sizes when I type in the first row'
+    + '</label>'
+    + '<div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:8px;margin-bottom:8px;font-size:11px;font-weight:700;color:var(--text3)">'
+    + '<div>Size</div><div>Price</div><div>MRP</div><div>Stock</div></div>'
+    + '<div id="variantRowsEl" style="display:grid;gap:8px">'
+    + rows.map(function(r, i) {
+        return '<div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:8px;align-items:center">'
+          + '<div style="font-weight:600;font-size:13px">' + r.size + '</div>'
+          + '<input class="variant-price" data-idx="' + i + '" type="number" value="' + r.price + '" placeholder="Price" style="padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;box-sizing:border-box">'
+          + '<input class="variant-orig" data-idx="' + i + '" type="number" value="' + r.orig + '" placeholder="MRP" style="padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;box-sizing:border-box">'
+          + '<input class="variant-stock" data-idx="' + i + '" type="number" value="' + r.stock + '" placeholder="Stock" style="padding:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;box-sizing:border-box">'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:18px">'
+    + '<button onclick="saveVariants(' + JSON.stringify(sizes).replace(/"/g,'&quot;') + ')" class="btn-grad" style="flex:1;padding:12px;font-size:14px">Save Sizes</button>'
+    + '<button onclick="closeModal()" style="padding:12px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">Cancel</button>'
+    + '</div></div>';
+
+  showModal(html);
+
+  setTimeout(function() {
+    document.querySelectorAll('.variant-price, .variant-orig, .variant-stock').forEach(function(input) {
+      input.addEventListener('input', function() {
+        var applyAll = document.getElementById('variantApplyAll');
+        if (applyAll && applyAll.checked && input.dataset.idx === '0') {
+          var cls = input.className;
+          document.querySelectorAll('.' + cls).forEach(function(other) {
+            if (other !== input) other.value = input.value;
+          });
+        }
+      });
+    });
+  }, 50);
+}
+
+function saveVariants(sizes) {
+  var newVariants = {};
+  sizes.forEach(function(sz, i) {
+    var priceEl = document.querySelector('.variant-price[data-idx="' + i + '"]');
+    var origEl = document.querySelector('.variant-orig[data-idx="' + i + '"]');
+    var stockEl = document.querySelector('.variant-stock[data-idx="' + i + '"]');
+    newVariants[sz] = {
+      price: priceEl ? Number(priceEl.value) || 0 : 0,
+      orig: origEl ? Number(origEl.value) || 0 : 0,
+      stock: stockEl ? Number(stockEl.value) || 0 : 0
+    };
+  });
+  selProdVariants = newVariants;
+  updateVariantsSummary();
+  closeModal();
+  showToast('Size variants saved!', 'success');
+}
+
+function updateVariantsSummary() {
+  var el = document.getElementById('np_variantsSummary');
+  if (!el) return;
+  var keys = Object.keys(selProdVariants);
+  if (!keys.length) { el.textContent = ''; return; }
+  var totalStock = keys.reduce(function(sum, k) { return sum + (selProdVariants[k].stock || 0); }, 0);
+  el.textContent = keys.length + ' size(s) configured \u2022 Total stock: ' + totalStock;
+}
 var PRODUCT_TYPES = {
   mens: ['T-Shirts','Shirts','Jeans','Trousers','Shorts','Jackets','Hoodies & Sweatshirts','Ethnic Wear','Innerwear'],
   womens: ['Kurtis','Sarees','Dresses','Tops','T-Shirts','Jeans & Trousers','Suits & Sets','Ethnic Wear'],
@@ -343,7 +434,10 @@ function renderSelAddProduct(el) {
     + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">SKU / Product Code (Optional)</label><input id="np_sku" type="text" value="'+(ep&&ep.sku?ep.sku:'')+'" placeholder="e.g. TSHIRT-BLU-M-001" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box"></div>'
 
     + formField('Description', 'np_desc', 'textarea', ep?ep.description:'', 'Describe your product...', false)
-    + formField('Available Sizes (comma separated)', 'np_sizes', 'text', ep&&ep.sizes?(ep.sizes.join(', ')):'', 'XS, S, M, L, XL', false)
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Available Sizes (comma separated)</label>'
+    + '<input id="np_sizes" type="text" value="'+(ep&&ep.sizes?ep.sizes.join(', '):'')+'" placeholder="XS, S, M, L, XL" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;margin-bottom:8px">'
+    + '<button type="button" id="np_openVariants" style="padding:8px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:inherit">📊 Set Per-Size Price & Stock</button>'
+    + '<div id="np_variantsSummary" style="font-size:11px;color:var(--text3);margin-top:6px"></div></div>'
     + formField('Available Colors (comma separated)', 'np_colors', 'text', ep&&ep.colors?(ep.colors.join(', ')):'', 'Red, Blue, Black', false)
 
     // Badge & Eco
@@ -411,6 +505,9 @@ function renderSelAddProduct(el) {
     }
     if (catSelect) { catSelect.onchange = refreshSubcats; refreshSubcats(); }
     if (subcatSelect) { subcatSelect.onchange = refreshProdTypes; }
+    var variantsBtn = document.getElementById('np_openVariants');
+    if (variantsBtn) variantsBtn.onclick = openVariantsModal;
+    if (ep && ep.variants) { selProdVariants = ep.variants; updateVariantsSummary(); } else { selProdVariants = {}; }
   }, 50);
 }
 
@@ -455,7 +552,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, colors:colors, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes,badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, colors:colors, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes, variants:selProdVariants, badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 

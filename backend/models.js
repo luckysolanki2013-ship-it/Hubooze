@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema({
   subcategory:   String,
   productType:   String,
   sku:           String,
-  sku:           String,
+  variants:      { type: mongoose.Schema.Types.Mixed, default: {} },
   price:         { type: Number, required: true },
   originalPrice: Number,
   stock:         { type: Number, default: 0 },
