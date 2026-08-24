@@ -322,7 +322,7 @@ header{position:sticky;top:0;z-index:1000;background:rgba(10,10,10,.98);backdrop
 .wishlist-empty p{font-size:13px;color:var(--text2);}
 
 /* TOAST */
-.toast{position:fixed;bottom:80px;right:20px;background:var(--bg2);border:1px solid var(--green);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--green);z-index:99999;transform:translateY(16px) scale(.95);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,255,143,.2);max-width:320px;}
+.toast{position:fixed;top:80px;right:20px;background:var(--bg2);border:1px solid var(--green);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--green);z-index:99999;transform:translateY(-16px) scale(.95);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,255,143,.2);max-width:320px;pointer-events:none;}
 .toast.show{transform:translateY(0) scale(1);opacity:1;}
 .toast.error{border-color:var(--red);color:var(--red);box-shadow:0 8px 32px rgba(255,77,77,.2);}
 .toast.info{border-color:var(--blue);color:var(--blue);box-shadow:0 8px 32px rgba(0,161,255,.2);}
