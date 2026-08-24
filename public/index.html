@@ -7649,13 +7649,28 @@ async function populateHeroCards() {
 
   var big = picks[0];
   var bigDisc = big.orig ? Math.round((1-big.price/big.orig)*100) : 0;
-  var hasImg = !!big.image;
-  var bigImg = hasImg ? '<img src="'+big.image+'" style="width:100%;height:100%;object-fit:cover">' : '';
+  var bigImgs = (big.images && big.images.length) ? big.images : (big.image ? [big.image] : []);
+  var hasImg = bigImgs.length > 0;
+  var bigImgsHtml = bigImgs.map(function(src, i) {
+    return '<img src="'+src+'" class="hero-gallery-img" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:'+(i===0?'1':'0')+';transition:opacity 1s ease">';
+  }).join('');
   var html = '<div class="hcard big" onclick="openProduct(\''+big.id+'\')" style="position:relative;overflow:hidden">'
-    + (hasImg ? '<div style="position:absolute;inset:0">'+bigImg+'<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.3) 55%,transparent)"></div></div>' : '<div class="bi" style="position:relative">'+(big.icon||'&#128247;')+'</div>')
+    + (hasImg ? '<div style="position:absolute;inset:0" id="heroGalleryWrap">'+bigImgsHtml+'<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.3) 55%,transparent)"></div></div>' : '<div class="bi" style="position:relative">'+(big.icon||'&#128247;')+'</div>')
     + '<div class="bn" style="position:relative"><span class="badge badge-green" style="margin-bottom:6px">'+(big.badge||'TOP PICK')+'</span><h3 class="df" style="'+(hasImg?'color:#fff':'')+'">'+big.name+'</h3><p style="'+(hasImg?'color:rgba(255,255,255,.85)':'')+'">'+(big.brand||'')+'</p><div class="bp df" style="'+(hasImg?'color:#fff':'')+'">&#8377;'+big.price.toLocaleString('en-IN')+'</div></div>'
     + (bigDisc>0 ? '<div class="hco">-'+bigDisc+'%</div>' : '')
     + '</div>';
+  if (bigImgs.length > 1) {
+    setTimeout(function() {
+      var idx = 0;
+      setInterval(function() {
+        var imgs = document.querySelectorAll('#heroGalleryWrap .hero-gallery-img');
+        if (!imgs.length) return;
+        imgs[idx].style.opacity = '0';
+        idx = (idx + 1) % imgs.length;
+        imgs[idx].style.opacity = '1';
+      }, 2500);
+    }, 100);
+  }
 
   picks.slice(1).forEach(function(p) {
     var disc = p.orig ? Math.round((1-p.price/p.orig)*100) : 0;
