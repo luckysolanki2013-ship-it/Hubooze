@@ -1862,20 +1862,20 @@ function addToCart(productId, size) {
 }
 
 function removeFromCart(itemId) {
-  var item = cartItems.find(function(i) { return i.id === itemId; });
+  var item = cartItems.find(function(i) { return String(i.id) === String(itemId); });
   if (!item) return;
   // Animate out
   var el = document.getElementById('ci-' + itemId);
   if (el) {
     el.classList.add('removing');
     setTimeout(function() {
-      cartItems = cartItems.filter(function(i) { return i.id !== itemId; });
+      cartItems = cartItems.filter(function(i) { return String(i.id) !== String(itemId); });
       saveCartState();
       renderCartItems();
       renderCartSummary();
     }, 250);
   } else {
-    cartItems = cartItems.filter(function(i) { return i.id !== itemId; });
+    cartItems = cartItems.filter(function(i) { return String(i.id) !== String(itemId); });
     saveCartState();
     renderCartItems();
     renderCartSummary();
@@ -1883,15 +1883,24 @@ function removeFromCart(itemId) {
 }
 
 function changeQty(itemId, delta) {
-  var item = cartItems.find(function(i) { return i.id === itemId; });
+  var item = cartItems.find(function(i) { return String(i.id) === String(itemId); });
   if (!item) return;
   var newQty = item.qty + delta;
   if (newQty <= 0) {
     removeFromCart(itemId);
     return;
   }
-  if (newQty > 10) {
-    showToast('Max 10 per item', 'error');
+  var product = PRODUCTS[item.productId];
+  var maxStock = 10;
+  if (product) {
+    if (item.size && product.variants && product.variants[item.size]) {
+      maxStock = product.variants[item.size].stock;
+    } else if (product.stock !== undefined) {
+      maxStock = product.stock;
+    }
+  }
+  if (delta > 0 && newQty > maxStock) {
+    showToast(maxStock > 0 ? ('Only ' + maxStock + ' in stock') : 'Out of stock', 'error');
     return;
   }
   item.qty = newQty;
@@ -1904,7 +1913,7 @@ function saveForLater(itemId) {
   var item = cartItems.find(function(i) { return i.id === itemId; });
   if (!item) return;
   savedItems.push({...item, id: Date.now() + Math.random(), savedAt: Date.now()});
-  cartItems = cartItems.filter(function(i) { return i.id !== itemId; });
+  cartItems = cartItems.filter(function(i) { return String(i.id) !== String(itemId); });
   saveCartState();
   renderCartItems();
   renderCartSummary();
