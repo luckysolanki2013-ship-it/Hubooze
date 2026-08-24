@@ -174,6 +174,7 @@ const DEFAULT_PROMOTIONS = {
   heroSubtitle: 'Return Karen Free Mein.',
   freeDeliveryMin: 499,
   deliveryFee: 49,
+  heroProducts: [],
   banners: [],
   siteIcons: {},
 };

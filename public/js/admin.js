@@ -408,6 +408,7 @@ async function renderAdminTabContent(stats, headers) {
       var d = await r.json();
       var promo = d.promotions || {};
       renderAdminSettings(el, promo, headers);
+      renderHeroProductsPicker(promo);
     } catch(e) { el.innerHTML = '<p style="color:var(--red)">Error: '+e.message+'</p>'; }
   }
 }
@@ -632,6 +633,12 @@ function renderAdminSettings(el, promo, headers) {
     + '<button onclick="saveStoreSettings()" class="btn-grad" style="margin-top:14px;padding:9px 22px">Save Store Settings</button>'
     + '</div>'
     + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">🌟 Homepage Featured Products</h4>'
+    + '<p style="color:var(--text3);font-size:13px;margin-bottom:14px">Pin up to 5 specific products to the homepage hero banner. Leave empty for automatic (top-discounted products shown).</p>'
+    + '<div id="heroProductsPickerEl">Loading...</div>'
+    + '<button onclick="saveHeroProducts()" class="btn-grad" style="margin-top:14px;padding:9px 22px">Save Featured Products</button>'
+    + '</div>'
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
     + '<h4 style="font-weight:700;margin-bottom:14px">💰 Payout Settings</h4>'
     + '<div style="display:grid;gap:12px">'
     + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><label style="font-size:13px;font-weight:600;min-width:180px">Payout Schedule</label>'
@@ -835,6 +842,38 @@ async function saveHeroText() {
     if (badge && data.heroBadge) badge.textContent = data.heroBadge;
     showToast('Hero text updated!','success');
   } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+async function renderHeroProductsPicker(promo) {
+  var el = document.getElementById('heroProductsPickerEl');
+  if (!el) return;
+  try {
+    var r = await fetch('/api/products?limit=200');
+    var d = await r.json();
+    var products = d.products || [];
+    var pinned = (promo && promo.heroProducts) || [];
+    el.innerHTML = '<div style="display:grid;gap:6px;max-height:220px;overflow-y:auto">'
+      + products.map(function(p) {
+          var checked = pinned.indexOf(p.id) > -1;
+          return '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg4);border-radius:6px;cursor:pointer;font-size:13px"><input type="checkbox" class="hero-prod-check" value="'+p.id+'" '+(checked?'checked':'')+' style="width:16px;height:16px"> '+p.name+' \u2014 \u20b9'+p.price+'</label>';
+        }).join('')
+      + '</div>';
+  } catch(e) {
+    el.innerHTML = '<p style="color:var(--red)">Failed to load products</p>';
+  }
+}
+
+async function saveHeroProducts() {
+  var checked = Array.from(document.querySelectorAll('.hero-prod-check:checked')).slice(0, 5).map(function(c) { return c.value; });
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/admin/promotions', {method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({heroProducts:checked})});
+    if (r.ok) {
+      showToast('Featured products saved!', 'success');
+    } else {
+      showToast('Failed to save', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function saveStoreSettings() {

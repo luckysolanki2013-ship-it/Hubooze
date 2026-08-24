@@ -1143,10 +1143,11 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
           <div class="hstat"><div class="num df grad-text">500+</div><div class="lbl">Rural Jobs</div></div>
         </div>
       </div>
+      <div class="hero-cards" id="heroCardsEl"></div>
 
     </div>
   </section>
-  <div class="flash-bar">
+  <div class="flash-bar" id="flashBarEl" style="display:none">
     <div class="flash-pill" id="flashPillEl">&#9889; FLASH SALE</div>
     <div class="flash-txt"><span class="flash-scroll">&#128521; Kurti &mdash; <strong>&#8377;299</strong>&nbsp;|&nbsp;&#127911; Earphones &mdash; <strong>&#8377;799</strong>&nbsp;|&nbsp;&#127862; Handicraft &mdash; <strong>&#8377;299</strong>&nbsp;|&nbsp;&#128266; Speaker &mdash; <strong>&#8377;699</strong>&nbsp;|&nbsp;&#10024; Serum &mdash; <strong>&#8377;179</strong></span></div>
     <div class="flash-timer">
@@ -2881,16 +2882,48 @@ function renderNav() {
 // ════════════════════════════════════════════════════════════════
 //  TIMER
 // ════════════════════════════════════════════════════════════════
-var timerSec = 4*3600 + 27*60 + 33;
+var timerSec = 0;
 function tick() {
   if (timerSec > 0) timerSec--;
+  else { var fb = document.getElementById('flashBarEl'); if (fb) fb.style.display = 'none'; return; }
   var h=Math.floor(timerSec/3600), m=Math.floor((timerSec%3600)/60), s=timerSec%60;
   var th=document.getElementById('timerH'), tm=document.getElementById('timerM'), ts=document.getElementById('timerS');
   if(th) th.textContent = String(h).padStart(2,'0');
   if(tm) tm.textContent = String(m).padStart(2,'0');
   if(ts) ts.textContent = String(s).padStart(2,'0');
 }
-setInterval(tick, 1000); tick();
+setInterval(tick, 1000);
+
+async function loadFlashSale() {
+  try {
+    var r = await fetch('/api/admin/promotions');
+    var d = await r.json();
+    var fs = d.promotions && d.promotions.flashSale;
+    var fb = document.getElementById('flashBarEl');
+    if (!fs || !fs.active || !fb) { if (fb) fb.style.display = 'none'; return; }
+    var endTime = new Date(fs.endTime).getTime();
+    var now = Date.now();
+    var remaining = Math.floor((endTime - now) / 1000);
+    if (remaining <= 0) { fb.style.display = 'none'; return; }
+    timerSec = remaining;
+    tick();
+
+    var allProducts = Object.values(PRODUCTS);
+    var discounted = allProducts.filter(function(p) { return p.orig && p.price < p.orig; }).slice(0, 5);
+    var scrollEl = document.querySelector('.flash-scroll');
+    if (discounted.length && scrollEl) {
+      scrollEl.innerHTML = discounted.map(function(p) {
+        return (p.icon || '&#128247;') + ' ' + p.name + ' &mdash; <strong>&#8377;' + p.price.toLocaleString('en-IN') + '</strong>';
+      }).join('&nbsp;|&nbsp;');
+    }
+    var pillEl = document.getElementById('flashPillEl');
+    if (pillEl && fs.label) pillEl.innerHTML = '&#9889; ' + fs.label;
+
+    fb.style.display = '';
+  } catch(e) { console.error('Failed to load flash sale:', e); }
+}
+document.addEventListener('DOMContentLoaded', function() { setTimeout(loadFlashSale, 500); });
+if (document.readyState !== 'loading') setTimeout(loadFlashSale, 500);
 
 // ════════════════════════════════════════════════════════════════
 //  SCROLL ANIMATE
@@ -7588,6 +7621,57 @@ function selectProductSize(size, btnEl) {
     stockEl.innerHTML = '';
   }
 }
+
+
+async function populateHeroCards() {
+  var el = document.getElementById('heroCardsEl');
+  if (!el) return;
+  var allProducts = Object.values(PRODUCTS);
+  if (!allProducts.length) { el.innerHTML = ''; return; }
+
+  var picks = [];
+  try {
+    var r = await fetch('/api/admin/promotions');
+    var d = await r.json();
+    var pinnedIds = (d.promotions && d.promotions.heroProducts) || [];
+    if (pinnedIds.length) {
+      picks = pinnedIds.map(function(id) { return PRODUCTS[id]; }).filter(Boolean);
+    }
+  } catch(e) {}
+
+  if (!picks.length) {
+    var sorted = allProducts.filter(function(p){ return p.orig && p.price < p.orig; })
+      .sort(function(a,b){ return (b.orig-b.price)/b.orig - (a.orig-a.price)/a.orig; });
+    if (!sorted.length) sorted = allProducts.slice();
+    picks = sorted.slice(0, 5);
+  }
+  if (!picks.length) { el.innerHTML = ''; return; }
+
+  var big = picks[0];
+  var bigDisc = big.orig ? Math.round((1-big.price/big.orig)*100) : 0;
+  var bigImg = big.image ? '<img src="'+big.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px">' : '';
+  var html = '<div class="hcard big" onclick="openProduct(\''+big.id+'\')" style="position:relative;overflow:hidden">'
+    + (bigImg ? '<div style="position:absolute;inset:0;opacity:.25">'+bigImg+'</div>' : '')
+    + '<div class="bi" style="position:relative">'+(big.icon||'&#128247;')+'</div>'
+    + '<div class="bn" style="position:relative"><span class="badge badge-green" style="margin-bottom:6px">'+(big.badge||'TOP PICK')+'</span><h3 class="df">'+big.name+'</h3><p>'+(big.brand||'')+'</p><div class="bp df">&#8377;'+big.price.toLocaleString('en-IN')+'</div></div>'
+    + (bigDisc>0 ? '<div class="hco">-'+bigDisc+'%</div>' : '')
+    + '</div>';
+
+  picks.slice(1).forEach(function(p) {
+    var disc = p.orig ? Math.round((1-p.price/p.orig)*100) : 0;
+    html += '<div class="hcard" onclick="openProduct(\''+p.id+'\')">'
+      + '<div class="hci">'+(p.icon||'&#128247;')+'</div>'
+      + '<div class="hcn">'+p.name+'</div>'
+      + '<div class="hcp">&#8377;'+p.price.toLocaleString('en-IN')+'</div>'
+      + (p.orig ? '<div class="hcw">&#8377;'+p.orig.toLocaleString('en-IN')+'</div>' : '')
+      + (disc>0 ? '<div class="hco">-'+disc+'%</div>' : '')
+      + '</div>';
+  });
+
+  el.innerHTML = html;
+}
+document.addEventListener('DOMContentLoaded', function() { setTimeout(populateHeroCards, 600); });
+if (document.readyState !== 'loading') setTimeout(populateHeroCards, 600);
 
 </script>
 <script src="/js/api.js"></script>
