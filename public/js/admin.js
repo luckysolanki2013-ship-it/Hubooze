@@ -1,4 +1,136 @@
 
+async function renderAdminCoupons(el, headers) {
+  el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+    + '<h4 style="font-weight:700">Discount Coupons</h4>'
+    + '<button onclick="openCouponEditor()" class="btn-grad" style="padding:8px 16px;font-size:13px">+ New Coupon</button>'
+    + '</div>'
+    + '<div id="couponsListEl" style="display:grid;gap:10px">Loading...</div>'
+    + '</div>';
+
+  try {
+    var r = await fetch('/api/admin/coupons');
+    var d = await r.json();
+    var coupons = d.coupons || {};
+    var listEl = document.getElementById('couponsListEl');
+    var keys = Object.keys(coupons);
+    if (!keys.length) { listEl.innerHTML = '<p style="color:var(--text3);font-size:13px">No coupons yet. Click "+ New Coupon" to create one.</p>'; return; }
+    listEl.innerHTML = keys.map(function(code) {
+      var c = coupons[code];
+      var scopeLabel = c.scope === 'category' ? ('Category: ' + c.scopeValue) : (c.scope === 'product' ? ('Product: ' + c.scopeValue) : 'All Products');
+      var valueLabel = c.type === 'percent' ? (c.value + '% off') : ('\u20b9' + c.value + ' off');
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:var(--bg4);border-radius:8px;flex-wrap:wrap;gap:10px">'
+        + '<div>'
+        + '<div style="font-weight:700;font-size:15px;color:var(--green)">' + code + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);margin-top:2px">' + valueLabel + ' \u2022 ' + scopeLabel + (c.min ? ' \u2022 Min \u20b9' + c.min : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:8px">'
+        + '<button data-code="' + code + '" class="admin-edit-coupon" style="padding:6px 12px;border-radius:6px;border:1px solid var(--blue);background:transparent;color:var(--blue);cursor:pointer;font-size:12px;font-family:inherit">Edit</button>'
+        + '<button data-code="' + code + '" class="admin-delete-coupon" style="padding:6px 12px;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:12px;font-family:inherit">Delete</button>'
+        + '</div></div>';
+    }).join('');
+  } catch(e) {
+    document.getElementById('couponsListEl').innerHTML = '<p style="color:var(--red)">Failed to load: ' + e.message + '</p>';
+  }
+}
+
+async function openCouponEditor(code) {
+  var current = {code:'', type:'percent', value:'', min:'', desc:'', scope:'all', scopeValue:''};
+  if (code) {
+    var r = await fetch('/api/admin/coupons');
+    var d = await r.json();
+    if (d.coupons && d.coupons[code]) current = Object.assign({code:code}, d.coupons[code]);
+  }
+
+  var products = window.PRODUCTS ? Object.values(window.PRODUCTS) : [];
+  var categories = ['fashion','electronics','home','daily','food','beauty','handmade'];
+
+  var html = '<div style="padding:24px;max-width:480px;max-height:80vh;overflow-y:auto">'
+    + '<h4 style="font-weight:700;margin-bottom:16px">' + (code ? 'Edit Coupon' : 'New Coupon') + '</h4>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Coupon Code</label>'
+    + '<input id="couponCode" type="text" value="' + current.code + '" ' + (code ? 'readonly' : '') + ' placeholder="SAVE20" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px;text-transform:uppercase">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Discount Type</label>'
+    + '<select id="couponType" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;margin-bottom:14px">'
+    + '<option value="percent"' + (current.type==='percent'?' selected':'') + '>Percentage (%)</option>'
+    + '<option value="flat"' + (current.type==='flat'?' selected':'') + '>Flat Amount (\u20b9)</option>'
+    + '</select>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Discount Value</label>'
+    + '<input id="couponValue" type="number" value="' + current.value + '" placeholder="e.g. 20" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Minimum Order Amount (Optional)</label>'
+    + '<input id="couponMin" type="number" value="' + current.min + '" placeholder="e.g. 499" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Applies To</label>'
+    + '<select id="couponScope" onchange="toggleCouponScopeValue()" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;margin-bottom:10px">'
+    + '<option value="all"' + (current.scope==='all'?' selected':'') + '>All Products</option>'
+    + '<option value="category"' + (current.scope==='category'?' selected':'') + '>Specific Category</option>'
+    + '<option value="product"' + (current.scope==='product'?' selected':'') + '>Specific Product</option>'
+    + '</select>'
+    + '<div id="couponScopeValueWrap" style="display:' + (current.scope==='all'?'none':'block') + ';margin-bottom:14px">'
+    + '<select id="couponScopeValue" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit">'
+    + (current.scope==='category'
+        ? categories.map(function(c){return '<option value="'+c+'"'+(current.scopeValue===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('')
+        : products.map(function(p){return '<option value="'+p.id+'"'+(current.scopeValue===p.id?' selected':'')+'>'+p.name+'</option>';}).join('')
+      )
+    + '</select></div>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Description</label>'
+    + '<input id="couponDesc" type="text" value="' + (current.desc||'') + '" placeholder="20% off on Fashion items" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:18px">'
+    + '<div style="display:flex;gap:10px">'
+    + '<button onclick="saveCoupon()" class="btn-grad" style="flex:1;padding:12px;font-size:14px">Save Coupon</button>'
+    + '<button onclick="closeModal()" style="padding:12px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">Cancel</button>'
+    + '</div></div>';
+
+  showModal(html);
+  window._couponCategories = categories;
+  window._couponProducts = products;
+}
+
+function toggleCouponScopeValue() {
+  var scope = document.getElementById('couponScope').value;
+  var wrap = document.getElementById('couponScopeValueWrap');
+  var select = document.getElementById('couponScopeValue');
+  if (scope === 'all') { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  var options = scope === 'category' ? window._couponCategories : window._couponProducts.map(function(p){return p.id;});
+  var labels = scope === 'category' ? window._couponCategories.map(function(c){return c.charAt(0).toUpperCase()+c.slice(1);}) : window._couponProducts.map(function(p){return p.name;});
+  select.innerHTML = options.map(function(v,i){return '<option value="'+v+'">'+labels[i]+'</option>';}).join('');
+}
+
+async function saveCoupon() {
+  var code = (document.getElementById('couponCode')||{value:''}).value.trim();
+  var type = (document.getElementById('couponType')||{value:'percent'}).value;
+  var value = (document.getElementById('couponValue')||{value:''}).value;
+  var min = (document.getElementById('couponMin')||{value:''}).value;
+  var scope = (document.getElementById('couponScope')||{value:'all'}).value;
+  var scopeValueEl = document.getElementById('couponScopeValue');
+  var scopeValue = scopeValueEl ? scopeValueEl.value : '';
+  var desc = (document.getElementById('couponDesc')||{value:''}).value.trim();
+
+  if (!code || !value) { showToast('Code and value are required', 'error'); return; }
+
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/admin/coupons', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({code:code,type:type,value:value,min:min,desc:desc,scope:scope,scopeValue:scope!=='all'?scopeValue:''})});
+    var d = await r.json();
+    if (r.ok) {
+      closeModal();
+      showToast('Coupon saved!', 'success');
+      renderAdminTabContent({});
+    } else {
+      showToast(d.error || 'Failed to save', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteCouponConfirm(code) {
+  if (!confirm('Delete coupon "' + code + '"?')) return;
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/admin/coupons/' + code, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    showToast(d.message || 'Coupon deleted', 'success');
+    renderAdminTabContent({});
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
 var LEGAL_PAGE_TYPES = [
   {type:'about', label:'About Us'},
   {type:'terms', label:'Terms & Conditions'},
@@ -128,6 +260,7 @@ async function renderAdminPanel() {
     {id:'promotions', label:'📢 Promotions'},
     {id:'icons',      label:'🎨 Icons & Images'},
     {id:'legal',      label:'📄 Legal Pages'},
+    {id:'coupons',    label:'🎟️ Coupons'},
     {id:'settings',   label:'⚙️ Settings'},
   ];
 
@@ -266,6 +399,8 @@ async function renderAdminTabContent(stats, headers) {
     renderAdminIcons(el, headers);
   } else if (adminTabActive === 'legal') {
     renderAdminLegalPages(el, headers);
+  } else if (adminTabActive === 'coupons') {
+    renderAdminCoupons(el, headers);
 
   } else if (adminTabActive === 'settings') {
     try {
@@ -1015,6 +1150,10 @@ document.addEventListener('click', function(e) {
   btn = e.target.closest('.admin-edit-legal');
   if (btn) { openLegalPageEditor(btn.dataset.legaltype); return; }
   btn = e.target.closest('.admin-upload-icon');
+  btn = e.target.closest('.admin-edit-coupon');
+  if (btn) { openCouponEditor(btn.dataset.code); return; }
+  btn = e.target.closest('.admin-delete-coupon');
+  if (btn) { deleteCouponConfirm(btn.dataset.code); return; }
   if (btn) {
     var fileInput = document.getElementById('iconfile-'+btn.dataset.iconid);
     if (fileInput) {

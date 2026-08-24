@@ -1720,13 +1720,16 @@ var PRODUCTS = {};
 // ════════════════════════════════════════════════════════════════
 //  COUPONS
 // ════════════════════════════════════════════════════════════════
-var COUPONS = {
-  'SAVE10':  {type:'percent', value:10,  min:0,   desc:'10% off on all orders'},
-  'FLAT50':  {type:'flat',    value:50,  min:299, desc:'Flat &#8377;50 off on orders above &#8377;299'},
-  'ECO20':   {type:'percent', value:20,  min:0,   desc:'20% off on eco products'},
-  'FIRST':   {type:'percent', value:15,  min:0,   desc:'15% off for first order'},
-  'HUBOOZE': {type:'flat',    value:100, min:499, desc:'&#8377;100 off on orders above &#8377;499'}
-};
+var COUPONS = {};
+async function loadCoupons() {
+  try {
+    var r = await fetch('/api/admin/coupons');
+    var d = await r.json();
+    COUPONS = d.coupons || {};
+  } catch(e) { console.error('Failed to load coupons:', e); }
+}
+document.addEventListener('DOMContentLoaded', function() { loadCoupons(); });
+if (document.readyState !== 'loading') loadCoupons();
 
 // ════════════════════════════════════════════════════════════════
 //  CART STATE — persisted in localStorage
@@ -1779,9 +1782,28 @@ function cartDiscount() {
   return cartOriginalTotal() - cartSubtotal();
 }
 
+function couponEligibleSubtotal() {
+  if (!appliedCoupon) return 0;
+  var scope = appliedCoupon.scope || 'all';
+  if (scope === 'all') return cartSubtotal();
+  var total = 0;
+  cartItems.forEach(function(item) {
+    var p = PRODUCTS[item.productId];
+    if (!p) return;
+    var matches = false;
+    if (scope === 'category' && appliedCoupon.scopeValue) {
+      matches = (p.cat || p.category) === appliedCoupon.scopeValue;
+    } else if (scope === 'product' && appliedCoupon.scopeValue) {
+      matches = p.id === appliedCoupon.scopeValue;
+    }
+    if (matches) total += (p.price || 0) * item.qty;
+  });
+  return total;
+}
 function couponDiscount() {
   if (!appliedCoupon) return 0;
-  var sub = cartSubtotal();
+  var sub = couponEligibleSubtotal();
+  if (sub <= 0) return 0;
   if (appliedCoupon.type === 'flat') return Math.min(appliedCoupon.value, sub);
   if (appliedCoupon.type === 'percent') return Math.round(sub * appliedCoupon.value / 100);
   return 0;
@@ -1965,6 +1987,11 @@ function applyCoupon() {
     showToast('Minimum order &#8377;' + coupon.min + ' required for this coupon', 'error'); return;
   }
   appliedCoupon = {code: code, ...coupon};
+  if ((coupon.scope === 'category' || coupon.scope === 'product') && couponEligibleSubtotal() <= 0) {
+    appliedCoupon = null;
+    showToast('This coupon doesn\'t apply to items in your cart', 'error');
+    return;
+  }
   saveCartState();
   inp.value = '';
   var appliedEl = document.getElementById('couponApplied');

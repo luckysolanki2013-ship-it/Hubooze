@@ -268,6 +268,38 @@ router.put('/legal-pages', protect, requireAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// COUPONS (persisted in MongoDB)
+router.get('/coupons', async (req, res) => {
+  try {
+    let doc = await Models.Settings.findOne({ key: 'coupons' }).lean();
+    res.json({ coupons: doc ? doc.data : {} });
+  } catch(e) { res.json({ coupons: {} }); }
+});
+
+router.post('/coupons', protect, requireAdmin, async (req, res) => {
+  try {
+    const { code, type, value, min, desc, active } = req.body;
+    if (!code || !type || !value) return res.status(400).json({ error: 'code, type, and value are required.' });
+    if (!['percent','flat'].includes(type)) return res.status(400).json({ error: 'type must be percent or flat.' });
+    let doc = await Models.Settings.findOne({ key: 'coupons' });
+    let data = doc ? doc.data : {};
+    const codeUpper = code.toUpperCase().trim();
+    data[codeUpper] = { type, value: Number(value), min: Number(min)||0, desc: desc || '', active: active !== false };
+    await Models.Settings.findOneAndUpdate({ key: 'coupons' }, { data }, { upsert: true });
+    res.json({ message: 'Coupon saved successfully!', coupons: data });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/coupons/:code', protect, requireAdmin, async (req, res) => {
+  try {
+    let doc = await Models.Settings.findOne({ key: 'coupons' });
+    let data = doc ? doc.data : {};
+    delete data[req.params.code.toUpperCase()];
+    await Models.Settings.findOneAndUpdate({ key: 'coupons' }, { data }, { upsert: true });
+    res.json({ message: 'Coupon deleted.', coupons: data });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
 
 // ── HERO BANNER IMAGE UPLOAD ──────────────────────────────────────
