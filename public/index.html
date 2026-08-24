@@ -52,7 +52,7 @@ body.village{font-family:'Inter',sans-serif;}
 body.village .df{font-family:'Playfair Display',serif;font-weight:800;}
 .grad-text{background:linear-gradient(135deg,#00c853 0%,#0071e3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .btn-grad{background:var(--grad);color:#fff;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;letter-spacing:-.01em;}
-.checkout-btn,.continue-btn{width:100%;padding:14px;font-size:15px;margin-bottom:10px;justify-content:center;}
+.checkout-btn,.continue-btn{width:100%;padding:14px;font-size:15px;margin-bottom:10px;justify-content:center;line-height:1;letter-spacing:0;text-align:center;}
 .btn-grad:hover{opacity:.9;transform:translateY(-1px);box-shadow:var(--shadow-lg);}
 .btn-grad:active{transform:scale(.98);}
 .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:var(--radius);cursor:pointer;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;font-weight:500;}
@@ -1056,7 +1056,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
 
       <!-- Buttons -->
       <div class="cart-actions">
-        <button class="btn-grad checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()">Proceed to Checkout &#8594;</button>
+        <button class="btn-grad checkout-btn" id="checkoutBtn" onclick="proceedToCheckout()"><span>Proceed to Checkout</span><span style="display:inline-block;margin-left:6px;transform:translateY(-1px)">&#8594;</span></button>
         <button class="btn-ghost continue-btn" onclick="closeCart();showPage('categories')" id="continueBtn">Continue Shopping</button>
       </div>
     </div>
