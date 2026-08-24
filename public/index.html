@@ -118,7 +118,7 @@ header{position:sticky;top:0;z-index:1000;background:rgba(10,10,10,.98);backdrop
 .bc-link{color:var(--text3);cursor:pointer;transition:color .2s;}.bc-link:hover{color:var(--green);}
 
 /* HERO */
-.hero{position:relative;overflow:hidden;height:520px;min-height:520px;display:flex;align-items:center;contain:strict;}
+.hero{position:relative;overflow:visible;min-height:520px;display:flex;align-items:center;}
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 50%,rgba(0,255,143,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(0,161,255,.06) 0%,transparent 60%),var(--bg);background-size:cover;background-position:center;background-repeat:no-repeat;transition:none;}
 .hero-bg.has-image{background-blend-mode:overlay;}
 .hero-bg.has-image::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.4) 50%,rgba(0,0,0,.1) 100%);}
@@ -7649,18 +7649,19 @@ async function populateHeroCards() {
 
   var big = picks[0];
   var bigDisc = big.orig ? Math.round((1-big.price/big.orig)*100) : 0;
-  var bigImg = big.image ? '<img src="'+big.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px">' : '';
+  var hasImg = !!big.image;
+  var bigImg = hasImg ? '<img src="'+big.image+'" style="width:100%;height:100%;object-fit:cover">' : '';
   var html = '<div class="hcard big" onclick="openProduct(\''+big.id+'\')" style="position:relative;overflow:hidden">'
-    + (bigImg ? '<div style="position:absolute;inset:0;opacity:.25">'+bigImg+'</div>' : '')
-    + '<div class="bi" style="position:relative">'+(big.icon||'&#128247;')+'</div>'
-    + '<div class="bn" style="position:relative"><span class="badge badge-green" style="margin-bottom:6px">'+(big.badge||'TOP PICK')+'</span><h3 class="df">'+big.name+'</h3><p>'+(big.brand||'')+'</p><div class="bp df">&#8377;'+big.price.toLocaleString('en-IN')+'</div></div>'
+    + (hasImg ? '<div style="position:absolute;inset:0">'+bigImg+'<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.3) 55%,transparent)"></div></div>' : '<div class="bi" style="position:relative">'+(big.icon||'&#128247;')+'</div>')
+    + '<div class="bn" style="position:relative"><span class="badge badge-green" style="margin-bottom:6px">'+(big.badge||'TOP PICK')+'</span><h3 class="df" style="'+(hasImg?'color:#fff':'')+'">'+big.name+'</h3><p style="'+(hasImg?'color:rgba(255,255,255,.85)':'')+'">'+(big.brand||'')+'</p><div class="bp df" style="'+(hasImg?'color:#fff':'')+'">&#8377;'+big.price.toLocaleString('en-IN')+'</div></div>'
     + (bigDisc>0 ? '<div class="hco">-'+bigDisc+'%</div>' : '')
     + '</div>';
 
   picks.slice(1).forEach(function(p) {
     var disc = p.orig ? Math.round((1-p.price/p.orig)*100) : 0;
+    var iconHtml = p.image ? '<img src="'+p.image+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px">' : (p.icon||'&#128247;');
     html += '<div class="hcard" onclick="openProduct(\''+p.id+'\')">'
-      + '<div class="hci">'+(p.icon||'&#128247;')+'</div>'
+      + '<div class="hci">'+iconHtml+'</div>'
       + '<div class="hcn">'+p.name+'</div>'
       + '<div class="hcp">&#8377;'+p.price.toLocaleString('en-IN')+'</div>'
       + (p.orig ? '<div class="hcw">&#8377;'+p.orig.toLocaleString('en-IN')+'</div>' : '')
