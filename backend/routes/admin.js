@@ -173,6 +173,7 @@ const DEFAULT_PROMOTIONS = {
   heroTitle: 'Khareedein Aaram Se.',
   heroSubtitle: 'Return Karen Free Mein.',
   freeDeliveryMin: 499,
+  deliveryFee: 49,
   banners: [],
   siteIcons: {},
 };

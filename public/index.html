@@ -1742,6 +1742,18 @@ var appliedCoupon = null; // {code, ...coupon}
 
 var FREE_DELIVERY_MIN = 499;
 var DELIVERY_FEE = 49;
+async function loadDeliverySettings() {
+  try {
+    var r = await fetch('/api/admin/promotions');
+    var d = await r.json();
+    if (d.promotions) {
+      if (d.promotions.freeDeliveryMin) FREE_DELIVERY_MIN = d.promotions.freeDeliveryMin;
+      if (d.promotions.deliveryFee !== undefined) DELIVERY_FEE = d.promotions.deliveryFee;
+    }
+  } catch(e) { console.error('Failed to load delivery settings:', e); }
+}
+document.addEventListener('DOMContentLoaded', function() { loadDeliverySettings(); });
+if (document.readyState !== 'loading') loadDeliverySettings();
 
 function loadCartState() {
   try {
