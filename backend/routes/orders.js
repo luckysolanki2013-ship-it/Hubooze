@@ -5,17 +5,21 @@ const dba = require('../dbAdapter');
 function getCustomUserId(req) {
   return req.user.customId || req.user.id;
 }
-const { notifyOrderConfirmed, notifyOrderShipped } = require('../utils/notifications');
+const Models = require('../models');
 
-const FREE_DELIVERY_MIN = 499;
-const DELIVERY_FEE = 49;
-const COUPONS = {
-  SAVE10:  { type:'percent', value:10,  min:0   },
-  FLAT50:  { type:'flat',    value:50,  min:299 },
-  ECO20:   { type:'percent', value:20,  min:0   },
-  FIRST:   { type:'percent', value:15,  min:0   },
-  HUBOOZE: { type:'flat',    value:100, min:499 },
-};
+async function getLivePromotions() {
+  try {
+    const doc = await Models.Settings.findOne({ key: 'promotions' }).lean();
+    return doc ? doc.data : {};
+  } catch(e) { return {}; }
+}
+
+async function getLiveCoupons() {
+  try {
+    const doc = await Models.Settings.findOne({ key: 'coupons' }).lean();
+    return doc ? doc.data : {};
+  } catch(e) { return {}; }
+}
 
 // GET /api/orders — user's orders
 router.get('/', protect, async (req, res) => {
@@ -44,9 +48,9 @@ router.post('/', protect, async (req, res) => {
     const user = await dba.findUser({ id: userId });
     let addr = address || (user?.addresses || []).find(a => a.id === addressId);
     if (!addr) return res.status(400).json({ error: 'Delivery address required.' });
-
     let subtotal = 0, discount = 0;
     const orderItems = [];
+    const itemsForCoupon = [];
     for (const ci of items) {
       const p = await dba.findProduct(ci.productId);
       if (!p) throw new Error(`Product ${ci.productId} not found.`);
@@ -56,16 +60,28 @@ router.post('/', protect, async (req, res) => {
       subtotal += itemTotal;
       discount += origTotal - itemTotal;
       await dba.updateProduct(p.id, { stock: p.stock - ci.qty });
-      orderItems.push({ productId: p.id, name: p.name, icon: p.image || p.icon || '📦', price: p.price, qty: ci.qty, quantity: ci.qty, size: ci.size || null, sellerId: p.sellerId || null });
+      orderItems.push({ productId: p.id, name: p.name, icon: p.image || p.icon || '\ud83d\udce6', price: p.price, qty: ci.qty, quantity: ci.qty, size: ci.size || null, sellerId: p.sellerId || null });
+      itemsForCoupon.push({ productId: p.id, category: p.cat || p.category, price: p.price, qty: ci.qty });
     }
-
     let couponDiscount = 0;
-    const coupon = couponCode ? COUPONS[couponCode.toUpperCase()] : null;
-    if (coupon && subtotal >= coupon.min) {
-      couponDiscount = coupon.type === 'flat' ? coupon.value : Math.round(subtotal * coupon.value / 100);
+    const liveCoupons = await getLiveCoupons();
+    const coupon = couponCode ? liveCoupons[couponCode.toUpperCase()] : null;
+    if (coupon && coupon.active !== false && subtotal >= (coupon.min || 0)) {
+      const scope = coupon.scope || 'all';
+      let eligibleSubtotal = subtotal;
+      if (scope === 'category' && coupon.scopeValue) {
+        eligibleSubtotal = itemsForCoupon.filter(i => i.category === coupon.scopeValue).reduce((s,i) => s + i.price*i.qty, 0);
+      } else if (scope === 'product' && coupon.scopeValue) {
+        eligibleSubtotal = itemsForCoupon.filter(i => i.productId === coupon.scopeValue).reduce((s,i) => s + i.price*i.qty, 0);
+      }
+      if (eligibleSubtotal > 0) {
+        couponDiscount = coupon.type === 'flat' ? Math.min(coupon.value, eligibleSubtotal) : Math.round(eligibleSubtotal * coupon.value / 100);
+      }
     }
-
-    const deliveryFee = subtotal - couponDiscount >= FREE_DELIVERY_MIN ? 0 : DELIVERY_FEE;
+    const livePromo = await getLivePromotions();
+    const freeDeliveryMin = livePromo.freeDeliveryMin || 499;
+    const deliveryFeeAmt = livePromo.deliveryFee !== undefined ? livePromo.deliveryFee : 49;
+    const deliveryFee = subtotal - couponDiscount >= freeDeliveryMin ? 0 : deliveryFeeAmt;
     const giftWrapFee = giftWrap ? 49 : 0;
     const total = subtotal - couponDiscount + deliveryFee + giftWrapFee;
 
@@ -165,13 +181,14 @@ router.get('/admin/all', protect, requireAdmin, async (req, res) => {
 });
 
 // POST /api/orders/validate-coupon
-router.post('/validate-coupon', protect, (req, res) => {
+router.post('/validate-coupon', protect, async (req, res) => {
   const { code, subtotal } = req.body;
-  const coupon = COUPONS[code?.toUpperCase()];
-  if (!coupon) return res.status(400).json({ error: 'Invalid coupon code.' });
-  if (subtotal < coupon.min) return res.status(400).json({ error: `Minimum order ₹${coupon.min} required for this coupon.` });
-  const discount = coupon.type === 'flat' ? coupon.value : Math.round(subtotal * coupon.value / 100);
-  res.json({ valid: true, discount, code: code.toUpperCase() });
+  const liveCoupons = await getLiveCoupons();
+  const coupon = liveCoupons[code?.toUpperCase()];
+  if (!coupon || coupon.active === false) return res.status(400).json({ error: 'Invalid coupon code.' });
+  if (subtotal < (coupon.min || 0)) return res.status(400).json({ error: `Minimum order ₹${coupon.min} required for this coupon.` });
+  const discount = coupon.type === 'flat' ? Math.min(coupon.value, subtotal) : Math.round(subtotal * coupon.value / 100);
+  res.json({ valid: true, discount, code: code.toUpperCase(), scope: coupon.scope, scopeValue: coupon.scopeValue });
 });
 
 module.exports = router;
