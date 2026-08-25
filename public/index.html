@@ -5133,7 +5133,7 @@ function renderCheckoutSummary() {
 
     // Price breakdown
     + '<div style="padding:16px 20px">'
-    + sumRow('Subtotal', '&#8377;' + sub.toLocaleString('en-IN'), 'var(--text)')
+    + sumRow('Subtotal', '&#8377;' + cartOriginalTotal().toLocaleString('en-IN'), 'var(--text)')
     + (disc > 0 ? sumRow('Product Discount', '-&#8377;' + disc.toLocaleString('en-IN'), 'var(--green)') : '')
     + (couponD > 0 ? sumRow('Coupon (' + (appliedCoupon ? appliedCoupon.code : '') + ')', '-&#8377;' + couponD.toLocaleString('en-IN'), 'var(--green)') : '')
     + sumRow('Delivery', deliv === 0 ? '<span style="color:var(--green)">FREE &#127881;</span>' : '&#8377;' + deliv, deliv === 0 ? 'var(--green)' : 'var(--text)')
