@@ -5,6 +5,7 @@ const dba = require('../dbAdapter');
 function getCustomUserId(req) {
   return req.user.customId || req.user.id;
 }
+const { notifyOrderConfirmed, notifyOrderShipped } = require('../utils/notifications');
 const Models = require('../models');
 
 async function getLivePromotions() {
