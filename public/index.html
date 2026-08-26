@@ -7399,9 +7399,10 @@ async function applySiteIcons() {
     Object.keys(secIdMap).forEach(function(key) {
       if (icons[key]) {
         var el = document.getElementById(secIdMap[key]);
-        if (el) {
+        if (el && !el.dataset.iconApplied) {
           var text = el.innerHTML.replace(/^&#\d+;\s*/, '').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
           el.innerHTML = iconImg(icons[key], '1.4em') + ' ' + text;
+          el.dataset.iconApplied = 'true';
         }
       }
     });
