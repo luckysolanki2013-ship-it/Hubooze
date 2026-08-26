@@ -2476,7 +2476,7 @@ function renderHomeContent() {
   ss('footDescEl',T.footDesc,false); ss('footCopyEl',T.footCopy,true);
 
   var allProducts = Object.values(PRODUCTS);
-  renderGrid('trendGridEl', allProducts.slice().sort(function(a,b){return b.reviews-a.reviews;}).slice(0,8));
+  renderGrid('trendGridEl', buildTrendingList(allProducts));
   renderGrid('handmadeScrollEl', allProducts.filter(function(p){return p.cat==='handmade';}));
   renderGrid('electronicsScrollEl', allProducts.filter(function(p){return p.cat==='electronics';}));
   renderGrid('fashionScrollEl', allProducts.filter(function(p){return p.cat==='fashion';}));
@@ -7696,6 +7696,32 @@ async function populateHeroCards() {
 }
 document.addEventListener('DOMContentLoaded', function() { setTimeout(populateHeroCards, 600); });
 if (document.readyState !== 'loading') setTimeout(populateHeroCards, 600);
+
+
+function buildTrendingList(allProducts) {
+  var hasReviews = allProducts.some(function(p) { return (p.reviews || 0) > 0; });
+  if (hasReviews) {
+    return allProducts.slice().sort(function(a,b){return (b.reviews||0)-(a.reviews||0);}).slice(0,8);
+  }
+  // No reviews yet: mix one product per category, round-robin, for variety
+  var byCategory = {};
+  allProducts.forEach(function(p) {
+    var cat = p.cat || p.category || 'other';
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push(p);
+  });
+  var cats = Object.keys(byCategory);
+  var result = [];
+  var idx = 0;
+  while (result.length < 8 && result.length < allProducts.length) {
+    var catKey = cats[idx % cats.length];
+    var bucket = byCategory[catKey];
+    if (bucket && bucket.length) result.push(bucket.shift());
+    idx++;
+    if (idx > allProducts.length + cats.length) break;
+  }
+  return result;
+}
 
 </script>
 <script src="/js/api.js"></script>
