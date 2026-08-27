@@ -6100,12 +6100,16 @@ function sendWaMsg() {
     el.scrollTop = el.scrollHeight;
   }
   var orderIdMatch = text.match(/ORD[\dA-Z]+/i);
+  var lower = text.toLowerCase();
   (async function() {
     var reply;
     if (orderIdMatch) {
       reply = await lookupOrderForChat(orderIdMatch[0].toUpperCase());
+    } else if (lower.includes('return')) {
+      reply = await lookupReturnEligibleOrders();
+    } else if (lower.includes('refund')) {
+      reply = await lookupRefundStatus();
     } else {
-      var lower = text.toLowerCase();
       reply = WA_BOT_REPLIES.default;
       Object.keys(WA_BOT_REPLIES).forEach(function(key) {
         if (lower.includes(key)) reply = WA_BOT_REPLIES[key];
@@ -7757,6 +7761,42 @@ function buildTrendingList(allProducts) {
   return result;
 }
 
+
+async function lookupReturnEligibleOrders() {
+  try {
+    var token = localStorage.getItem('hb_token');
+    if (!token) return 'Please log in to check your orders for return eligibility.';
+    var r = await fetch('/api/orders', {headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    var orders = (d.orders || []);
+    var delivered = orders.filter(function(o) { return o.status === 'delivered'; });
+    if (!delivered.length) return 'You don\'t have any delivered orders eligible for return right now. Once an order is delivered, you can return it within 90 days from My Orders.';
+    var list = delivered.slice(0,3).map(function(o) {
+      return '\u2022 #' + (o.id || o.orderId) + ' \u2014 \u20b9' + (o.total||0).toLocaleString('en-IN');
+    }).join('\n');
+    return '*Orders eligible for return:*\n' + list + '\n\nGo to My Orders and tap Return on the order you\'d like to send back \u2014 pickup is free within 90 days of delivery.';
+  } catch(e) {
+    return 'Sorry, I had trouble checking your orders. Please check My Orders directly.';
+  }
+}
+
+async function lookupRefundStatus() {
+  try {
+    var token = localStorage.getItem('hb_token');
+    if (!token) return 'Please log in to check your refund status.';
+    var r = await fetch('/api/orders', {headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    var orders = (d.orders || []);
+    var cancelled = orders.filter(function(o) { return o.status === 'cancelled'; }).slice(0,3);
+    if (!cancelled.length) return 'You don\'t have any cancelled or returned orders pending refund right now.';
+    var list = cancelled.map(function(o) {
+      return '\u2022 #' + (o.id || o.orderId) + ' \u2014 \u20b9' + (o.total||0).toLocaleString('en-IN') + ' (cancelled)';
+    }).join('\n');
+    return '*Refunds in progress:*\n' + list + '\n\nRefunds are credited to your original payment method within 3\u20135 business days of cancellation/return pickup.';
+  } catch(e) {
+    return 'Sorry, I had trouble checking your refund status. Please check My Orders directly.';
+  }
+}
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
