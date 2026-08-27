@@ -94,7 +94,9 @@ const PORT = parseInt(process.env.PORT) || 3000;
 // Connect MongoDB then start server
 const dba = require('./dbAdapter');
 dba.init().then(() => {
+  const { startResourceMonitor } = require('./utils/resourceMonitor');
   app.listen(PORT, () => {
+    startResourceMonitor();
     console.log(`
 ╔══════════════════════════════════════════╗
 ║       🛒  HUBOOZE API SERVER v1.0        ║
