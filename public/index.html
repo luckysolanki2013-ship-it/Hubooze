@@ -6099,22 +6099,56 @@ function sendWaMsg() {
     el.appendChild(typing);
     el.scrollTop = el.scrollHeight;
   }
-  setTimeout(function() {
-    var lower = text.toLowerCase();
-    var reply = WA_BOT_REPLIES.default;
-    Object.keys(WA_BOT_REPLIES).forEach(function(key) {
-      if (lower.includes(key)) reply = WA_BOT_REPLIES[key];
-    });
-    // Remove typing indicator
-    var t = document.querySelector('.wa-typing');
-    if (t) t.remove();
-    WA_MSGS.push({
-      from: 'hub',
-      text: reply,
-      time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})
-    });
-    renderWaMsgs();
-  }, 1200 + Math.random() * 800);
+  var orderIdMatch = text.match(/ORD[\dA-Z]+/i);
+  (async function() {
+    var reply;
+    if (orderIdMatch) {
+      reply = await lookupOrderForChat(orderIdMatch[0].toUpperCase());
+    } else {
+      var lower = text.toLowerCase();
+      reply = WA_BOT_REPLIES.default;
+      Object.keys(WA_BOT_REPLIES).forEach(function(key) {
+        if (lower.includes(key)) reply = WA_BOT_REPLIES[key];
+      });
+    }
+    setTimeout(function() {
+      var t = document.querySelector('.wa-typing');
+      if (t) t.remove();
+      WA_MSGS.push({
+        from: 'hub',
+        text: reply,
+        time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})
+      });
+      renderWaMsgs();
+    }, 800 + Math.random() * 600);
+  })();
+}
+
+async function lookupOrderForChat(orderId) {
+  try {
+    var token = localStorage.getItem('hb_token');
+    if (!token) return 'Please log in to check your order status.';
+    var r = await fetch('/api/orders', {headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    var order = (d.orders || []).find(function(o) { return (o.id || o.orderId || '').toUpperCase() === orderId; });
+    if (!order) return 'I couldn\'t find order *' + orderId + '* on your account. Please double-check the Order ID or view all your orders under My Orders.';
+    var statusLabels = {
+      processing: 'Being Processed &#128230;',
+      confirmed: 'Confirmed &#9989;',
+      pending_payment: 'Awaiting Payment &#8987;',
+      shipped: 'Shipped &#128666;',
+      out_for_delivery: 'Out for Delivery &#128663;',
+      delivered: 'Delivered &#9989;',
+      cancelled: 'Cancelled &#10060;'
+    };
+    var statusText = statusLabels[order.status] || order.status;
+    var msg = '*Order ' + orderId + '*\n\nStatus: ' + statusText;
+    if (order.estimatedDelivery) msg += '\nExpected: ' + order.estimatedDelivery;
+    if (order.total) msg += '\nTotal: \u20b9' + order.total.toLocaleString('en-IN');
+    return msg;
+  } catch(e) {
+    return 'Sorry, I had trouble looking up that order. Please try again or check My Orders.';
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
