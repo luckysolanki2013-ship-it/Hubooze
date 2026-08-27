@@ -705,6 +705,18 @@ async function adminDeleteProduct(pid, name) {
 
 async function adminUpdateOrderStatus(oid, status) {
   var token = localStorage.getItem('hb_token');
+  if (status === 'shipped') {
+    var waybill = prompt('Enter Delhivery waybill / AWB number for this shipment:');
+    if (!waybill) { showToast('Waybill number required to mark as shipped', 'error'); return; }
+    try {
+      var wr = await fetch('/api/orders/'+oid+'/waybill', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({waybill:waybill,courier:'Delhivery'})});
+      var wd = await wr.json();
+      if (!wr.ok) { showToast(wd.error || 'Failed to save waybill', 'error'); return; }
+      showToast('Shipped with tracking #' + waybill, 'success');
+      renderAdminTabContent({});
+      return;
+    } catch(e) { showToast('Error: '+e.message,'error'); return; }
+  }
   try {
     var r = await fetch('/api/admin/orders/'+oid+'/status', {method:'PATCH',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({status:status})});
     var d = await r.json();
