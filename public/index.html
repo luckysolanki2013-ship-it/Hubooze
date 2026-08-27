@@ -2485,7 +2485,7 @@ function renderHomeContent() {
     var col = T['fc'+(i+1)]; var el = document.getElementById(id);
     if (!el||!col) return;
     el.innerHTML = '<h5>'+col.h+'</h5>' + col.l.map(function(l){
-      var actions = {'Kapde & Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Electronics':"showPage('categories');catTabActive='electronics';renderCategoriesPage()",'Ghar & Rasoi':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Home & Kitchen':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Roz Ka Saman':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Daily Use':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Desi/Handmade':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Handmade/Rural':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Offers':"showPage('categories');catTabActive='offers';renderCategoriesPage()",'Mera Account':"showPage('account')",'Order Track Karo':"showPage('orders')",'Return Karo':"showPage('returns')",'Wishlist':"showPage('account')",'Help & Support':"showToast('Email: Team.Support@hubooze.in','info')",'Seller Bano':"showPage('seller')",'Seller Dashboard':"showPage('seller')",'Seller Support':"showToast('Email: Team.Support@hubooze.in','info')",'Payment Info':"showToast('UPI, Card, NetBanking, COD supported','info')",'Hamare Baare Mein':"showToast('India ki pehli return-to-recycle marketplace!','info')",'Recycle Mission':"showToast('90 din mein FREE return. Recycle hoga sab!','success')",'Rural Jobs':"showToast('500+ rural artisans supported by Hubooze','success')",'Contact Us':"showToast('Email: Team.Support@hubooze.in','info')"};
+      var actions = {'Kapde & Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Electronics':"showPage('categories');catTabActive='electronics';renderCategoriesPage()",'Ghar & Rasoi':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Home & Kitchen':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Roz Ka Saman':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Daily Use':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Desi/Handmade':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Handmade/Rural':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Offers':"showPage('categories');catTabActive='offers';renderCategoriesPage()",'Mera Account':"showPage('account')",'Order Track Karo':"showPage('orders')",'Return Karo':"showPage('returns')",'Wishlist':"showPage('account')",'Help & Support':"showToast('Email: Team.Support@hubooze.in','info')",'Seller Bano':"showPage('seller')",'Seller Dashboard':"showPage('seller')",'Seller Support':"renderLegalPage('sellerguide')",'Payment Info':"showToast('UPI, Card, NetBanking, COD supported','info')",'Hamare Baare Mein':"showToast('India ki pehli return-to-recycle marketplace!','info')",'Recycle Mission':"showToast('90 din mein FREE return. Recycle hoga sab!','success')",'Rural Jobs':"showToast('500+ rural artisans supported by Hubooze','success')",'Contact Us':"showToast('Email: Team.Support@hubooze.in','info')"};
       var act = actions[l] || '';
       return '<a style="cursor:pointer"' + (act ? ' onclick="'+act+'"' : '') + '>'+l+'</a>';
     }).join('');
@@ -7533,6 +7533,26 @@ async function submitPasswordReset() {
 
 // LEGAL / INFO PAGES
 var LEGAL_PAGES = {
+  sellerguide: {
+    title: 'Seller Guide & FAQ',
+    html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Welcome, Seller! &#127881;</h2>'
+      + '<p style="margin-bottom:14px">Thank you for joining Hubooze. This guide walks you through everything you need to start selling.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">1. Getting Started</h3>'
+      + '<p style="margin-bottom:14px">Sign up as a seller using your email and phone number. You\'ll need to provide basic business details and, for brand verification, upload your business documents (GST certificate, PAN, or trade license) from the Seller Dashboard.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">2. Listing Your First Product</h3>'
+      + '<p style="margin-bottom:14px">From your Seller Dashboard, click "Add Product". Fill in the product name, category, price, stock, and upload clear photos (up to 6 images). You can also set per-size price and stock if your product has variants like sizes.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">3. Commission &amp; Payouts</h3>'
+      + '<p style="margin-bottom:14px">Hubooze charges a commission on each sale (shown in your Seller Dashboard settings). Payouts are processed on a regular schedule directly to your registered bank account. You can track pending and completed payouts anytime from your dashboard.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">4. Managing Orders</h3>'
+      + '<p style="margin-bottom:14px">New orders appear in your Seller Dashboard under Orders. Please ship items promptly and update order status so customers can track their delivery.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">5. Returns</h3>'
+      + '<p style="margin-bottom:14px">Hubooze offers customers a 90-day return window. If a customer returns an item, you\'ll see it reflected in your dashboard. Ensure products are accurately described and photographed to minimize returns.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:24px 0 8px">Frequently Asked Questions</h3>'
+      + '<p style="margin-bottom:10px"><strong>Q: How long does verification take?</strong><br>Document verification typically takes 1-3 business days.</p>'
+      + '<p style="margin-bottom:10px"><strong>Q: Can I sell in multiple categories?</strong><br>Yes, you can list products across Fashion, Electronics, Home &amp; Kitchen, Daily Use, Food &amp; Beverages, Beauty, and Handmade/Rural.</p>'
+      + '<p style="margin-bottom:10px"><strong>Q: What if I need to update my stock or price?</strong><br>You can edit any listed product anytime from "My Products" in your Seller Dashboard.</p>'
+      + '<p style="margin-bottom:14px"><strong>Q: Who do I contact for help?</strong><br>Reach out to Team.Support@hubooze.in for any seller support queries.</p>'
+  },
   about: {
     title: 'About Us',
     html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">About Hubooze</h2>'
