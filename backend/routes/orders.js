@@ -192,4 +192,35 @@ router.post('/validate-coupon', protect, async (req, res) => {
   res.json({ valid: true, discount, code: code.toUpperCase(), scope: coupon.scope, scopeValue: coupon.scopeValue });
 });
 
+// PATCH /api/orders/:id/waybill — attach Delhivery tracking number (admin/seller)
+router.patch('/:id/waybill', protect, async (req, res) => {
+  try {
+    const { waybill, courier } = req.body;
+    if (!waybill) return res.status(400).json({ error: 'Waybill number is required.' });
+    const order = await dba.findOrder(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found.' });
+    const updated = await dba.updateOrder(req.params.id, {
+      trackingNumber: waybill, courierName: courier || 'Delhivery',
+      status: order.status === 'processing' ? 'shipped' : order.status,
+      shippedAt: order.shippedAt || new Date().toISOString()
+    });
+    res.json({ order: updated, message: 'Tracking number added.' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/orders/:id/track — live courier tracking status
+router.get('/:id/track', protect, async (req, res) => {
+  try {
+    const order = await dba.findOrder(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found.' });
+    if (order.userId !== getCustomUserId(req) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to view this order.' });
+    }
+    if (!order.trackingNumber) return res.json({ tracking: null, message: 'No tracking number yet \u2014 order not shipped.' });
+    const { trackShipment } = require('../utils/delhivery');
+    const tracking = await trackShipment(order.trackingNumber);
+    res.json({ tracking, waybill: order.trackingNumber, courier: order.courierName || 'Delhivery' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
