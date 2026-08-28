@@ -6882,6 +6882,7 @@ window.updateProductGrids = function() {
   if (elecGrid) elecGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='electronics';}).map(makeCard).join('');
   var handGrid = document.getElementById('handmadeScrollEl');
   if (handGrid) handGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='handmade';}).map(makeCard).join('');
+  if (typeof populateHeroCards === 'function') populateHeroCards();
 };
 
 // ── HERO BANNER & PROMOTIONS SYSTEM ─────────────────────────────
@@ -7775,8 +7776,8 @@ async function populateHeroCards() {
 
   el.innerHTML = html;
 }
-document.addEventListener('DOMContentLoaded', function() { setTimeout(populateHeroCards, 600); });
-if (document.readyState !== 'loading') setTimeout(populateHeroCards, 600);
+document.addEventListener('DOMContentLoaded', function() { setTimeout(populateHeroCards, 50); });
+if (document.readyState !== 'loading') setTimeout(populateHeroCards, 50);
 
 
 function buildTrendingList(allProducts) {
