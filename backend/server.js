@@ -37,6 +37,25 @@ app.use('/api/otp',          require('./routes/otp'));
 app.use('/api/ccavenue',     require('./routes/ccavenue'));
 
 // Health check
+// Dynamic sitemap.xml
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const dba = require('./dbAdapter');
+    const products = await dba.findProducts({});
+    const staticUrls = ['', 'categories', 'returns'];
+    const now = new Date().toISOString().split('T')[0];
+    let urls = staticUrls.map(p => `<url><loc>https://hubooze.in/${p}</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>${p === '' ? '1.0' : '0.7'}</priority></url>`);
+    products.forEach(p => {
+      urls.push(`<url><loc>https://hubooze.in/?product=${p.id}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
+    });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch(e) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 app.get('/api/health', async (req, res) => {
   const dba = require('./dbAdapter');
   try {
