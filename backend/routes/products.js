@@ -71,6 +71,52 @@ router.post('/', protect, requireSeller, async (req, res) => {
   }
 });
 
+// POST /api/products/bulk — seller creates multiple products from CSV upload
+router.post('/bulk', protect, requireSeller, async (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || !products.length) return res.status(400).json({ error: 'No products provided.' });
+    const sellerId = req.user.customId || req.user.id;
+    const created = [];
+    const errors = [];
+    for (let i = 0; i < products.length; i++) {
+      const row = products[i];
+      try {
+        const { name, brand, category, subcategory, productType, sku, price, originalPrice, stock, description, sizes, colors, badge, eco } = row;
+        if (!name || !brand || !category || !price || stock === undefined) {
+          errors.push({ row: i + 1, error: 'Missing required field (name, brand, category, price, or stock).' });
+          continue;
+        }
+        const mrp = Number(originalPrice || price);
+        if (Number(price) >= mrp && mrp > 0) {
+          errors.push({ row: i + 1, error: 'Selling price must be less than MRP.', name });
+          continue;
+        }
+        const product = {
+          id: 'p_' + Date.now() + '_' + i, name, brand, category, cat: category,
+          subcategory: subcategory || '', productType: productType || '', sku: sku || '',
+          price: Number(price), originalPrice: mrp, orig: mrp,
+          stock: Number(stock), description: description || '',
+          sizes: Array.isArray(sizes) ? sizes : (sizes ? String(sizes).split(';').map(s=>s.trim()).filter(Boolean) : []),
+          colors: Array.isArray(colors) ? colors : (colors ? String(colors).split(';').map(s=>s.trim()).filter(Boolean) : []),
+          variants: {}, badge: badge || null, eco: String(eco).toLowerCase() === 'yes' || eco === true,
+          icon: '📦', image: '', images: [],
+          sellerId, active: true, listed: true, rating: 0, reviews: 0, reviewCount: 0,
+          createdAt: new Date().toISOString(),
+        };
+        const saved = await dba.createProduct(product);
+        created.push(saved);
+      } catch(rowErr) {
+        errors.push({ row: i + 1, error: rowErr.message });
+      }
+    }
+    res.status(201).json({
+      message: `${created.length} of ${products.length} products created successfully.`,
+      created: created.length, failed: errors.length, errors
+    });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 // PUT /api/products/:id
 router.put('/:id', protect, requireSeller, async (req, res) => {
   const product = await dba.findProduct(req.params.id);

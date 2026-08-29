@@ -1,4 +1,97 @@
 
+function openBulkUploadModal() {
+  var html = '<div style="padding:24px;max-width:520px" id="bulkUploadBody">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">Bulk Upload Products</h4>'
+    + '<p style="font-size:13px;color:var(--text3);margin-bottom:16px">Upload multiple products at once using our Excel template. The template includes a category dropdown and a full list of valid subcategories on the second tab.</p>'
+    + '<a href="/downloads/bulk-upload-template.xlsx" download style="display:inline-block;margin-bottom:16px;padding:8px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--blue);text-decoration:none;font-size:13px">&#128190; Download Excel Template</a>'
+    + '<p style="font-size:12px;color:var(--text3);margin-bottom:14px">After filling it in, save as CSV (File &rarr; Save As &rarr; CSV) before uploading below.</p>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Upload Filled CSV</label>'
+    + '<input type="file" id="bulkCsvFile" accept=".csv" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + '<div id="bulkPreviewArea"></div>'
+    + '<div style="display:flex;gap:10px;margin-top:16px">'
+    + '<button id="bulkSubmitBtn" onclick="submitBulkUpload()" class="btn-grad" style="flex:1;padding:12px;font-size:14px" disabled>Upload Products</button>'
+    + '<button onclick="closeModal()" style="padding:12px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">Cancel</button>'
+    + '</div></div>';
+  showModal(html);
+  setTimeout(function() {
+    var fileInput = document.getElementById('bulkCsvFile');
+    if (fileInput) fileInput.addEventListener('change', handleBulkCsvSelect);
+  }, 50);
+}
+
+var parsedBulkProducts = [];
+
+function parseCsvLine(line) {
+  var result = [];
+  var cur = '';
+  var inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === ',' && !inQuotes) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result.map(function(s) { return s.trim(); });
+}
+
+function handleBulkCsvSelect(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var text = ev.target.result;
+      var lines = text.split(/\r?\n/).filter(function(l) { return l.trim(); });
+      if (lines.length < 2) { showToast('CSV has no data rows', 'error'); return; }
+      var headers = parseCsvLine(lines[0]).map(function(h) { return h.trim(); });
+      parsedBulkProducts = lines.slice(1).map(function(line) {
+        var vals = parseCsvLine(line);
+        var obj = {};
+        headers.forEach(function(h, i) { obj[h] = vals[i] !== undefined ? vals[i] : ''; });
+        return obj;
+      });
+      var preview = document.getElementById('bulkPreviewArea');
+      if (preview) {
+        preview.innerHTML = '<div style="background:var(--bg4);border-radius:8px;padding:12px;font-size:13px;color:var(--green)">&#10003; ' + parsedBulkProducts.length + ' product(s) found and ready to upload</div>';
+      }
+      var btn = document.getElementById('bulkSubmitBtn');
+      if (btn) btn.disabled = false;
+    } catch(err) {
+      showToast('Could not parse CSV: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function submitBulkUpload() {
+  if (!parsedBulkProducts.length) { showToast('No products to upload', 'error'); return; }
+  var btn = document.getElementById('bulkSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
+  var token = localStorage.getItem('hb_token');
+  try {
+    var r = await fetch('/api/products/bulk', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ products: parsedBulkProducts })
+    });
+    var d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Bulk upload failed', 'error'); if(btn){btn.disabled=false;btn.textContent='Upload Products';} return; }
+    var msg = d.message;
+    if (d.failed > 0) {
+      msg += ' ' + d.failed + ' row(s) had errors.';
+      console.warn('Bulk upload errors:', d.errors);
+    }
+    showToast(msg, d.failed > 0 ? 'info' : 'success');
+    closeModal();
+    parsedBulkProducts = [];
+    renderSellerPage();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Upload Products'; }
+  }
+}
+
 var selProdVariants = {};
 
 function openVariantsModal() {
@@ -253,7 +346,10 @@ async function renderSellerTabFromData(data, headers) {
     el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:22px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
       + '<h4 style="font-weight:700">My Products (' + prods.length + ')</h4>'
+      + '<div style="display:flex;gap:8px">'
+      + '<button onclick="openBulkUploadModal()" style="padding:8px 16px;font-size:13px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">📤 Bulk Upload</button>'
       + '<button onclick="switchSelTab(\'add_product\')" class="btn-grad" style="padding:8px 16px;font-size:13px">➕ Add Product</button>'
+      + '</div>'
       + '</div>'
       + (prods.length ? prods.map(sellerProductRow).join('') : '<p style="color:var(--text3)">No products yet. Add your first product!</p>')
       + '</div>';
