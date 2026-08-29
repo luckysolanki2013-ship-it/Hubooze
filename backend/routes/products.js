@@ -49,7 +49,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // POST /api/products  — seller creates product
 router.post('/', protect, requireSeller, async (req, res) => {
   try {
-    const { name, brand, category, subcategory, productType, sku, variants, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, images, listed } = req.body;
+    const { name, brand, category, subcategory, productType, sku, variants, colorImages, price, originalPrice, orig, stock, description, sizes, colors, badge, eco, icon, image, images, listed } = req.body;
     if (!name || !brand || !category || !price || stock === undefined)
       return res.status(400).json({ error: 'Name, brand, category, price, stock are required.' });
     const mrp = Number(originalPrice || orig || price);
@@ -58,7 +58,7 @@ router.post('/', protect, requireSeller, async (req, res) => {
       id: 'p_' + Date.now(), name, brand, category, cat: category, subcategory: subcategory || '', productType: productType || '', sku: sku || '',
       price: Number(price), originalPrice: mrp, orig: mrp,
       stock: Number(stock), description: description || '',
-      sizes: sizes || [], colors: colors || [], variants: variants || {},
+      sizes: sizes || [], colors: colors || [], variants: variants || {}, colorImages: colorImages || {},
       badge: badge || null, eco: !!eco, icon: icon || '📦', image: image || (images&&images[0])||'', images: images||[],
       sellerId: req.user.customId || req.user.id, active: true, listed: listed !== false,
       rating: 0, reviews: 0, reviewCount: 0,
@@ -124,7 +124,7 @@ router.put('/:id', protect, requireSeller, async (req, res) => {
   const myId = req.user.customId || req.user.id;
   if (product.sellerId !== myId && req.user.role !== 'admin')
     return res.status(403).json({ error: 'Not authorized.' });
-  const allowed = ['name','brand','category','cat','subcategory','productType','sku','price','originalPrice','orig','stock','description','sizes','colors','variants','badge','eco','icon','image','images','active','listed'];
+  const allowed = ['name','brand','category','cat','subcategory','productType','sku','price','originalPrice','orig','stock','description','sizes','colors','variants','colorImages','badge','eco','icon','image','images','active','listed'];
   const update = {}; allowed.forEach(f => { if (req.body[f] !== undefined) update[f] = req.body[f]; });
   const saved = await dba.updateProduct(req.params.id, update); res.json({ product: saved, message: 'Product updated.' });
 });
