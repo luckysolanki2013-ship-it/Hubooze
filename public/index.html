@@ -2412,7 +2412,7 @@ function openProduct(pid) {
           + (imgs.length > 1 ? '<button onclick="prodGalleryNav(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;cursor:pointer;font-size:18px">\u203a</button>' : '')
           + (imgs.length > 1 ? '<div id="prodDots" style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px">' + imgs.map(function(_, i){ return '<span class="prod-dot" style="width:7px;height:7px;border-radius:50%;background:' + (i===0?'#fff':'rgba(255,255,255,.4)') + ';cursor:pointer" onclick="prodGalleryGoTo(' + i + ')"></span>'; }).join('') + '</div>' : '')
           + '</div>'
-          + (imgs.length > 1 ? '<div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px">' + imgs.map(function(url, i){ return '<img src="' + url + '" onclick="prodGalleryGoTo(' + i + ')" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--green)':'var(--border)') + ';flex-shrink:0">'; }).join('') + '</div>' : '')
+          + (imgs.length > 1 ? '<div id="prodThumbsRow" style="display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px">' + imgs.map(function(url, i){ return '<img src="' + url + '" onclick="prodGalleryGoTo(' + i + ')" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--green)':'var(--border)') + ';flex-shrink:0">'; }).join('') + '</div>' : '')
           + '</div>';
       })()
     + '<div>'
@@ -7910,13 +7910,17 @@ function selectProductColor(color, btnEl) {
 }
 
 function updateProdThumbnails(imgs) {
-  var wrap = document.getElementById('prodMainImgWrap');
-  if (!wrap) return;
-  var thumbContainer = wrap.parentNode.querySelector('[data-thumb-row]');
+  var thumbContainer = document.getElementById('prodThumbsRow');
   if (!thumbContainer) return;
   thumbContainer.innerHTML = imgs.map(function(url, i) {
-    return '<img src="' + url + '" onclick="prodGalleryGoTo(' + i + ')" style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--green)':'var(--border)') + '">';
+    return '<img src="' + url + '" onclick="prodGalleryGoTo(' + i + ')" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--green)':'var(--border)') + ';flex-shrink:0">';
   }).join('');
+  var dots = document.getElementById('prodDots');
+  if (dots) {
+    dots.innerHTML = imgs.map(function(_, i) {
+      return '<span class="prod-dot" style="width:7px;height:7px;border-radius:50%;background:' + (i===0?'#fff':'rgba(255,255,255,.4)') + ';cursor:pointer" onclick="prodGalleryGoTo(' + i + ')"></span>';
+    }).join('');
+  }
 }
 
 </script>
