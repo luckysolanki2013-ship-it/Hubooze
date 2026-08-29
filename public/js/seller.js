@@ -1,4 +1,71 @@
 
+var selColorImages = {};
+
+function openColorImagesModal() {
+  var colorsInput = document.getElementById('np_colors');
+  var colors = (colorsInput ? colorsInput.value : '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if (!colors.length) { showToast('Enter colors first (comma separated)', 'error'); return; }
+
+  var html = '<div style="padding:24px;max-width:520px;max-height:80vh;overflow-y:auto" id="colorImgModalBody">'
+    + '<h4 style="font-weight:700;margin-bottom:6px">Photos Per Color</h4>'
+    + '<p style="font-size:12px;color:var(--text3);margin-bottom:16px">Upload specific photos for each color variant</p>'
+    + colors.map(function(color) {
+        var imgs = selColorImages[color] || [];
+        return '<div style="margin-bottom:18px;padding:14px;background:var(--bg4);border-radius:10px">'
+          + '<div style="font-weight:700;font-size:14px;margin-bottom:10px">' + color + '</div>'
+          + '<div id="colorImgGallery_' + color.replace(/\s+/g,'_') + '" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+          + imgs.map(function(url, idx) {
+              return '<div style="position:relative;width:60px;height:60px"><img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1px solid var(--border2)"><button onclick="removeColorImage(\'' + color + '\',' + idx + ')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;line-height:1">&#10005;</button></div>';
+            }).join('')
+          + '</div>'
+          + (imgs.length < 6 ? '<label style="display:inline-block;padding:6px 12px;background:var(--bg3);border:1px dashed var(--border2);border-radius:6px;cursor:pointer;font-size:11px;color:var(--text2)">+ Add Photo<input type="file" accept="image/*" style="display:none" onchange="uploadColorImage(\'' + color + '\', this)"></label>' : '')
+          + '</div>';
+      }).join('')
+    + '<div style="display:flex;gap:10px;margin-top:8px">'
+    + '<button onclick="saveColorImages()" class="btn-grad" style="flex:1;padding:12px;font-size:14px">Done</button>'
+    + '<button onclick="closeModal()" style="padding:12px 20px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit">Cancel</button>'
+    + '</div></div>';
+
+  showModal(html);
+}
+
+async function uploadColorImage(color, inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+  if (!selColorImages[color]) selColorImages[color] = [];
+  if (selColorImages[color].length >= 6) { showToast('Max 6 photos per color', 'error'); return; }
+  var token = localStorage.getItem('hb_token');
+  var formData = new FormData();
+  formData.append('image', file);
+  try {
+    showToast('Uploading...', 'info');
+    var r = await fetch('/api/upload/product-image', {method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+    var d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Upload failed', 'error'); return; }
+    selColorImages[color].push(d.url || d.image);
+    openColorImagesModal();
+  } catch(e) { showToast('Upload error: ' + e.message, 'error'); }
+}
+
+function removeColorImage(color, idx) {
+  if (selColorImages[color]) selColorImages[color].splice(idx, 1);
+  openColorImagesModal();
+}
+
+function saveColorImages() {
+  closeModal();
+  updateColorImagesSummary();
+  showToast('Color photos saved!', 'success');
+}
+
+function updateColorImagesSummary() {
+  var el = document.getElementById('np_colorImagesSummary');
+  if (!el) return;
+  var keys = Object.keys(selColorImages).filter(function(k) { return selColorImages[k] && selColorImages[k].length; });
+  if (!keys.length) { el.textContent = ''; return; }
+  el.textContent = keys.length + ' color(s) with custom photos';
+}
+
 function openBulkUploadModal() {
   var html = '<div style="padding:24px;max-width:520px" id="bulkUploadBody">'
     + '<h4 style="font-weight:700;margin-bottom:6px">Bulk Upload Products</h4>'
@@ -534,7 +601,10 @@ function renderSelAddProduct(el) {
     + '<input id="np_sizes" type="text" value="'+(ep&&ep.sizes?ep.sizes.join(', '):'')+'" placeholder="XS, S, M, L, XL" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;margin-bottom:8px">'
     + '<button type="button" id="np_openVariants" style="padding:8px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:inherit">📊 Set Per-Size Price & Stock</button>'
     + '<div id="np_variantsSummary" style="font-size:11px;color:var(--text3);margin-top:6px"></div></div>'
-    + formField('Available Colors (comma separated)', 'np_colors', 'text', ep&&ep.colors?(ep.colors.join(', ')):'', 'Red, Blue, Black', false)
+    + '<div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Available Colors (comma separated)</label>'
+    + '<input id="np_colors" type="text" value="'+(ep&&ep.colors?ep.colors.join(', '):'')+'" placeholder="Red, Blue, Black" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;margin-bottom:8px">'
+    + '<button type="button" onclick="openColorImagesModal()" style="padding:8px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);cursor:pointer;font-size:12px;font-family:inherit">&#127912; Set Photos Per Color</button>'
+    + '<div id="np_colorImagesSummary" style="font-size:11px;color:var(--text3);margin-top:6px"></div></div>'
 
     // Badge & Eco
     + '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">'
@@ -604,6 +674,7 @@ function renderSelAddProduct(el) {
     var variantsBtn = document.getElementById('np_openVariants');
     if (variantsBtn) variantsBtn.onclick = openVariantsModal;
     if (ep && ep.variants) { selProdVariants = ep.variants; updateVariantsSummary(); } else { selProdVariants = {}; }
+    if (ep && ep.colorImages) { selColorImages = ep.colorImages; updateColorImagesSummary(); } else { selColorImages = {}; }
   }, 50);
 }
 
@@ -648,7 +719,7 @@ async function saveSellerProduct() {
   var token  = localStorage.getItem('hb_token');
   var method = sellerEditProductId ? 'PUT' : 'POST';
   var url    = sellerEditProductId ? '/api/products/'+sellerEditProductId : '/api/products';
-  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, colors:colors, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes, variants:selProdVariants, badge, eco, listed, sellerId:currentUser.id };
+  var body   = { name, brand, category:cat, cat, subcategory:subcat, productType:prodtype, sku:sku, colors:colors, price, originalPrice:orig, orig, stock, icon, image, images, description:desc, sizes, variants:selProdVariants, colorImages:selColorImages, badge, eco, listed, sellerId:currentUser.id };
   var btn = document.getElementById('selSubmitBtn');
   if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
 
