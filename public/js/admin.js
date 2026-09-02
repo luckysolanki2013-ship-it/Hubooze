@@ -1203,10 +1203,6 @@ document.addEventListener('click', function(e) {
   btn = e.target.closest('.admin-edit-legal');
   if (btn) { openLegalPageEditor(btn.dataset.legaltype); return; }
   btn = e.target.closest('.admin-upload-icon');
-  btn = e.target.closest('.admin-edit-coupon');
-  if (btn) { openCouponEditor(btn.dataset.code); return; }
-  btn = e.target.closest('.admin-delete-coupon');
-  if (btn) { deleteCouponConfirm(btn.dataset.code); return; }
   if (btn) {
     var fileInput = document.getElementById('iconfile-'+btn.dataset.iconid);
     if (fileInput) {
@@ -1215,6 +1211,10 @@ document.addEventListener('click', function(e) {
     }
     return;
   }
+  btn = e.target.closest('.admin-edit-coupon');
+  if (btn) { openCouponEditor(btn.dataset.code); return; }
+  btn = e.target.closest('.admin-delete-coupon');
+  if (btn) { deleteCouponConfirm(btn.dataset.code); return; }
   btn = e.target.closest('.admin-save-icon');
   if (btn) {
     var urlInput = btn.parentNode.querySelector('.admin-icon-url');
