@@ -570,6 +570,8 @@ function renderAdminIcons(el, headers) {
     + adminIconRow('cat-offers', '🎁', 'Offers Card', 'catOffersIcon')
     + adminIconRow('cat-footwear', '👟', 'Footwear Card', 'catFootwearIcon')
     + adminIconRow('cat-kids', '🧸', 'Kids & Baby Card', 'catKidsIcon')
+    + adminIconRow('cat-food', '🍫', 'Food & Beverages Card', 'catFoodIcon')
+    + adminIconRow('cat-beauty', '💄', 'Beauty Card', 'catBeautyIcon')
     + '</div></div>'
     + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
     + '<h4 style="font-weight:700;margin-bottom:6px">🏠 Homepage Section Icons</h4>'
