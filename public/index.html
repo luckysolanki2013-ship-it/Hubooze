@@ -1886,6 +1886,12 @@ function addToCart(productId, size) {
 
   saveCartState();
   updateCartBadge(true);
+  if (typeof gtag === 'function') {
+    gtag('event', 'add_to_cart', {
+      currency: 'INR', value: p.price,
+      items: [{ item_id: productId, item_name: p.name, price: p.price, item_category: p.cat || p.category, quantity: 1 }]
+    });
+  }
   showToast(T.addedMsg(p.name), 'success');
 
   // Update wishlist heart if product is in wishlist
@@ -5086,6 +5092,16 @@ function renderCheckoutPage() {
     return;
   }
 
+  if (checkoutStep === 1 && typeof gtag === 'function' && !window._checkoutTracked) {
+    window._checkoutTracked = true;
+    gtag('event', 'begin_checkout', {
+      currency: 'INR', value: cartTotal(),
+      items: cartItems.map(function(ci) {
+        var p = PRODUCTS[ci.productId] || {};
+        return { item_id: ci.productId, item_name: p.name || '', price: p.price || 0, quantity: ci.qty };
+      })
+    });
+  }
   renderCheckoutSteps();
   renderCheckoutSummary();
 
@@ -5728,6 +5744,17 @@ function renderOrderConfirmation(order) {
   if (steps)   steps.style.display   = 'none';
   if (!confirm) return;
   confirm.style.display = 'block';
+  if (typeof gtag === 'function' && !window['_purchaseTracked_' + (order.orderId||order.id)]) {
+    window['_purchaseTracked_' + (order.orderId||order.id)] = true;
+    gtag('event', 'purchase', {
+      transaction_id: order.orderId || order.id,
+      currency: 'INR', value: order.total,
+      shipping: order.deliveryFee || 0,
+      items: (order.items || []).map(function(it) {
+        return { item_id: it.productId, item_name: it.name, price: it.price, quantity: (it.qty||it.quantity) };
+      })
+    });
+  }
 
   var totalSaved = (order.discount || 0) + (order.couponD || 0);
 
