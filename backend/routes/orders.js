@@ -5,7 +5,7 @@ const dba = require('../dbAdapter');
 function getCustomUserId(req) {
   return req.user.customId || req.user.id;
 }
-const { notifyOrderConfirmed, notifyOrderShipped } = require('../utils/notifications');
+const { notifyOrderConfirmed, notifyOrderShipped, notifySellerNewOrder } = require('../utils/notifications');
 const Models = require('../models');
 
 async function getLivePromotions() {
@@ -113,6 +113,21 @@ router.post('/', protect, async (req, res) => {
     if (isCOD) {
       notifyOrderConfirmed(order, { ...user, name: req.user.name, email: req.user.email, phone: user?.phone }).catch(e => console.error('Notif error:', e.message));
     }
+    // Notify sellers of new order (grouped by seller)
+    (async () => {
+      try {
+        const bySeller = {};
+        (order.items || []).forEach(it => {
+          if (!it.sellerId) return;
+          if (!bySeller[it.sellerId]) bySeller[it.sellerId] = [];
+          bySeller[it.sellerId].push(it);
+        });
+        for (const sellerId of Object.keys(bySeller)) {
+          const seller = await dba.findUser({ id: sellerId });
+          if (seller) await notifySellerNewOrder(order, seller, bySeller[sellerId]);
+        }
+      } catch(e) { console.error('Seller notif error:', e.message); }
+    })();
 
     res.status(201).json({ order, message: isCOD ? '🎉 Order placed successfully!' : 'Order created, proceed to payment.' });
   } catch (err) {

@@ -283,9 +283,43 @@ const sendOTPNotification = async (user, otp) => {
   return { emailRes, waRes };
 };
 
+const notifySellerNewOrder = async (order, seller, sellerItems) => {
+  if (!seller || !seller.email) return;
+  const itemsHtml = sellerItems.map(it => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee">
+      <span style="color:#111">${it.name} ${it.size ? '(' + it.size + ')' : ''} x${it.qty}</span>
+      <span style="font-weight:700;color:#111">₹${(it.price * it.qty).toLocaleString('en-IN')}</span>
+    </div>`).join('');
+  const sellerTotal = sellerItems.reduce((s, it) => s + (it.price * it.qty), 0);
+  const html = `
+<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eee">
+  <div style="background:#0a0a0a;padding:20px;text-align:center">
+    <h1 style="color:#00ff8f;margin:0;font-size:22px">Hubooze Seller Alert</h1>
+  </div>
+  <div style="padding:24px">
+    <h2 style="font-size:18px;color:#111;margin:0 0 6px">🎉 New Order Received!</h2>
+    <p style="color:#666;font-size:13px;margin-bottom:16px">Order #${order.orderId} — please prepare for shipping.</p>
+    <div style="background:#f8f9fa;border-radius:8px;padding:14px;margin-bottom:16px">${itemsHtml}
+      <div style="display:flex;justify-content:space-between;padding-top:10px;font-weight:800;font-size:15px;color:#111">
+        <span>Your Total</span><span>₹${sellerTotal.toLocaleString('en-IN')}</span>
+      </div>
+    </div>
+    <p style="color:#666;font-size:13px">Please log in to your Seller Dashboard to view full order details and mark it as shipped.</p>
+    <div style="text-align:center;margin-top:20px">
+      <a href="https://hubooze.in" style="display:inline-block;padding:12px 28px;background:#00ff8f;color:#000;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px">View Order</a>
+    </div>
+  </div>
+  <div style="background:#f8f9fa;padding:14px;text-align:center;font-size:11px;color:#999">Hubooze Seller Notifications</div>
+</div>`;
+  try {
+    return await sendEmail({ to: seller.email, subject: `🎉 New Order #${order.orderId} — Hubooze`, html });
+  } catch(e) { console.error('Seller notif error:', e.message); }
+};
+
 module.exports = {
   notify, sendEmail, sendWhatsApp, sendSMS,
   notifyOrderConfirmed, notifyOrderShipped,
   notifyReturnInitiated, notifyRefundProcessed,
+  notifySellerNewOrder,
   sendOTPNotification,
 };
