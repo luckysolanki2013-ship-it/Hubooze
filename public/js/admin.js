@@ -124,8 +124,9 @@ async function deleteCouponConfirm(code) {
   if (!confirm('Delete coupon "' + code + '"?')) return;
   var token = localStorage.getItem('hb_token');
   try {
-    var r = await fetch('/api/admin/coupons/' + code, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
-    var d = await r.json();
+    var r = await fetch('/api/admin/coupons/' + encodeURIComponent(code), {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) { showToast(d.error || 'Failed to delete coupon (status ' + r.status + ')', 'error'); return; }
     showToast(d.message || 'Coupon deleted', 'success');
     renderAdminTabContent({});
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
