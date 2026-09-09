@@ -1105,7 +1105,7 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
     <button class="loc-btn" onclick="openLocationPicker()"><span>&#128205;</span><span><span class="loc-lbl" id="locLblEl">Deliver to</span><span class="loc-val" id="locValEl">Select Location</span></span></button>
     <div class="search-wrap">
       <select class="search-cat"><option>All</option><option>Fashion</option><option>Electronics</option><option>Handmade</option></select>
-      <input class="search-input" id="searchInpEl" autocomplete="off" autocomplete="off" type="text" placeholder="Kuch bhi dhundhein...">
+      <input class="search-input" id="searchInpEl" autocomplete="off" type="text" placeholder="Kuch bhi dhundhein..." onkeypress="if(event.key==='Enter')doSearch()">
       <button class="search-btn" onclick="doSearch()">&#128269;</button>
     </div>
     <div class="hdr-right">
@@ -2459,6 +2459,14 @@ function openProduct(pid) {
 function renderGrid(id, arr) {
   var el = document.getElementById(id);
   if (!el) return;
+  if (!arr.length) {
+    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--text3)">'
+      + '<div style="font-size:3rem;margin-bottom:12px">&#128269;</div>'
+      + '<div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px">No products found</div>'
+      + '<div style="font-size:13px">Try a different search term or browse categories instead.</div>'
+      + '</div>';
+    return;
+  }
   el.innerHTML = arr.map(makeCard).join('');
 }
 
