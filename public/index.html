@@ -7802,7 +7802,7 @@ async function populateHeroCards() {
 
   picks.slice(1).forEach(function(p) {
     var disc = p.orig ? Math.round((1-p.price/p.orig)*100) : 0;
-    var iconHtml = p.image ? '<img src="'+p.image+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px">' : (p.icon||'&#128247;');
+    var iconHtml = p.image ? '<img src="'+p.image+'" style="width:64px;height:64px;object-fit:cover;border-radius:10px">' : (p.icon||'&#128247;');
     html += '<div class="hcard" onclick="openProduct(\''+p.id+'\')">'
       + '<div class="hci">'+iconHtml+'</div>'
       + '<div class="hcn">'+p.name+'</div>'
