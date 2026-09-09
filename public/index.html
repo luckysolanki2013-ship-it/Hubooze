@@ -1160,10 +1160,9 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
           <button class="btn-ghost" id="hcta2El" onclick="showPage('returns')" style="padding:13px 22px;font-size:15px;"></button>
         </div>
         <div class="hero-stats">
-          <div class="hstat"><div class="num df grad-text">50K+</div><div class="lbl">Products</div></div>
           <div class="hstat"><div class="num df grad-text">90</div><div class="lbl" id="hs2El">Din Return</div></div>
           <div class="hstat"><div class="num df grad-text">&#9889;</div><div class="lbl" id="hs3El">Instant Refund</div></div>
-          <div class="hstat"><div class="num df grad-text">500+</div><div class="lbl">Rural Jobs</div></div>
+          <div class="hstat"><div class="num df grad-text">&#8377;499+</div><div class="lbl">Free Delivery</div></div>
         </div>
       </div>
       <div class="hero-cards" id="heroCardsEl"></div>
@@ -2525,7 +2524,7 @@ function renderHomeContent() {
     var col = T['fc'+(i+1)]; var el = document.getElementById(id);
     if (!el||!col) return;
     el.innerHTML = '<h5>'+col.h+'</h5>' + col.l.map(function(l){
-      var actions = {'Kapde & Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Electronics':"showPage('categories');catTabActive='electronics';renderCategoriesPage()",'Ghar & Rasoi':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Home & Kitchen':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Roz Ka Saman':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Daily Use':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Desi/Handmade':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Handmade/Rural':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Offers':"showPage('categories');catTabActive='offers';renderCategoriesPage()",'Mera Account':"showPage('account')",'Order Track Karo':"showPage('orders')",'Return Karo':"showPage('returns')",'Wishlist':"showPage('account')",'Help & Support':"showToast('Email: Team.Support@hubooze.in','info')",'Seller Bano':"showPage('seller')",'Seller Dashboard':"showPage('seller')",'Seller Support':"renderLegalPage('sellerguide')",'Payment Info':"showToast('UPI, Card, NetBanking, COD supported','info')",'Hamare Baare Mein':"showToast('India ki pehli return-to-recycle marketplace!','info')",'Recycle Mission':"showToast('90 din mein FREE return. Recycle hoga sab!','success')",'Rural Jobs':"showToast('500+ rural artisans supported by Hubooze','success')",'Contact Us':"showToast('Email: Team.Support@hubooze.in','info')"};
+      var actions = {'Kapde & Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Fashion':"showPage('categories');catTabActive='fashion';renderCategoriesPage()",'Electronics':"showPage('categories');catTabActive='electronics';renderCategoriesPage()",'Ghar & Rasoi':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Home & Kitchen':"showPage('categories');catTabActive='home';renderCategoriesPage()",'Roz Ka Saman':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Daily Use':"showPage('categories');catTabActive='daily';renderCategoriesPage()",'Desi/Handmade':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Handmade/Rural':"showPage('categories');catTabActive='handmade';renderCategoriesPage()",'Offers':"showPage('categories');catTabActive='offers';renderCategoriesPage()",'Mera Account':"showPage('account')",'Order Track Karo':"showPage('orders')",'Return Karo':"showPage('returns')",'Wishlist':"showPage('account')",'Help & Support':"showToast('Email: Team.Support@hubooze.in','info')",'Seller Bano':"showPage('seller')",'Seller Dashboard':"showPage('seller')",'Seller Support':"renderLegalPage('sellerguide')",'Payment Info':"showToast('UPI, Card, NetBanking, COD supported','info')",'Hamare Baare Mein':"showToast('India ki pehli return-to-recycle marketplace!','info')",'Recycle Mission':"showToast('90 din mein FREE return. Recycle hoga sab!','success')",'Rural Jobs':"showToast('Supporting rural artisans across India','success')",'Contact Us':"showToast('Email: Team.Support@hubooze.in','info')"};
       var act = actions[l] || '';
       return '<a style="cursor:pointer"' + (act ? ' onclick="'+act+'"' : '') + '>'+l+'</a>';
     }).join('');
@@ -6718,7 +6717,7 @@ function initNotifications() {
   if (NOTIFS_DB.length === 0) {
     addNotification('promo',
       'Welcome to Hubooze! &#127881;',
-      'Get 15% off your first order with code FIRST. Shop 50,000+ products with 90-day returns.',
+      'Get 15% off your first order with code FIRST. Shop with 90-day returns.',
       ['push','email'],
       {coupon:'FIRST', emoji:'&#127881;', emailHtml:true}
     );
