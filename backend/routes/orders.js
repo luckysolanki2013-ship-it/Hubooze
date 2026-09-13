@@ -65,18 +65,23 @@ router.post('/', protect, async (req, res) => {
       itemsForCoupon.push({ productId: p.id, category: p.cat || p.category, price: p.price, qty: ci.qty });
     }
     let couponDiscount = 0;
+    let appliedCouponCode = null;
     const liveCoupons = await getLiveCoupons();
     const coupon = couponCode ? liveCoupons[couponCode.toUpperCase()] : null;
-    if (coupon && coupon.active !== false && subtotal >= (coupon.min || 0)) {
+    if (coupon && coupon.active !== false && subtotal >= (coupon.min || 0)
+        && (coupon.maxUses == null || (coupon.usedCount || 0) < coupon.maxUses)) {
       const scope = coupon.scope || 'all';
       let eligibleSubtotal = subtotal;
       if (scope === 'category' && coupon.scopeValue) {
         eligibleSubtotal = itemsForCoupon.filter(i => i.category === coupon.scopeValue).reduce((s,i) => s + i.price*i.qty, 0);
       } else if (scope === 'product' && coupon.scopeValue) {
         eligibleSubtotal = itemsForCoupon.filter(i => i.productId === coupon.scopeValue).reduce((s,i) => s + i.price*i.qty, 0);
+      } else if (scope === 'products' && Array.isArray(coupon.scopeValues) && coupon.scopeValues.length) {
+        eligibleSubtotal = itemsForCoupon.filter(i => coupon.scopeValues.includes(i.productId)).reduce((s,i) => s + i.price*i.qty, 0);
       }
       if (eligibleSubtotal > 0) {
         couponDiscount = coupon.type === 'flat' ? Math.min(coupon.value, eligibleSubtotal) : Math.round(eligibleSubtotal * coupon.value / 100);
+        appliedCouponCode = couponCode.toUpperCase();
       }
     }
     const livePromo = await getLivePromotions();
@@ -109,6 +114,17 @@ router.post('/', protect, async (req, res) => {
       estimatedDelivery,
       createdAt: new Date().toISOString(),
     });
+
+    // Increment coupon usage count if a coupon was actually applied
+    if (appliedCouponCode) {
+      try {
+        const couponsDoc = await Models.Settings.findOne({ key: 'coupons' });
+        if (couponsDoc && couponsDoc.data && couponsDoc.data[appliedCouponCode]) {
+          couponsDoc.data[appliedCouponCode].usedCount = (couponsDoc.data[appliedCouponCode].usedCount || 0) + 1;
+          await Models.Settings.findOneAndUpdate({ key: 'coupons' }, { data: couponsDoc.data });
+        }
+      } catch(e) { console.error('Coupon usage tracking error:', e.message); }
+    }
 
     if (isCOD) {
       notifyOrderConfirmed(order, { ...user, name: req.user.name, email: req.user.email, phone: user?.phone }).catch(e => console.error('Notif error:', e.message));
@@ -202,6 +218,7 @@ router.post('/validate-coupon', protect, async (req, res) => {
   const liveCoupons = await getLiveCoupons();
   const coupon = liveCoupons[code?.toUpperCase()];
   if (!coupon || coupon.active === false) return res.status(400).json({ error: 'Invalid coupon code.' });
+  if (coupon.maxUses != null && (coupon.usedCount || 0) >= coupon.maxUses) return res.status(400).json({ error: 'This coupon has reached its usage limit.' });
   if (subtotal < (coupon.min || 0)) return res.status(400).json({ error: `Minimum order ₹${coupon.min} required for this coupon.` });
   const discount = coupon.type === 'flat' ? Math.min(coupon.value, subtotal) : Math.round(subtotal * coupon.value / 100);
   res.json({ valid: true, discount, code: code.toUpperCase(), scope: coupon.scope, scopeValue: coupon.scopeValue });

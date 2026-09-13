@@ -35,7 +35,7 @@ async function renderAdminCoupons(el, headers) {
 }
 
 async function openCouponEditor(code) {
-  var current = {code:'', type:'percent', value:'', min:'', desc:'', scope:'all', scopeValue:''};
+  var current = {code:'', type:'percent', value:'', min:'', desc:'', scope:'all', scopeValue:'', scopeValues:[], maxUses:''};
   if (code) {
     var r = await fetch('/api/admin/coupons');
     var d = await r.json();
@@ -62,15 +62,21 @@ async function openCouponEditor(code) {
     + '<select id="couponScope" onchange="toggleCouponScopeValue()" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;margin-bottom:10px">'
     + '<option value="all"' + (current.scope==='all'?' selected':'') + '>All Products</option>'
     + '<option value="category"' + (current.scope==='category'?' selected':'') + '>Specific Category</option>'
-    + '<option value="product"' + (current.scope==='product'?' selected':'') + '>Specific Product</option>'
+    + '<option value="products"' + (current.scope==='products'?' selected':'') + '>Specific Products (choose several)</option>'
     + '</select>'
-    + '<div id="couponScopeValueWrap" style="display:' + (current.scope==='all'?'none':'block') + ';margin-bottom:14px">'
+    + '<div id="couponScopeValueWrap" style="display:' + (current.scope==='category'?'block':'none') + ';margin-bottom:14px">'
     + '<select id="couponScopeValue" style="width:100%;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit">'
-    + (current.scope==='category'
-        ? categories.map(function(c){return '<option value="'+c+'"'+(current.scopeValue===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('')
-        : products.map(function(p){return '<option value="'+p.id+'"'+(current.scopeValue===p.id?' selected':'')+'>'+p.name+'</option>';}).join('')
-      )
+    + categories.map(function(c){return '<option value="'+c+'"'+(current.scopeValue===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('')
     + '</select></div>'
+    + '<div id="couponScopeProductsWrap" style="display:' + (current.scope==='products'?'block':'none') + ';margin-bottom:14px;max-height:180px;overflow-y:auto;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:10px">'
+    + products.map(function(p){
+        var checked = (current.scopeValues||[]).indexOf(p.id) > -1;
+        return '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;cursor:pointer"><input type="checkbox" class="coupon-product-cb" value="'+p.id+'"'+(checked?' checked':'')+'>'+p.name+'</label>';
+      }).join('')
+    + '</div>'
+    + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Usage Limit (Optional)</label>'
+    + '<input id="couponMaxUses" type="number" value="' + (current.maxUses||'') + '" placeholder="e.g. 100 (leave blank for unlimited)" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:14px">'
+    + (current.usedCount ? '<div style="font-size:12px;color:var(--text3);margin-bottom:14px">Used ' + current.usedCount + ' time(s) so far</div>' : '')
     + '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Description</label>'
     + '<input id="couponDesc" type="text" value="' + (current.desc||'') + '" placeholder="20% off on Fashion items" style="width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;box-sizing:border-box;margin-bottom:18px">'
     + '<div style="display:flex;gap:10px">'
@@ -85,13 +91,10 @@ async function openCouponEditor(code) {
 
 function toggleCouponScopeValue() {
   var scope = document.getElementById('couponScope').value;
-  var wrap = document.getElementById('couponScopeValueWrap');
-  var select = document.getElementById('couponScopeValue');
-  if (scope === 'all') { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  var options = scope === 'category' ? window._couponCategories : window._couponProducts.map(function(p){return p.id;});
-  var labels = scope === 'category' ? window._couponCategories.map(function(c){return c.charAt(0).toUpperCase()+c.slice(1);}) : window._couponProducts.map(function(p){return p.name;});
-  select.innerHTML = options.map(function(v,i){return '<option value="'+v+'">'+labels[i]+'</option>';}).join('');
+  var catWrap = document.getElementById('couponScopeValueWrap');
+  var prodWrap = document.getElementById('couponScopeProductsWrap');
+  if (catWrap) catWrap.style.display = (scope === 'category') ? 'block' : 'none';
+  if (prodWrap) prodWrap.style.display = (scope === 'products') ? 'block' : 'none';
 }
 
 async function saveCoupon() {
@@ -102,13 +105,17 @@ async function saveCoupon() {
   var scope = (document.getElementById('couponScope')||{value:'all'}).value;
   var scopeValueEl = document.getElementById('couponScopeValue');
   var scopeValue = scopeValueEl ? scopeValueEl.value : '';
+  var scopeValues = Array.prototype.map.call(document.querySelectorAll('.coupon-product-cb:checked'), function(cb){ return cb.value; });
+  var maxUsesEl = document.getElementById('couponMaxUses');
+  var maxUses = maxUsesEl && maxUsesEl.value !== '' ? maxUsesEl.value : '';
   var desc = (document.getElementById('couponDesc')||{value:''}).value.trim();
 
   if (!code || !value) { showToast('Code and value are required', 'error'); return; }
+  if (scope === 'products' && !scopeValues.length) { showToast('Select at least one product', 'error'); return; }
 
   var token = localStorage.getItem('hb_token');
   try {
-    var r = await fetch('/api/admin/coupons', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({code:code,type:type,value:value,min:min,desc:desc,scope:scope,scopeValue:scope!=='all'?scopeValue:''})});
+    var r = await fetch('/api/admin/coupons', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({code:code,type:type,value:value,min:min,desc:desc,scope:scope,scopeValue:scope==='category'?scopeValue:'',scopeValues:scope==='products'?scopeValues:[],maxUses:maxUses})});
     var d = await r.json();
     if (r.ok) {
       closeModal();

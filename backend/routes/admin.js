@@ -280,13 +280,20 @@ router.get('/coupons', async (req, res) => {
 
 router.post('/coupons', protect, requireAdmin, async (req, res) => {
   try {
-    const { code, type, value, min, desc, active } = req.body;
+    const { code, type, value, min, desc, active, scope, scopeValue, scopeValues, maxUses } = req.body;
     if (!code || !type || !value) return res.status(400).json({ error: 'code, type, and value are required.' });
     if (!['percent','flat'].includes(type)) return res.status(400).json({ error: 'type must be percent or flat.' });
     let doc = await Models.Settings.findOne({ key: 'coupons' });
     let data = doc ? doc.data : {};
     const codeUpper = code.toUpperCase().trim();
-    data[codeUpper] = { type, value: Number(value), min: Number(min)||0, desc: desc || '', active: active !== false };
+    const existing = data[codeUpper] || {};
+    data[codeUpper] = {
+      type, value: Number(value), min: Number(min)||0, desc: desc || '', active: active !== false,
+      scope: scope || 'all', scopeValue: scopeValue || '',
+      scopeValues: Array.isArray(scopeValues) ? scopeValues : (existing.scopeValues || []),
+      maxUses: maxUses !== undefined && maxUses !== '' ? Number(maxUses) : null,
+      usedCount: existing.usedCount || 0,
+    };
     await Models.Settings.findOneAndUpdate({ key: 'coupons' }, { data }, { upsert: true });
     res.json({ message: 'Coupon saved successfully!', coupons: data });
   } catch(e) { res.status(500).json({ error: e.message }); }
