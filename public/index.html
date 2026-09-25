@@ -1830,6 +1830,8 @@ function couponEligibleSubtotal() {
       matches = (p.cat || p.category) === appliedCoupon.scopeValue;
     } else if (scope === 'product' && appliedCoupon.scopeValue) {
       matches = p.id === appliedCoupon.scopeValue;
+    } else if (scope === 'products' && appliedCoupon.scopeValues && appliedCoupon.scopeValues.length) {
+      matches = appliedCoupon.scopeValues.indexOf(p.id) > -1;
     }
     if (matches) total += (p.price || 0) * item.qty;
   });
@@ -2037,7 +2039,7 @@ function applyCoupon() {
     showToast('Minimum order &#8377;' + coupon.min + ' required for this coupon', 'error'); return;
   }
   appliedCoupon = {code: code, ...coupon};
-  if ((coupon.scope === 'category' || coupon.scope === 'product') && couponEligibleSubtotal() <= 0) {
+  if ((coupon.scope === 'category' || coupon.scope === 'product' || coupon.scope === 'products') && couponEligibleSubtotal() <= 0) {
     appliedCoupon = null;
     showToast('This coupon doesn\'t apply to items in your cart', 'error');
     return;

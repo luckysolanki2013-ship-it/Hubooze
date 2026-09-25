@@ -21,21 +21,36 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
 
     const existing = await dba.findUser({ email: email.toLowerCase() });
-    if (existing)
-      return res.status(409).json({ error: 'Email already registered.' });
     const hashed = await bcrypt.hash(password, 10);
-    const user = {
-      id: 'u_' + Date.now(),
-      name: name.trim(), email: email.toLowerCase().trim(),
-      phone: phone || '', password: hashed,
-      city: city || '', role: role === 'seller' ? 'seller' : 'customer',
-      addresses: [], wishlist: [], notifPrefs: {},
-      createdAt: new Date().toISOString(),
-    };
-    const saved = await dba.createUser(user);
+    // If an account was just auto-created seconds ago by the OTP-verify race
+    // (which sets a random throwaway password), update it with the real
+    // password and details instead of rejecting the registration.
+    const isFreshOtpStub = existing && existing.createdAt &&
+      (Date.now() - new Date(existing.createdAt).getTime() < 2 * 60 * 1000);
+    if (existing && !isFreshOtpStub)
+      return res.status(409).json({ error: 'Email already registered.' });
+    let saved;
+    if (isFreshOtpStub) {
+      saved = await dba.updateUser(existing.id, {
+        name: name.trim(), password: hashed,
+        phone: phone || existing.phone || '',
+        city: city || existing.city || '',
+        role: role === 'seller' ? 'seller' : 'customer',
+      });
+    } else {
+      const user = {
+        id: 'u_' + Date.now(),
+        name: name.trim(), email: email.toLowerCase().trim(),
+        phone: phone || '', password: hashed,
+        city: city || '', role: role === 'seller' ? 'seller' : 'customer',
+        addresses: [], wishlist: [], notifPrefs: {},
+        createdAt: new Date().toISOString(),
+      };
+      saved = await dba.createUser(user);
+    }
     const token = signToken(saved);
     const { password: _, ...safeUser } = saved;
-    try { require('../utils/welcomeEmail').sendWelcomeEmail(saved); } catch(e) {}
+    if (!isFreshOtpStub) { try { require('../utils/welcomeEmail').sendWelcomeEmail(saved); } catch(e) {} }
     res.status(201).json({ token, user: safeUser, message: 'Account created successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
