@@ -50,7 +50,7 @@ router.post('/register', authLimiter, async (req, res) => {
     }
     const token = signToken(saved);
     const { password: _, ...safeUser } = saved;
-    if (!isFreshOtpStub) { try { require('../utils/welcomeEmail').sendWelcomeEmail(saved); } catch(e) {} }
+    try { require('../utils/welcomeEmail').sendWelcomeEmail(saved); } catch(e) {}
     res.status(201).json({ token, user: safeUser, message: 'Account created successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });

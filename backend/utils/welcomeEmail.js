@@ -5,7 +5,7 @@ async function sendWelcomeEmail(user) {
   if (!user || !user.email) return;
   const isSeller = user.role === 'seller';
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: 'Hubooze <welcome@hubooze.in>',
       to: user.email,
       subject: isSeller ? '🎉 Welcome to Hubooze — Start Selling Today!' : '🎉 Welcome to Hubooze!',
@@ -40,6 +40,11 @@ async function sendWelcomeEmail(user) {
         </div>
       `
     });
+    if (result && result.error) {
+      console.error('Welcome email send error:', result.error.message);
+    } else {
+      console.log('📧 Welcome email sent to', user.email, '— ID:', result?.data?.id);
+    }
   } catch (e) {
     console.error('Failed to send welcome email:', e.message);
   }
