@@ -2903,7 +2903,7 @@ function setTone(tone) {
 // ════════════════════════════════════════════════════════════════
 var currentPage = 'home';
 
-function showPage(name, cat) {
+function showPage(name, cat, skipHistory) {
   currentPage = name;
   ['home','categories','returns','account','orders','seller','admin','checkout','notifications','product','legal'].forEach(function(p) {
     var el = document.getElementById('page-'+p);
@@ -2922,7 +2922,25 @@ function showPage(name, cat) {
   if (name === 'checkout')   { if (typeof renderCheckoutPage === 'function') renderCheckoutPage(); }
   if (name === 'notifications') { if (typeof renderNotificationsPage === 'function') renderNotificationsPage(); }
   window.scrollTo(0, 0);
+  if (!skipHistory) {
+    var path = name === 'home' ? '/' : '/' + name + (cat ? '/' + cat : '');
+    if (window.location.pathname !== path) {
+      window.history.pushState({page: name, cat: cat}, '', path);
+    }
+  }
 }
+
+window.addEventListener('popstate', function(e) {
+  var state = e.state;
+  if (state && state.page) {
+    showPage(state.page, state.cat, true);
+  } else {
+    var parts = window.location.pathname.split('/').filter(Boolean);
+    var validPages = ['home','categories','returns','account','orders','seller','admin','checkout','notifications'];
+    var pg = validPages.indexOf(parts[0]) > -1 ? parts[0] : 'home';
+    showPage(pg, parts[1], true);
+  }
+});
 
 function renderNav() {
   var nav = document.getElementById('mainNavEl'); if (!nav) return;
@@ -6930,6 +6948,14 @@ window.updateProductGrids = function() {
   var handGrid = document.getElementById('handmadeScrollEl');
   if (handGrid) handGrid.innerHTML = allP.filter(function(p){return (p.cat||p.category)==='handmade';}).map(makeCard).join('');
   if (typeof populateHeroCards === 'function') populateHeroCards();
+  if (!window._initialRouteHandled) {
+    window._initialRouteHandled = true;
+    var initParts = window.location.pathname.split('/').filter(Boolean);
+    var initValidPages = ['categories','returns','account','orders','seller','admin','checkout','notifications'];
+    if (initValidPages.indexOf(initParts[0]) > -1) {
+      showPage(initParts[0], initParts[1], true);
+    }
+  }
 };
 
 // ── HERO BANNER & PROMOTIONS SYSTEM ─────────────────────────────
