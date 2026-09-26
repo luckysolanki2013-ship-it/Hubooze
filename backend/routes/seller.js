@@ -181,13 +181,54 @@ router.post('/brand/documents', protect, requireSeller, upload.fields([
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET BRAND STATUS ──────────────────────────────────────────────
+// ── GET BRAND STATUS ─────────────────────────────────────────────
 router.get('/brand/status', protect, requireSeller, async (req, res) => {
   try {
     const user = await dba.findUser({ id: req.user.customId || req.user.id });
     res.json({
       brandDocuments: user?.brandDocuments || null,
       approved: user?.brandApproved || false,
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── BANK DETAILS — SAVE ────────────────────────────────────────────
+router.post('/bank', protect, requireSeller, async (req, res) => {
+  try {
+    const b = req.body.bankDetails || {};
+    if (!b.bankName || !b.accountNumber || !b.ifsc) {
+      return res.status(400).json({ error: 'Bank name, account number and IFSC are required.' });
+    }
+    const updated = await dba.updateUser(req.user._id || req.user.id, {
+      bankDetails: {
+        bankName:      String(b.bankName).trim(),
+        accountName:   String(b.accountName || '').trim(),
+        accountNumber: String(b.accountNumber).trim(),
+        ifsc:          String(b.ifsc).trim().toUpperCase(),
+        accountType:   b.accountType === 'current' ? 'current' : 'savings',
+        updatedAt:     new Date().toISOString(),
+      }
+    });
+    if (!updated) return res.status(404).json({ error: 'Seller account not found.' });
+    res.json({ message: 'Bank details saved!' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── BANK DETAILS — FETCH (masked) ───────────────────────────────────
+router.get('/bank', protect, requireSeller, async (req, res) => {
+  try {
+    const user = await dba.findUser({ id: req.user.customId || req.user.id });
+    const b = user?.bankDetails || null;
+    if (!b) return res.json({ bankDetails: null });
+    res.json({
+      bankDetails: {
+        bankName:     b.bankName || '',
+        accountName:  b.accountName || '',
+        accountLast4: String(b.accountNumber || '').slice(-4),
+        ifsc:         b.ifsc || '',
+        accountType:  b.accountType || 'savings',
+        updatedAt:    b.updatedAt || null,
+      }
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

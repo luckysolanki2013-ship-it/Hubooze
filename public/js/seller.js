@@ -993,10 +993,11 @@ async function submitBrandDocs() {
 }
 
 // ── BANK DETAILS ──────────────────────────────────────────────────
-function renderSellerBankForm(el) {
+async function renderSellerBankForm(el) {
   el.innerHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:24px">'
     + '<h4 style="font-weight:700;margin-bottom:6px">🏦 Bank Details for Payouts</h4>'
     + '<p style="color:var(--text3);font-size:13px;margin-bottom:18px">Add your bank account to receive payouts.</p>'
+    + '<div id="bankSavedNote" style="display:none;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--text2)"></div>'
     + '<div style="display:grid;gap:12px">'
     + formField('Bank Name', 'bank_name', 'text', '', 'e.g. State Bank of India', false)
     + formField('Account Holder Name', 'bank_holder', 'text', '', 'As per bank records', false)
@@ -1011,6 +1012,22 @@ function renderSellerBankForm(el) {
     var btn = document.getElementById('saveBankBtn');
     if (btn) btn.onclick = saveSellerBank;
   }, 50);
+
+  try {
+    var token = localStorage.getItem('hb_token');
+    var r = await fetch('/api/seller/bank', {headers:{'Authorization':'Bearer '+token}});
+    var d = await r.json();
+    if (d && d.bankDetails) {
+      var b = d.bankDetails;
+      if (document.getElementById('bank_name'))   document.getElementById('bank_name').value = b.bankName || '';
+      if (document.getElementById('bank_holder')) document.getElementById('bank_holder').value = b.accountName || '';
+      if (document.getElementById('bank_ifsc'))   document.getElementById('bank_ifsc').value = b.ifsc || '';
+      if (document.getElementById('bank_type'))   document.getElementById('bank_type').value = b.accountType || 'savings';
+      if (document.getElementById('bank_account')) document.getElementById('bank_account').placeholder = 'Account ending ' + (b.accountLast4 || '****') + ' (enter to change)';
+      var note = document.getElementById('bankSavedNote');
+      if (note) { note.style.display = 'block'; note.innerHTML = '✅ Bank details on file' + (b.updatedAt ? (' · last updated ' + new Date(b.updatedAt).toLocaleDateString('en-IN')) : ''); }
+    }
+  } catch(e) { /* no saved details yet, ignore */ }
 }
 
 async function saveSellerBank() {
@@ -1025,7 +1042,8 @@ async function saveSellerBank() {
   if (!data.bankName||!data.accountNumber||!data.ifsc) { showToast('All fields required','error'); return; }
   try {
     var r = await fetch('/api/seller/bank', {method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({bankDetails:data})});
-    var d = await r.json();
+    var d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) { showToast(d.error || 'Failed to save bank details', 'error'); return; }
     showToast(d.message||'Bank details saved!','success');
     switchSelTab('payouts');
   } catch(e) { showToast('Error: '+e.message,'error'); }
