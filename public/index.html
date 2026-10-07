@@ -2704,20 +2704,39 @@ function renderCatProducts() {
 }
 
 function doSearch() {
-  var q = (document.getElementById('searchInpEl') || {value:''}).value.toLowerCase().trim();
-  if (!q) return;
-  var allProducts = Object.values(PRODUCTS);
-  var results = allProducts.filter(function(p) {
-    var cat = (p.cat || p.category || '').toLowerCase();
-    var sku = (p.sku || '').toLowerCase();
-    var pid = (p.id || '').toLowerCase();
-    return p.name.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q) || cat.includes(q) || sku.includes(q) || pid.includes(q);
+  var raw = ((document.getElementById('searchInpEl') || {value:''}).value || '').trim();
+  if (!raw) return;
+  var norm = function(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ऀ-ॿ]+/g, ' ').trim();
+  };
+  var tokens = norm(raw).split(' ').filter(function(t) { return t; });
+  if (tokens.length > 1) tokens = tokens.filter(function(t) { return t.length > 1; });
+  var variants = tokens.map(function(t) {
+    var v = [t];
+    if (t.length > 3 && t.slice(-2) === 'es') v.push(t.slice(0, -2));
+    if (t.length > 3 && t.slice(-1) === 's') v.push(t.slice(0, -1));
+    return v;
   });
+  var results = [];
+  if (tokens.length) {
+    results = Object.values(PRODUCTS).map(function(p) {
+      var nameN = norm(p.name);
+      var hay = [nameN, norm(p.brand), norm(p.cat || p.category), norm(p.subcategory), norm(p.productType), norm(p.sku), norm(p.id)].join(' ');
+      var score = 0;
+      for (var i = 0; i < variants.length; i++) {
+        var hit = variants[i].some(function(v) { return hay.indexOf(v) > -1; });
+        if (!hit) return null;
+        if (variants[i].some(function(v) { return nameN.indexOf(v) > -1; })) score++;
+      }
+      return {p: p, score: score};
+    }).filter(Boolean).sort(function(a, b) { return b.score - a.score; }).map(function(x) { return x.p; });
+  }
+  var shown = raw.replace(/[<>&"]/g, '');
   showPage('categories');
   catTabActive = 'all';
   renderCategoriesPage();
   renderGrid('catProductsEl', results);
-  ss('prodCountEl', results.length + ' results for "' + q + '"', false);
+  ss('prodCountEl', results.length + (results.length === 1 ? ' result' : ' results') + ' for "' + shown + '"', false);
 }
 
 // ════════════════════════════════════════════════════════════════
