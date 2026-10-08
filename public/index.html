@@ -8022,5 +8022,38 @@ function updateProdThumbnails(imgs) {
 
   <script src="/js/admin.js"></script>
   <script src="/js/seller.js"></script>
+<script>
+/* HUBOOZE PRODUCT URL v1 */
+(function(){
+if (window.__hbUrl) return; window.__hbUrl = 1;
+var BASE = document.title;
+function slugify(s){ return String(s||'product').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70).replace(/-+$/g,'') || 'product'; }
+function setCanon(href){ var l = document.querySelector('link[rel="canonical"]'); if (l) l.setAttribute('href', href); }
+var origOpen = window.openProduct;
+if (typeof origOpen === 'function') {
+  window.openProduct = function(pid){
+    var r = origOpen.apply(this, arguments);
+    try {
+      var p = window.PRODUCTS && PRODUCTS[pid];
+      if (p) {
+        var path = '/product/' + slugify(p.name) + '-' + (p.id || pid);
+        history.replaceState({page:'product'}, '', path);
+        document.title = String(p.name).slice(0,55) + ' | Hubooze';
+        setCanon('https://hubooze.in' + path);
+      }
+    } catch(e) {}
+    return r;
+  };
+}
+var origShow = window.showPage;
+if (typeof origShow === 'function') {
+  window.showPage = function(name){
+    if (name !== 'product') { try { document.title = BASE; setCanon('https://hubooze.in/'); } catch(e) {} }
+    return origShow.apply(this, arguments);
+  };
+}
+})();
+
+</script>
 </body>
 </html>
