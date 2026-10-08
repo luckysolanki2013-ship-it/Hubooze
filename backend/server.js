@@ -45,8 +45,8 @@ app.get('/sitemap.xml', async (req, res) => {
     const staticUrls = ['', 'categories', 'returns'];
     const now = new Date().toISOString().split('T')[0];
     let urls = staticUrls.map(p => `<url><loc>https://hubooze.in/${p}</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>${p === '' ? '1.0' : '0.7'}</priority></url>`);
-    products.forEach(p => {
-      urls.push(`<url><loc>https://hubooze.in/?product=${p.id}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
+    products.filter(p => require('./seo').isLive(p)).forEach(p => {
+      urls.push(`<url><loc>${require('./seo').productUrl(p)}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
     });
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
     res.header('Content-Type', 'application/xml');
@@ -79,6 +79,9 @@ app.get('/api/health', async (req, res) => {
 app.use('/api', (req, res) =>
   res.status(404).json({ error: 'API endpoint not found.' })
 );
+
+// SEO product pages
+require('./seo').mount(app);
 
 // Serve frontend
 app.use((req, res) => {
