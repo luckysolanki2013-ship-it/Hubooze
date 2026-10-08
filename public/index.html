@@ -941,6 +941,40 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
 #mnAcc .mbi{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M19%2021v-2a4%204%200%200%200-4-4H9a4%204%200%200%200-4%204v2%27%2F%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%277%27%20r%3D%274%27%2F%3E%3C%2Fsvg%3E");}
 }
 </style>
+<style id="hubooze-cart-v1">
+/* HUBOOZE CART v1: phone cart drawer and toast */
+@media (max-width:540px){
+.cart-footer{max-height:none!important;}
+.cart-hdr{padding:12px 16px!important;}
+.coupon-wrap{padding:8px 14px 0!important;}
+.order-summary{padding:10px 14px 12px!important;}
+.order-summary .sum-row{padding:2px 0!important;font-size:13px!important;}
+.order-summary .sum-total{padding:6px 0 4px!important;}
+#sumSavingNote{display:none!important;}
+.delivery-progress{padding:8px 10px!important;margin:0 0 8px!important;}
+.ret-guarantee{padding:6px 10px!important;margin:6px 0 8px!important;font-size:11px!important;}
+.cart-actions{gap:6px!important;}
+.cart-actions button{padding:11px 10px!important;}
+.cart-suggest{padding:12px 14px!important;}
+.cart-items-panel{padding:0 14px!important;}
+#savedList,#wishList{padding:0 14px!important;}
+.cart-item{gap:10px!important;}
+.toast{top:auto!important;bottom:150px!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;}
+}
+</style>
+<style id="hubooze-btn-v1">/* center text in outline buttons */.btn-ghost{justify-content:center;}</style>
+<style id="hubooze-ux-v1">
+/* HUBOOZE UX v1 */
+:root{--text3:#8a8a8a;}
+[data-theme="light"]{--text3:#6b6b6b;}
+@media (max-width:768px){
+  #page-product .prod-detail-grid{grid-template-columns:minmax(0,1fr)!important;}
+  #page-product .prod-detail-grid>*{min-width:0!important;max-width:100%!important;}
+  #prodThumbsRow{max-width:100%!important;scrollbar-width:none;}
+  #prodThumbsRow::-webkit-scrollbar{display:none;}
+  .bc-link,.see-all,.portal-back-btn{padding-top:10px!important;padding-bottom:10px!important;margin-top:-10px!important;margin-bottom:-10px!important;display:inline-block;}
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
@@ -2428,8 +2462,8 @@ function makeCard(p) {
     + '</div>'
     + (p.eco ? '<div class="eco-tag">&#9851; Recrafted &middot; Rural Jobs</div>' : '')
     + '<div class="prod-actions">'
-    + '<button class="btn-ghost pa-c" onclick="addToCart(\'' + p.id + '\')">' + T.addCartL + '</button>'
-    + '<button class="btn-grad pa-b" onclick="addToCart(\'' + p.id + '\');openCart()">' + T.buyNowL + '</button>'
+    + '<button class="btn-ghost pa-c" onclick="event.stopPropagation();addToCart(\'' + p.id + '\')">' + T.addCartL + '</button>'
+    + '<button class="btn-grad pa-b" onclick="event.stopPropagation();addToCart(\'' + p.id + '\');openCart()">' + T.buyNowL + '</button>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -8321,5 +8355,21 @@ inp.addEventListener('keypress', function(e){ if(e.key==='Enter'&&active<0) wind
 
 </script>
 <script>/* HUBOOZE MOBILE v1 */(function(){var t,b=document.body;window.addEventListener('scroll',function(){b.classList.add('hb-scrolling');clearTimeout(t);t=setTimeout(function(){b.classList.remove('hb-scrolling');},700);},{passive:true});})();</script>
+<script>/* HUBOOZE UX v1 */
+(function(){
+ function nm(img){var c=img.closest('.prod-card');if(c){var n=c.querySelector('.prod-name');if(n)return n.textContent.trim()}
+  if(img.closest('#page-product')&&typeof currentProduct!=='undefined'&&currentProduct&&currentProduct.name)return currentProduct.name+(img.closest('#prodThumbsRow')?' - photo':'');
+  var k=img.closest('.cat-card');if(k){var cn=k.querySelector('.cat-name');if(cn)return cn.textContent.trim()}
+  if(img.classList.contains('hero-gallery-img'))return 'Hubooze featured product';
+  var b=img.closest('.hci');if(b&&b.parentElement){var t=b.parentElement.textContent.replace(/\s+/g,' ').trim().slice(0,60);if(t)return t}
+  return ''}
+ function run(){
+  [].forEach.call(document.querySelectorAll('img:not([alt]),img[alt=""]'),function(i){if(i.getAttribute('role')==='presentation'||i.getAttribute('aria-hidden')==='true')return;var a=nm(i);if(a)i.setAttribute('alt',a)});
+  [].forEach.call(document.querySelectorAll('#page-product span'),function(sp){if(/^\(0 reviews\)$/.test(sp.textContent.trim())&&sp.parentElement)sp.parentElement.style.display='none'});
+ }
+ var q=false;function sched(){if(q)return;q=true;requestAnimationFrame(function(){q=false;run()})}
+ run();new MutationObserver(sched).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
