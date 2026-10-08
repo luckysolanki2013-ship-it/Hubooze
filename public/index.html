@@ -8055,5 +8055,212 @@ if (typeof origShow === 'function') {
 })();
 
 </script>
+<script>
+/* HUBOOZE SMART SEARCH v1 */
+(function(){
+if (window.__smartSearch) return;
+var SYN = [
+ ['dress','dresses','gown','frock','kurti','kurta'],
+ ['top','tops','tee','tees','tshirt','shirt','blouse'],
+ ['women','womens','woman','ladies','lady','girl','girls','female','mahila'],
+ ['men','mens','man','gents','boys','boy','male'],
+ ['bottle','bottles','flask','sipper','tumbler'],
+ ['decor','decoration','decorative','showpiece'],
+ ['macrame','boho','bohemian'],
+ ['bag','bags','purse','handbag','tote'],
+ ['shoe','shoes','footwear','sandal','sandals','chappal','joote','jute'],
+ ['food','snack','snacks','eatable','khana'],
+ ['handmade','handicraft','craft','artisan','desi','hastkala'],
+ ['kapde','kapda','clothes','clothing','apparel','garment','fashion'],
+ ['wall','hanging'],
+ ['eco','organic','sustainable','recycled','green']
+];
+var SYNMAP = {};
+SYN.forEach(function(g){ g.forEach(function(w){ (SYNMAP[w] = SYNMAP[w] || []).push.apply(SYNMAP[w], g.filter(function(x){return x!==w;})); }); });
+
+function norm(s){ return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ऀ-ॿ]+/g,' ').trim(); }
+function words(s){ var n = norm(s); return n ? n.split(' ') : []; }
+function stem(t){ if(t.length>4&&t.slice(-3)==='ies') return t.slice(0,-3)+'y'; if(t.length>3&&t.slice(-2)==='es') return t.slice(0,-2); if(t.length>3&&t.slice(-1)==='s') return t.slice(0,-1); return t; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function lev(a,b){
+  if(a===b) return 0; var la=a.length, lb=b.length; if(Math.abs(la-lb)>2) return 3;
+  var d=[],i,j; for(i=0;i<=la;i++){d[i]=[i];} for(j=0;j<=lb;j++){d[0][j]=j;}
+  for(i=1;i<=la;i++) for(j=1;j<=lb;j++){
+    var c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);
+  }
+  return d[la][lb];
+}
+function prepare(p, key){
+  var cat = p.cat||p.category||'';
+  return { p:p, key:p.id||key, name:norm(p.name), nameW:words(p.name), brand:norm(p.brand), brandW:words(p.brand),
+    cat:norm(cat), sub:norm(String(p.subcategory||'').replace(/_/g,' ')), type:norm(p.productType),
+    ids:norm((p.sku||'')+' '+(p.id||'')), desc:norm(String(p.description||'').slice(0,600)) };
+}
+function fieldScore(d, t, exactOnly){
+  var s = 0, i, w;
+  for(i=0;i<d.nameW.length;i++){ w=d.nameW[i]; if(w===t) s=Math.max(s,10); else if(!exactOnly&&w.indexOf(t)===0) s=Math.max(s,7); else if(!exactOnly&&t.length>2&&w.indexOf(t)>-1) s=Math.max(s,4); }
+  for(i=0;i<d.brandW.length;i++){ w=d.brandW[i]; if(w===t) s=Math.max(s,8); else if(!exactOnly&&w.indexOf(t)===0) s=Math.max(s,6); }
+  if(d.type.split(' ').some(function(x){return x===t||stem(x)===t;})) s=Math.max(s,6);
+  else if(!exactOnly&&d.type.indexOf(t)>-1) s=Math.max(s,4);
+  if(d.sub.split(' ').some(function(x){return x===t||stem(x)===t;})) s=Math.max(s,5);
+  else if(!exactOnly&&d.sub.indexOf(t)>-1) s=Math.max(s,3);
+  if(d.cat.split(' ').some(function(x){return x===t;})) s=Math.max(s,4);
+  if(t.length>2&&d.ids.indexOf(t)>-1) s=Math.max(s,6);
+  if(!exactOnly&&t.length>2&&d.desc.indexOf(t)>-1) s=Math.max(s,2);
+  return s;
+}
+function tokenScore(d, t, vocabSet){
+  var best = 0, vs = [t]; var st = stem(t); if(st!==t) vs.push(st);
+  var i; for(i=0;i<vs.length;i++) best = Math.max(best, fieldScore(d, vs[i], false));
+  if(best>0) return best;
+  var syns = (SYNMAP[t]||[]).concat(SYNMAP[st]||[]);
+  for(i=0;i<syns.length;i++) best = Math.max(best, fieldScore(d, syns[i], true)*0.7);
+  if(best>0) return best;
+  if(t.length>=4){
+    var maxd = t.length<=5?1:2, fw = d.nameW.concat(d.brandW, d.type.split(' '), d.sub.split(' '));
+    for(i=0;i<fw.length;i++){ var w=fw[i]; if(w.length>=3 && lev(t,w)<=maxd) { best = Math.max(best, 4); break; } }
+    if(best===0){ var keys=Object.keys(SYNMAP); for(var k=0;k<keys.length;k++){ if(keys[k].length>=4 && lev(t,keys[k])<=1){ var g=[keys[k]].concat(SYNMAP[keys[k]]); for(var m=0;m<g.length;m++) best=Math.max(best, fieldScore(d,g[m],true)*0.6); if(best>0) break; } } }
+  }
+  return best;
+}
+function search(PRODUCTS, rawQuery, catFilter){
+  var q = norm(rawQuery); if(!q) return {results:[],partial:false,tokens:[]};
+  var tokens = q.split(' '); if(tokens.length>1) tokens = tokens.filter(function(t){return t.length>1;}); if(!tokens.length) tokens=[q];
+  var docs = Object.keys(PRODUCTS).map(function(k){return prepare(PRODUCTS[k],k);});
+  if(catFilter && catFilter!=='all') docs = docs.filter(function(d){return d.cat.indexOf(catFilter)>-1;});
+  var scored = docs.map(function(d){
+    var total=0, matched=0;
+    tokens.forEach(function(t){ var s=tokenScore(d,t); if(s>0){matched++; total+=s;} });
+    if(!matched) return null;
+    var p=d.p, sc=total;
+    if(matched===tokens.length){ if(d.name.indexOf(q)>-1) sc+=15; if(d.name.indexOf(q)===0) sc+=10; }
+    sc += (Number(p.rating)||0)*0.4;
+    if(p.stock!=null && Number(p.stock)<=0) sc-=6;
+    return {d:d, score:sc, matched:matched};
+  }).filter(Boolean);
+  var full = scored.filter(function(x){return x.matched===tokens.length;});
+  var partial=false, use=full;
+  if(!full.length && scored.length){ use=scored; partial=true; }
+  use.sort(function(a,b){return b.score-a.score;});
+  return {results:use.map(function(x){return x.d.p;}), partial:partial, tokens:tokens};
+}
+function didYouMean(PRODUCTS, rawQuery){
+  var tokens = words(rawQuery).filter(function(t){return t.length>=3;}); if(!tokens.length) return null;
+  var vocab = {}; Object.keys(PRODUCTS).forEach(function(k){ var p=PRODUCTS[k];
+    words([p.name,p.brand,p.productType,String(p.subcategory||'').replace(/_/g,' '),p.cat||p.category].join(' ')).forEach(function(w){ if(w.length>=3) vocab[w]=1; }); });
+  var vw = Object.keys(vocab), changed=false;
+  var out = words(rawQuery).map(function(t){
+    if(t.length<3||vocab[t]||vocab[stem(t)]) return t;
+    var best=null, bd=99; vw.forEach(function(w){ var d=lev(t,w); if(d<bd){bd=d;best=w;} });
+    if(best && bd<=Math.max(1,Math.floor(t.length/3))){ changed=true; return best; } return t; });
+  return changed ? out.join(' ') : null;
+}
+function highlight(name, tokens){
+  var low = String(name).toLowerCase(), marks=[];
+  tokens.forEach(function(t){ if(t.length<2) return; var i=low.indexOf(t); while(i>-1){ marks.push([i,i+t.length]); i=low.indexOf(t,i+t.length); } });
+  if(!marks.length) return esc(name);
+  marks.sort(function(a,b){return a[0]-b[0];});
+  var merged=[marks[0]]; for(var i=1;i<marks.length;i++){ var m=merged[merged.length-1]; if(marks[i][0]<=m[1]) m[1]=Math.max(m[1],marks[i][1]); else merged.push(marks[i]); }
+  var out='', pos=0; merged.forEach(function(m){ out+=esc(name.slice(pos,m[0]))+'<b style="color:var(--green)">'+esc(name.slice(m[0],m[1]))+'</b>'; pos=m[1]; });
+  return out+esc(name.slice(pos));
+}
+window.__smartSearch = {norm:norm, search:search, didYouMean:didYouMean, lev:lev, highlight:highlight};
+if (typeof document === 'undefined' || !document.getElementById) return;
+
+/* ---------- UI ---------- */
+var inp = document.getElementById('searchInpEl'); if(!inp) return;
+var wrap = inp.parentNode; wrap.style.position='relative';
+var box = document.createElement('div'); box.id='ssBox';
+box.style.cssText='display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:var(--shadow-lg);z-index:99999;max-height:70vh;overflow-y:auto;';
+wrap.appendChild(box);
+var active=-1, items=[], lastResults=[], lastQuery='';
+function getCat(){ var s=wrap.querySelector('.search-cat'); var v=s?String(s.value||'all').toLowerCase():'all'; return v==='all'?'all':v; }
+function getStore(){ try{ return JSON.parse(localStorage.getItem('hbz_recent_search')||'[]'); }catch(e){ return []; } }
+function setStore(a){ try{ localStorage.setItem('hbz_recent_search', JSON.stringify(a.slice(0,6))); }catch(e){} }
+function addRecent(q){ q=q.trim(); if(!q) return; var a=getStore().filter(function(x){return x.toLowerCase()!==q.toLowerCase();}); a.unshift(q); setStore(a); }
+function hide(){ box.style.display='none'; active=-1; }
+function isImg(s){ return typeof s==='string' && /^(https?:)?\/|^data:image/.test(s); }
+function thumb(p){ var im = p.image || (p.images&&p.images[0]);
+  if(isImg(im)) return '<img src="'+esc(im)+'" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--bg4)">';
+  return '<div style="width:40px;height:40px;border-radius:6px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+esc(p.icon||'🛍')+'</div>'; }
+function rowStyle(){ return 'display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;color:var(--text);font-size:13.5px;'; }
+function render(){
+  var q = inp.value.trim(); items=[]; var html='';
+  if(!q){
+    var rec = getStore(); if(!rec.length){ hide(); return; }
+    html += '<div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:11.5px;color:var(--text3)"><span>Recent searches</span><a href="#" data-clear="1" style="color:var(--text2)">Clear</a></div>';
+    rec.forEach(function(r){ items.push({type:'q',q:r}); html += '<div class="ss-it" data-i="'+(items.length-1)+'" style="'+rowStyle()+'"><span style="color:var(--text3)">🕒</span><span>'+esc(r)+'</span></div>'; });
+  } else {
+    var res = search(PRODUCTS, q, getCat()), toks = res.tokens;
+    var seen={}, qs=[]; res.results.slice(0,30).forEach(function(p){ [p.productType, String(p.subcategory||'').replace(/_/g,' ')].forEach(function(v){ if(v&&!seen[v.toLowerCase()]&&qs.length<3){ seen[v.toLowerCase()]=1; qs.push(v); } }); });
+    if(res.results.length){
+      qs.forEach(function(v){ items.push({type:'q',q:v}); html += '<div class="ss-it" data-i="'+(items.length-1)+'" style="'+rowStyle()+'"><span style="color:var(--text3)">🔍</span><span>'+esc(v)+'</span></div>'; });
+      res.results.slice(0,5).forEach(function(p){ items.push({type:'p',id:p.id||p._id,q:p.name});
+        html += '<div class="ss-it" data-i="'+(items.length-1)+'" style="'+rowStyle()+'">'+thumb(p)+'<div style="flex:1;min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+highlight(String(p.name||''),toks)+'</div><div style="font-size:12px;color:var(--text2)">'+esc(p.brand||'')+'</div></div><div style="font-weight:700;white-space:nowrap">₹'+esc(Number(p.price||0).toLocaleString('en-IN'))+'</div></div>'; });
+      items.push({type:'q',q:q}); html += '<div class="ss-it" data-i="'+(items.length-1)+'" style="'+rowStyle()+'border-top:1px solid var(--border);color:var(--green)">See all '+res.results.length+' results for "'+esc(q)+'" →</div>';
+    } else {
+      var dm = didYouMean(PRODUCTS,q);
+      if(dm){ items.push({type:'q',q:dm}); html += '<div class="ss-it" data-i="0" style="'+rowStyle()+'"><span style="color:var(--text3)">🔍</span><span>Did you mean <b style="color:var(--green)">'+esc(dm)+'</b>?</span></div>'; }
+      else html += '<div style="padding:12px;font-size:13px;color:var(--text2)">No matches yet — press Enter to search anyway</div>';
+    }
+  }
+  box.innerHTML = html; box.style.display='block'; active=-1;
+}
+function mark(){ var els=box.querySelectorAll('.ss-it'); for(var i=0;i<els.length;i++) els[i].style.background = (i===active)?'var(--bg4)':''; }
+function choose(i){ var it=items[i]; if(!it) return; hide();
+  if(it.type==='p' && typeof openProduct==='function'){ addRecent(it.q); openProduct(it.id); }
+  else { inp.value=it.q; window.doSearch(); } }
+var t=null; inp.addEventListener('input', function(){ clearTimeout(t); t=setTimeout(render,110); });
+inp.addEventListener('focus', render);
+inp.addEventListener('keydown', function(e){
+  var vis = box.style.display!=='none', n=box.querySelectorAll('.ss-it').length;
+  if(e.key==='ArrowDown'&&vis&&n){ e.preventDefault(); active=(active+1)%n; mark(); }
+  else if(e.key==='ArrowUp'&&vis&&n){ e.preventDefault(); active=(active-1+n)%n; mark(); }
+  else if(e.key==='Enter'&&vis&&active>-1){ e.preventDefault(); choose(active); }
+  else if(e.key==='Escape'){ hide(); }
+});
+box.addEventListener('mousedown', function(e){ e.preventDefault(); });
+box.addEventListener('click', function(e){
+  var c=e.target.closest&&e.target.closest('[data-clear]'); if(c){ e.preventDefault(); setStore([]); hide(); return; }
+  var el=e.target.closest&&e.target.closest('.ss-it'); if(el) choose(+el.getAttribute('data-i'));
+});
+document.addEventListener('click', function(e){ if(!wrap.contains(e.target)) hide(); });
+
+function removeSort(){ var s=document.getElementById('ssSortWrap'); if(s&&s.parentNode) s.parentNode.removeChild(s); }
+if (typeof window.renderCatProducts==='function'){ var _rcp=window.renderCatProducts; window.renderCatProducts=function(){ removeSort(); return _rcp.apply(this,arguments); }; }
+
+window.doSearch = function(){
+  var raw = (inp.value||'').trim(); hide(); if(!raw) return; addRecent(raw);
+  var res = search(PRODUCTS, raw, getCat()), results = res.results; lastResults=results.slice(); lastQuery=raw;
+  showPage('categories'); catTabActive='all'; renderCategoriesPage(); renderGrid('catProductsEl', results);
+  var shown = raw.replace(/[<>&"]/g,'');
+  var label = results.length + (results.length===1?' result':' results') + ' for "' + shown + '"' + (res.partial?' (closest matches)':'');
+  ss('prodCountEl', label, false);
+  var grid = document.getElementById('catProductsEl');
+  if(!results.length){
+    var dm = didYouMean(PRODUCTS, raw);
+    if(dm && grid){ var d=document.createElement('div'); d.style.cssText='grid-column:1/-1;text-align:center;padding-bottom:30px;font-size:14px;color:var(--text2)';
+      d.innerHTML='Did you mean <a href="#" style="color:var(--green);font-weight:700" id="ssDym">'+esc(dm)+'</a>?'; grid.appendChild(d);
+      document.getElementById('ssDym').onclick=function(ev){ ev.preventDefault(); inp.value=dm; window.doSearch(); }; }
+    return;
+  }
+  var cnt=document.getElementById('prodCountEl');
+  if(cnt && cnt.parentNode && results.length>1){
+    var w=document.createElement('span'); w.id='ssSortWrap'; w.style.cssText='margin-left:12px;font-size:12px;color:var(--text2)';
+    w.innerHTML='Sort: <select id="ssSort" style="background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;font-family:inherit"><option value="rel">Relevance</option><option value="pa">Price: low to high</option><option value="pd">Price: high to low</option><option value="rt">Rating</option></select>';
+    cnt.parentNode.insertBefore(w, cnt.nextSibling);
+    document.getElementById('ssSort').onchange=function(){ var a=lastResults.slice(), v=this.value;
+      if(v==='pa') a.sort(function(x,y){return (x.price||0)-(y.price||0);}); else if(v==='pd') a.sort(function(x,y){return (y.price||0)-(x.price||0);}); else if(v==='rt') a.sort(function(x,y){return (y.rating||0)-(x.rating||0);});
+      renderGrid('catProductsEl', a); };
+  }
+};
+var sb = wrap.querySelector('.search-btn'); if(sb) sb.setAttribute('onclick','doSearch()');
+inp.removeAttribute('onkeypress');
+inp.addEventListener('keypress', function(e){ if(e.key==='Enter'&&active<0) window.doSearch(); });
+})();
+
+</script>
 </body>
 </html>
