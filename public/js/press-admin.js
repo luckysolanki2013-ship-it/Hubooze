@@ -96,7 +96,7 @@
   function ensureTab() {
     wrap();
     var root = document.getElementById('adminContentEl') || document;
-    var btns = root.querySelectorAll('button[onclick^="switchAdminTab("]');
+    var btns = root.querySelectorAll('button[onclick^="adminSwitchTab("], button[onclick^="switchAdminTab("]');
     if (!btns.length) return;
     var bar = btns[0].parentNode;
     if (bar.querySelector('[data-press-tab]')) return;
@@ -105,15 +105,16 @@
       if (btns[i].getAttribute('onclick').indexOf("'" + window.adminTabActive + "'") < 0) { tpl = btns[i]; break; }
     }
     if (!tpl) tpl = btns[0];
+    var fn = (tpl.getAttribute('onclick').match(/^(\w+)\(/) || [0, 'adminSwitchTab'])[1];
     var b = tpl.cloneNode(true);
     b.setAttribute('data-press-tab', '1');
-    b.setAttribute('onclick', "switchAdminTab('press')");
+    b.setAttribute('onclick', fn + "('press')");
     b.innerHTML = '&#128240; Press';
     if (window.adminTabActive === 'press') {
-      b.className = (b.className + ' active').trim();
-      b.style.background = 'linear-gradient(135deg,#a855f7,#6366f1)';
-      b.style.color = '#fff';
-      b.style.borderColor = 'transparent';
+      b.style.borderColor = 'var(--green)';
+      b.style.background = 'var(--green)';
+      b.style.color = '#000';
+      b.style.fontWeight = '700';
     }
     bar.appendChild(b);
   }
