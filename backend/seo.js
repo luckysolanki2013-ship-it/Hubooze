@@ -33,12 +33,46 @@ async function allProducts() {
   return prodCache.list;
 }
 
+// ---------- description quality: auto-clean + fallback ----------
+const STOP = new Set(['for','with','and','the','from','pack','set','pcs','new','best','your','you','are','this','that','all','size','free']);
+function foldWords(t) {
+  return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().split(' ')
+    .map(w => (w.length > 4 && w.slice(-3) === 'ies') ? w.slice(0, -3) + 'y' : (w.length > 3 && w.slice(-2) === 'es') ? w.slice(0, -2) : (w.length > 3 && w.slice(-1) === 's') ? w.slice(0, -1) : w)
+    .filter(w => w.length >= 3 && !STOP.has(w));
+}
+function cleanText(t) {
+  return String(t == null ? '' : t).replace(/<[^>]*>/g, ' ').replace(/[\p{Extended_Pictographic}️‍]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+function nameHits(p, d) {
+  const nameW = Array.from(new Set(foldWords(p.name)));
+  const descSet = new Set(foldWords(d));
+  return { total: nameW.length, hit: nameW.filter(w => descSet.has(w)).length };
+}
+function descriptionIssue(p) {
+  const d = cleanText(p.description);
+  if (!d) return 'missing';
+  if (d.length < 40) return 'too short';
+  const m = nameHits(p, d);
+  if (m.total >= 3 && m.hit < 2 && m.hit / m.total < 0.25) return 'does not match product name';
+  return null;
+}
+function seoDescription(p) {
+  const issue = descriptionIssue(p);
+  const d = cleanText(p.description);
+  if (!issue) return d;
+  const brand = p.brand && String(p.brand).toLowerCase() !== 'hubooze' ? ' by ' + String(p.brand).replace(/_/g, ' ') : '';
+  const lead = cleanText(p.name) + brand + '.' + (p.productType ? ' Category: ' + p.productType + '.' : '');
+  // thin but not contradictory (never mentions the product name): keep the seller's details after a clean lead
+  if (issue === 'does not match product name' && nameHits(p, d).hit === 0) return (lead + ' ' + d).slice(0, 900);
+  return lead + ' Buy online at Hubooze with 90-day free returns and instant refunds.';
+}
+
 function buildHtml(p) {
   const url = productUrl(p);
   const brand = p.brand || 'Hubooze';
   const imgs = [p.image].concat(p.images || []).map(absImg).filter(Boolean);
   const imgList = imgs.filter((v, i) => imgs.indexOf(v) === i).slice(0, 5);
-  const plain = String(p.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const plain = seoDescription(p);
   const title = (String(p.name).length > 55 ? String(p.name).slice(0, 52).trim() + '...' : p.name) + ' | Hubooze';
   const desc = (plain ? plain : 'Buy ' + p.name + ' by ' + brand + ' online at Hubooze.')
     .slice(0, 150).trim() + ' Rs.' + p.price + '. 90-day free returns.';
@@ -139,7 +173,7 @@ function buildFeed(products) {
   const items = (products || []).filter(isLive).map(p => {
     const img = absImg(p.image) || absImg((p.images || [])[0]);
     if (!img || !(Number(p.price) > 0)) return '';
-    const plain = String(p.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const plain = seoDescription(p);
     const inStock = p.stock == null || Number(p.stock) > 0;
     return '<item>'
       + '<g:id>' + xesc(p.id) + '</g:id><title>' + xesc(String(p.name).slice(0, 150)) + '</title>'
@@ -180,4 +214,4 @@ function mount(app) {
     try { res.set('Cache-Control', 'public, max-age=300').type('application/xml').send(buildFeed(await allProducts())); } catch (e) { next(); }
   });
 }
-module.exports = { buildCategoryHtml, categoryUrls, groups, mount, productPath, productUrl, slugify, isLive, buildHtml };
+module.exports = { descriptionIssue, seoDescription, buildCategoryHtml, categoryUrls, groups, mount, productPath, productUrl, slugify, isLive, buildHtml };
