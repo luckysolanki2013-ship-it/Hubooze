@@ -3,7 +3,7 @@
  */
 const mongoose = require('mongoose');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Lucky:Hubooze@atlascluster.mjgrzvm.mongodb.net/hubooze?retryWrites=true&w=majority&appName=AtlasCluster';
+const MONGO_URI = process.env.MONGO_URI;
 
 let isConnected = false;
 
