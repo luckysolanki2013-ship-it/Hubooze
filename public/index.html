@@ -1408,9 +1408,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
             <button class="portal-btn" style="background:linear-gradient(135deg,#ff4d4d,#ff6b35);color:#fff">
               Admin Panel &#8594;
             </button>
-            <div class="portal-demo" onclick="event.stopPropagation();quickLogin('admin')">
-              Demo: tap to login as admin
-            </div>
           </div>
 
         </div>
@@ -1588,8 +1585,6 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
           <div class="form-field"><label class="form-label">Admin Password</label>
             <input class="form-input portal-input" id="aLoginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
           <button class="btn-grad portal-submit" style="background:linear-gradient(135deg,#ff4d4d,#ff6b35)" onclick="doAdminLogin()">&#9878; Access Admin Panel &#8594;</button>
-          <div class="portal-divider"><span>or try demo</span></div>
-          <button class="portal-demo-btn" style="border-color:rgba(255,77,77,.3);color:var(--red)" onclick="quickLogin('admin')">&#9878; Login as Demo Admin</button>
         </div>
       </div>
 
@@ -3048,7 +3043,6 @@ updateCartBadge(false);
 var DEMO_USERS = {
   '': {id:'u1', name:'Priya Sharma', email:'', phone:'9999999999', city:'Indore', password:'', role:'customer'},
   '':  {id:'u2', name:'Amit Kumar',   email:'',  phone:'8888888888', city:'Pithampur', password:'', role:'seller', businessName:'AK Textiles'},
-  'admin@hubooze.in':{id:'u3',name:'Admin User',   email:'admin@hubooze.in',phone:'7777777777',city:'Indore', password:'admin123', role:'admin'}
 };
 
 var currentUser = null;
@@ -3166,7 +3160,7 @@ function updateHeaderAuth() {
 }
 
 function fillDemo(type) {
-  var map = {customer:{e:'',p:''}, seller:{e:'',p:''}, admin:{e:'admin@hubooze.in',p:'admin123'}};
+  var map = {customer:{e:'',p:''}, seller:{e:'',p:''}, admin:{e:'',p:''}};
   var d = map[type]; if (!d) return;
   var ei = document.getElementById('loginEmail'); if(ei) ei.value = d.e;
   var pi = document.getElementById('loginPass');  if(pi) pi.value = d.p;
@@ -3253,7 +3247,7 @@ function quickLogin(type) {
   var map = {
     customer:{email:'',password:''},
     seller:{email:'',password:''},
-    admin:{email:'admin@hubooze.in',password:'admin123'}
+    admin:{email:'',password:''}
   };
   var c = map[type]; if (!c) return;
   openPortal(type);

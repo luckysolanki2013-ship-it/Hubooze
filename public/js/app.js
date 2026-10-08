@@ -154,7 +154,7 @@ function quickLogin(type) {
   var map = {
     customer: {email:'priya@demo.com',   password:'demo123'},
     seller:   {email:'amit@demo.com',    password:'demo123'},
-    admin:    {email:'admin@hubooze.in', password:'admin123'}
+    admin:    {email:'', password:''}
   };
   var c = map[type]; if (!c) return;
   openPortal(type);
@@ -194,7 +194,7 @@ async function _adminPanelRender() {
   var el = document.getElementById('adminContentEl');
   if (!el) return;
   if (!currentUser) { el.innerHTML = typeof adminGate==='function' ? adminGate('&#9878;','Admin Access Required','Please login with admin credentials.','Login',"showPage('account')") : '<p>Please login</p>'; return; }
-  if (currentUser.role !== 'admin') { el.innerHTML = typeof adminGate==='function' ? adminGate('&#128683;','Access Denied','Use: admin@hubooze.in / admin123','Switch Account',"showPage('account')") : '<p>Admin only</p>'; return; }
+  if (currentUser.role !== 'admin') { el.innerHTML = typeof adminGate==='function' ? adminGate('&#128683;','Access Denied','This area is for administrators only.','Switch Account',"showPage('account')") : '<p>Admin only</p>'; return; }
   el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3)">Loading admin data...</div>';
   var stats = await tryAPI(function(){ return api.getAdminStats(); }, function(){ return typeof computeAdminStats==='function'?computeAdminStats():{totalOrders:0,totalRevenue:0,totalUsers:0,totalReturns:0}; }) || {};
   var statsHtml = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">'
