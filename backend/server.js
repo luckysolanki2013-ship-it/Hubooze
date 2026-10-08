@@ -16,7 +16,7 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(apiLimiter);
+app.use('/api', apiLimiter);
 
 // Static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
