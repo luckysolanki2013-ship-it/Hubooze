@@ -48,7 +48,7 @@ app.get('/sitemap.xml', async (req, res) => {
     products.filter(p => require('./seo').isLive(p)).forEach(p => {
       urls.push(`<url><loc>${require('./seo').productUrl(p)}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
     });
-    require('./seo').categoryUrls(products).forEach(u => urls.push(u));
+    { const _cu = require('./seo').categoryUrls(products); _cu.concat(require('./press').sitemapExtra(_cu)).forEach(u => urls.push(u)); }
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
     res.header('Content-Type', 'application/xml');
     res.send(xml);
@@ -82,6 +82,7 @@ app.use('/api', (req, res) =>
 );
 
 // SEO product pages
+require('./press').mount(app);
 require('./seo').mount(app);
 
 // Serve frontend
