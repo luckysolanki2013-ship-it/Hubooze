@@ -975,6 +975,18 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
   .bc-link,.see-all,.portal-back-btn{padding-top:10px!important;padding-bottom:10px!important;margin-top:-10px!important;margin-bottom:-10px!important;display:inline-block;}
 }
 </style>
+<style id="hubooze-sticky-v1">
+#hbStickyBar{display:none}
+@media (max-width:768px){
+#hbStickyBar{position:fixed;left:0;right:0;bottom:64px;z-index:1100;display:flex;gap:8px;align-items:center;padding:8px 12px;background:rgba(14,14,14,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);transform:translateY(130%);transition:transform .25s;pointer-events:none}
+#hbStickyBar.on{transform:none;pointer-events:auto}
+#hbStickyBar .hbs-p{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:0 0 auto}
+#hbStickyBar .hbs-p b{font-size:17px;color:var(--text)}
+#hbStickyBar .hbs-p s{font-size:11px;color:var(--text2)}
+#hbStickyBar button{flex:1;min-height:44px;padding:8px 6px;font-size:13px;border-radius:10px;line-height:1.2}
+body.hb-sticky-on .wa-fab,body.hb-sticky-on .theme-toggle-btn,body.hb-sticky-on .tone-bar{display:none!important}
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
@@ -8369,6 +8381,31 @@ inp.addEventListener('keypress', function(e){ if(e.key==='Enter'&&active<0) wind
  }
  var q=false;function sched(){if(q)return;q=true;requestAnimationFrame(function(){q=false;run()})}
  run();new MutationObserver(sched).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+<script>/* hubooze-sticky-v1 */
+(function(){
+var bar=document.createElement('div');bar.id='hbStickyBar';bar.innerHTML='<div class="hbs-p"><b></b><s></s></div><button class="btn-ghost" type="button" data-k="c"></button><button class="btn-grad" type="button" data-k="b"></button>';document.body.appendChild(bar);
+var io=null,orig={};
+function pg(){return document.getElementById('page-product')}
+function active(){var p=pg();return !!p&&p.offsetParent!==null}
+function hook(){
+ if(io){io.disconnect();io=null}
+ bar.classList.remove('on');document.body.classList.remove('hb-sticky-on');
+ if(!active())return;
+ var c=pg().querySelector('button[onclick^="addToCart("]:not([onclick*="openCart"])');
+ var b=pg().querySelector('button[onclick^="addToCart("][onclick*="openCart"]');
+ if(!c||!b)return;orig={c:c,b:b};
+ var P=typeof currentProduct!=='undefined'&&currentProduct;
+ if(P&&P.price){bar.querySelector('b').textContent='\u20B9'+P.price.toLocaleString('en-IN');bar.querySelector('s').textContent=(P.orig&&P.orig>P.price)?'\u20B9'+P.orig.toLocaleString('en-IN'):''}
+ bar.querySelector('[data-k=c]').textContent=c.textContent.trim();bar.querySelector('[data-k=b]').textContent=b.textContent.trim();
+ io=new IntersectionObserver(function(es){var e=es[0];var show=!e.isIntersecting&&e.boundingClientRect.top>0;bar.classList.toggle('on',show);document.body.classList.toggle('hb-sticky-on',show)},{threshold:0,rootMargin:'0px 0px -64px 0px'});
+ io.observe(c.parentElement);
+}
+bar.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;var o=orig[t.getAttribute('data-k')];if(o&&o.isConnected)o.click()});
+var q=false,last='';function sched(){if(q)return;q=true;requestAnimationFrame(function(){q=false;var key=(active()?'1':'0')+(typeof currentProduct!=='undefined'&&currentProduct?currentProduct.id:'');if(key!==last){last=key;hook()}})}
+new MutationObserver(sched).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+hook();
 })();
 </script>
 </body>
