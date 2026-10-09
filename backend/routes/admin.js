@@ -271,7 +271,7 @@ router.put('/legal-pages', protect, requireAdmin, async (req, res) => {
 });
 
 // COUPONS (persisted in MongoDB)
-router.get('/coupons', async (req, res) => {
+router.get('/coupons', protect, requireAdmin, async (req, res) => {
   try {
     let doc = await Models.Settings.findOne({ key: 'coupons' }).lean();
     res.json({ coupons: doc ? doc.data : {} });

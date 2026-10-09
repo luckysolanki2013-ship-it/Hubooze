@@ -215,16 +215,28 @@ router.get('/admin/all', protect, requireAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// POST /api/orders/validate-coupon
-router.post('/validate-coupon', protect, async (req, res) => {
-  const { code, subtotal } = req.body;
-  const liveCoupons = await getLiveCoupons();
-  const coupon = liveCoupons[code?.toUpperCase()];
-  if (!coupon || coupon.active === false) return res.status(400).json({ error: 'Invalid coupon code.' });
-  if (coupon.maxUses != null && (coupon.usedCount || 0) >= coupon.maxUses) return res.status(400).json({ error: 'This coupon has reached its usage limit.' });
-  if (subtotal < (coupon.min || 0)) return res.status(400).json({ error: `Minimum order ₹${coupon.min} required for this coupon.` });
-  const discount = coupon.type === 'flat' ? Math.min(coupon.value, subtotal) : Math.round(subtotal * coupon.value / 100);
-  res.json({ valid: true, discount, code: code.toUpperCase(), scope: coupon.scope, scopeValue: coupon.scopeValue });
+// POST /api/orders/validate-coupon — public + rate-limited; returns ONLY the one coupon asked for (never the list)
+const _couponRL = require('express-rate-limit');
+const couponLimiter = _couponRL({
+  windowMs: 15 * 60 * 1000, max: 40,
+  message: { error: 'Too many attempts. Please try again in a few minutes.' },
+});
+router.post('/validate-coupon', couponLimiter, async (req, res) => {
+  try {
+    const code = String((req.body && req.body.code) || '').trim().toUpperCase().slice(0, 40);
+    const subtotal = Number(req.body && req.body.subtotal) || 0;
+    const liveCoupons = await getLiveCoupons();
+    const coupon = (code && Object.prototype.hasOwnProperty.call(liveCoupons, code)) ? liveCoupons[code] : null;
+    if (!coupon || coupon.active === false) return res.status(400).json({ error: 'Invalid coupon code.' });
+    if (coupon.maxUses != null && (coupon.usedCount || 0) >= coupon.maxUses) return res.status(400).json({ error: 'This coupon has reached its usage limit.' });
+    if (subtotal < (coupon.min || 0)) return res.status(400).json({ error: 'Minimum order ₹' + coupon.min + ' required for this coupon.' });
+    const discount = coupon.type === 'flat' ? Math.min(coupon.value, subtotal) : Math.round(subtotal * coupon.value / 100);
+    res.json({
+      valid: true, discount, code,
+      scope: coupon.scope, scopeValue: coupon.scopeValue,
+      coupon: { type: coupon.type, value: coupon.value, min: coupon.min || 0, desc: coupon.desc || '', scope: coupon.scope || 'all', scopeValue: coupon.scopeValue || '', scopeValues: coupon.scopeValues || [] },
+    });
+  } catch (e) { res.status(500).json({ error: 'Could not check coupon.' }); }
 });
 
 // PATCH /api/orders/:id/waybill — attach Delhivery tracking number (admin/seller)

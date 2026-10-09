@@ -9,7 +9,7 @@ async function renderAdminCoupons(el, headers) {
     + '</div>';
 
   try {
-    var r = await fetch('/api/admin/coupons');
+    var r = await fetch('/api/admin/coupons', {headers:{'Authorization':'Bearer '+localStorage.getItem('hb_token')}});
     var d = await r.json();
     var coupons = d.coupons || {};
     var listEl = document.getElementById('couponsListEl');
@@ -37,7 +37,7 @@ async function renderAdminCoupons(el, headers) {
 async function openCouponEditor(code) {
   var current = {code:'', type:'percent', value:'', min:'', desc:'', scope:'all', scopeValue:'', scopeValues:[], maxUses:''};
   if (code) {
-    var r = await fetch('/api/admin/coupons');
+    var r = await fetch('/api/admin/coupons', {headers:{'Authorization':'Bearer '+localStorage.getItem('hb_token')}});
     var d = await r.json();
     if (d.coupons && d.coupons[code]) current = Object.assign({code:code}, d.coupons[code]);
   }
@@ -638,7 +638,7 @@ function renderAdminSettings(el, promo, headers) {
     + adminSettingField('Free Delivery Above', 's_freeDelivery', promo.freeDeliveryMin||499, 'number', '₹')
     + adminSettingField('Return Window (Days)', 's_returnDays', promo.returnWindowDays||90, 'number', '')
     + adminSettingField('Default Commission %', 's_commission', promo.defaultCommission||10, 'number', '')
-    + adminSettingField('Delivery Fee', 's_deliveryFee', promo.deliveryFee||49, 'number', '₹')
+    + adminSettingField('Delivery Fee', 's_deliveryFee', (promo.deliveryFee!==undefined&&promo.deliveryFee!==null?promo.deliveryFee:49), 'number', '₹')
     + '</div>'
     + '<button onclick="saveStoreSettings()" class="btn-grad" style="margin-top:14px;padding:9px 22px">Save Store Settings</button>'
     + '</div>'
