@@ -993,6 +993,20 @@ body.hb-sticky-on .wa-fab,body.hb-sticky-on .theme-toggle-btn,body.hb-sticky-on 
 #hbStickyBar.on{visibility:visible;opacity:1;transform:none;transition:transform .25s,opacity .25s,visibility 0s}
 }
 </style>
+<style id="hubooze-guest-v1">
+#hbGuest{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.78)}
+#hbGuest.open{display:flex}
+#hbGuest .gbox{width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#hbGuest h3{margin:0 0 4px;font-size:1.15rem;color:var(--text)}
+#hbGuest .gsub{margin:0 0 14px;font-size:13px;color:var(--text2)}
+#hbGuest label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin:10px 0 4px}
+#hbGuest input{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text)}
+#hbGuest input:focus{outline:2px solid var(--green);outline-offset:1px}
+#hbGuest .gbtn{width:100%;margin-top:16px;padding:13px;font-size:15px;border-radius:10px;min-height:46px}
+#hbGuest .glink{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--text2);background:none;border:0;cursor:pointer;width:100%;padding:8px}
+#hbGuest .glink b{color:var(--green)}
+#hbGuest .gx{float:right;background:none;border:0;color:var(--text2);font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;margin:-8px -8px 0 0}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
@@ -8412,6 +8426,59 @@ bar.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)
 var q=false,last='';function sched(){if(q)return;q=true;requestAnimationFrame(function(){q=false;var key=(active()?'1':'0')+(typeof currentProduct!=='undefined'&&currentProduct?currentProduct.id:'');if(key!==last){last=key;hook()}})}
 new MutationObserver(sched).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
 hook();
+})();
+</script>
+<script>/* hubooze-guest-v1 */
+(function(){
+ var orig = window.proceedToCheckout;
+ if (typeof orig !== 'function') return;
+ var box = document.createElement('div');
+ box.id = 'hbGuest'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Guest checkout');
+ box.innerHTML = '<div class="gbox"><button type="button" class="gx" aria-label="Close" data-a="x">&times;</button>'
+  + '<h3>Bina account ke order karein</h3><p class="gsub">Sirf naam aur mobile number. Order updates isi number par aayenge.</p>'
+  + '<form id="hbGuestForm" novalidate>'
+  + '<label for="hbgName">Aapka naam</label><input id="hbgName" autocomplete="name" maxlength="60" required>'
+  + '<label for="hbgPhone">Mobile number</label><input id="hbgPhone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14" placeholder="10 digit number" required>'
+  + '<label for="hbgEmail">Email (optional)</label><input id="hbgEmail" type="email" autocomplete="email" maxlength="120" placeholder="order ki receipt ke liye">'
+  + '<button type="submit" class="btn-grad gbtn" id="hbgGo">Aage badhein &#8594;</button></form>'
+  + '<button type="button" class="glink" data-a="login">Pehle se account hai? <b>Login karein</b></button></div>';
+ document.body.appendChild(box);
+ function open(){ box.classList.add('open'); setTimeout(function(){ var n = document.getElementById('hbgName'); if (n) n.focus(); }, 50); }
+ function close(){ box.classList.remove('open'); }
+ box.addEventListener('click', function(e){
+  if (e.target === box) return close();
+  var a = e.target.closest('[data-a]'); if (!a) return;
+  if (a.getAttribute('data-a') === 'x') close();
+  if (a.getAttribute('data-a') === 'login') { close(); try { closeCart(); } catch(_) {} showPage('account'); }
+ });
+ document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+ document.getElementById('hbGuestForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('hbgName').value.trim();
+  var phone = document.getElementById('hbgPhone').value.replace(/\D/g, '').slice(-10);
+  var email = document.getElementById('hbgEmail').value.trim();
+  if (name.length < 2) { showToast('Apna naam likhein', 'error'); return; }
+  if (!/^[6-9][0-9]{9}$/.test(phone)) { showToast('Sahi 10 digit mobile number likhein', 'error'); return; }
+  var btn = document.getElementById('hbgGo'); btn.disabled = true; btn.textContent = 'Please wait...';
+  fetch('/api/auth/guest', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: name, phone: phone, email: email}) })
+  .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, d: d}; }); })
+  .then(function(res){
+   btn.disabled = false; btn.innerHTML = 'Aage badhein &#8594;';
+   if (!res.ok || !res.d.token) { showToast(res.d.error || 'Kuch gadbad hui, dobara try karein', 'error'); return; }
+   try { localStorage.setItem('hb_token', res.d.token); localStorage.setItem('token', res.d.token); localStorage.setItem('hb_session', JSON.stringify(res.d.user)); } catch(_) {}
+   currentUser = res.d.user;
+   if (window.api) window.api.token = res.d.token;
+   try { updateHeaderAuth(); } catch(_) {}
+   try { renderNav(); } catch(_) {}
+   close();
+   orig.apply(window, []);
+  })
+  .catch(function(){ btn.disabled = false; btn.innerHTML = 'Aage badhein &#8594;'; showToast('Server se connect nahi ho paya', 'error'); });
+ });
+ window.proceedToCheckout = function(){
+  if (typeof cartItems !== 'undefined' && cartItems.length && !currentUser) { open(); return; }
+  return orig.apply(this, arguments);
+ };
 })();
 </script>
 </body>

@@ -35,6 +35,9 @@ router.get('/:id', protect, async (req, res) => {
   try {
     const order = await dba.findOrder(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found.' });
+    const _uid = getCustomUserId(req);
+    const _sellerOk = req.user.role === 'seller' && (order.items || []).some(it => it.sellerId === _uid);
+    if (order.userId !== _uid && req.user.role !== 'admin' && !_sellerOk) return res.status(403).json({ error: 'Not authorized.' });
     res.json({ order });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

@@ -75,6 +75,38 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 });
 
+// HUBOOZE GUEST v1 — guest checkout: creates a throwaway customer account (never logs into an existing one)
+const _rateLimit = require('express-rate-limit');
+const guestLimiter = _rateLimit({
+  windowMs: 60 * 60 * 1000, max: 30,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+router.post('/guest', guestLimiter, async (req, res) => {
+  try {
+    const name  = String((req.body && req.body.name) || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const phone = String((req.body && req.body.phone) || '').replace(/\D/g, '').slice(-10);
+    let email   = String((req.body && req.body.email) || '').trim().toLowerCase().slice(0, 120);
+    if (name.length < 2) return res.status(400).json({ error: 'Please enter your name.' });
+    if (!/^[6-9]\d{9}$/.test(phone)) return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number.' });
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    // Never attach a guest to an existing account: if the email is taken or invalid, use a placeholder instead.
+    if (!emailOk || await dba.findUser({ email })) {
+      email = 'guest_' + phone + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) + '@guest.hubooze.in';
+    }
+    const hashed = await bcrypt.hash(require('crypto').randomBytes(24).toString('hex'), 10);
+    const saved = await dba.createUser({
+      id: 'u_' + Date.now() + Math.random().toString(36).slice(2, 5),
+      name, email, phone, password: hashed, city: '', role: 'customer', isGuest: true,
+      addresses: [], wishlist: [], notifPrefs: {}, createdAt: new Date().toISOString(),
+    });
+    const token = signToken(saved);
+    const { password: _, ...safeUser } = saved;
+    res.status(201).json({ token, user: safeUser, message: 'Guest session started.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not start guest checkout.' });
+  }
+});
+
 // POST /api/auth/send-otp
 router.post('/send-otp', otpLimiter, async (req, res) => {
   try {
@@ -88,8 +120,7 @@ router.post('/send-otp', otpLimiter, async (req, res) => {
     await dba.updateUser(user.id, { otp: { code: otp, expiresAt } });
 
     // In production: send via email/WhatsApp using notifications util
-    console.log(`🔐 OTP for ${email}: ${otp}`);
-    res.json({ message: 'OTP sent to your email and WhatsApp.', otp_dev: otp }); // remove otp_dev in prod
+    res.json({ message: 'OTP sent to your email and WhatsApp.' }); // remove otp_dev in prod
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
