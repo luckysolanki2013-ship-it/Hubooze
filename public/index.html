@@ -987,6 +987,12 @@ html { overflow-y: scroll; scrollbar-gutter: stable; }
 body.hb-sticky-on .wa-fab,body.hb-sticky-on .theme-toggle-btn,body.hb-sticky-on .tone-bar{display:none!important}
 }
 </style>
+<style id="hubooze-sticky-v2">
+@media (max-width:768px){
+#hbStickyBar{visibility:hidden;opacity:0;transform:translateY(100%);transition:transform .25s,opacity .25s,visibility 0s .25s}
+#hbStickyBar.on{visibility:visible;opacity:1;transform:none;transition:transform .25s,opacity .25s,visibility 0s}
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
