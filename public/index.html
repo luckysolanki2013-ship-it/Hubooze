@@ -32,14 +32,89 @@
 <meta name="twitter:title" content="Hubooze - Shop. Return. Recycle.">
 <meta name="twitter:description" content="India's return-to-recycle marketplace. 90-day free returns, instant refunds, free delivery above Rs.499.">
 <meta name="twitter:image" content="https://hubooze.in/uploads/og-image.jpg">
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-8EEDCVW2RC"></script>
+<!-- HUBOOZE COOKIES -->
+<style>
+#hbck{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:99999;max-width:560px;margin:0 auto;background:#181818;color:#f5f5f5;border:1px solid #383838;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5);padding:16px 18px;font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+#hbck .hbck-t{font-weight:800;font-size:15px;margin-bottom:4px}
+#hbck p{margin:0 0 4px;color:#bbb;font-size:13px}
+#hbck a{color:#00c853;text-decoration:underline;cursor:pointer}
+#hbck .hbck-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #2c2c2c;cursor:pointer}
+#hbck .hbck-row small{color:#999}
+#hbck input[type=checkbox]{width:20px;height:20px;accent-color:#00c853;flex:none}
+#hbck .hbck-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#hbck button{flex:1 1 auto;min-height:42px;border-radius:10px;border:1px solid #383838;background:#222;color:#f5f5f5;font:600 13px Inter,system-ui,sans-serif;padding:0 14px;cursor:pointer}
+#hbck button.hbck-pri{background:linear-gradient(135deg,#00c853,#0071e3);border:0;color:#fff}
+#hbck[hidden],#hbck [hidden]{display:none}
+@media(min-width:700px){#hbck{left:auto;right:20px;margin:0}}
+</style>
 <script>
+(function () {
+  var GA_ID = 'G-8EEDCVW2RC', KEY = 'hb_cookie_consent', YEAR = 31536000000, loaded = false;
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-8EEDCVW2RC');
+  function gtag() { dataLayer.push(arguments); }
+  window.gtag = gtag;
+  gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+  window['ga-disable-' + GA_ID] = true;
+
+  function read() { try { var v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && typeof v.a === 'number' && Date.now() - v.t < YEAR) return v; } catch (e) {} return null; }
+  function write(a) { try { localStorage.setItem(KEY, JSON.stringify({ a: a, t: Date.now() })); } catch (e) {} }
+  function delCookies() {
+    var parts = location.hostname.split('.'), doms = [location.hostname, '.' + location.hostname, '.' + parts.slice(-2).join('.')];
+    document.cookie.split(';').forEach(function (c) {
+      var n = c.split('=')[0].trim();
+      if (n === '_ga' || n === '_gid' || n.indexOf('_ga_') === 0 || n.indexOf('_gat') === 0) {
+        document.cookie = n + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        doms.forEach(function (d) { document.cookie = n + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + d; });
+      }
+    });
+  }
+  function apply(a) {
+    if (a === 1) {
+      window['ga-disable-' + GA_ID] = false;
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+      if (!loaded) {
+        loaded = true;
+        var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(s);
+        gtag('js', new Date()); gtag('config', GA_ID);
+      }
+    } else {
+      window['ga-disable-' + GA_ID] = true;
+      if (loaded) gtag('consent', 'update', { analytics_storage: 'denied' });
+      delCookies();
+    }
+  }
+  function close() { var e = document.getElementById('hbck'); if (e && e.parentNode) e.parentNode.removeChild(e); }
+  function choose(a) { write(a); apply(a); close(); }
+  function build(open) {
+    if (document.getElementById('hbck')) return;
+    var cur = read(), d = document.createElement('div');
+    d.id = 'hbck'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Cookie preferences');
+    d.innerHTML = '<div class="hbck-t">We use cookies</div>'
+      + '<p>Essential cookies keep you signed in and your cart working. With your permission we also use analytics cookies (Google Analytics) to see which pages help shoppers. <a id="hbck-pp">Privacy policy</a></p>'
+      + '<div id="hbck-opts" hidden>'
+      + '<label class="hbck-row"><span><b>Essential</b><br><small>Login, cart and security. Always on.</small></span><input type="checkbox" checked disabled></label>'
+      + '<label class="hbck-row"><span><b>Analytics</b><br><small>Google Analytics. Anonymous usage statistics.</small></span><input type="checkbox" id="hbck-an"></label>'
+      + '</div>'
+      + '<div class="hbck-b"><button type="button" id="hbck-ess">Essential only</button><button type="button" id="hbck-cus">Customise</button><button type="button" id="hbck-all" class="hbck-pri">Accept all</button></div>';
+    document.body.appendChild(d);
+    var opts = document.getElementById('hbck-opts'), cus = document.getElementById('hbck-cus'), an = document.getElementById('hbck-an');
+    an.checked = !!(cur && cur.a === 1);
+    function showOpts() { opts.hidden = false; cus.textContent = 'Save choices'; }
+    if (open) showOpts();
+    document.getElementById('hbck-ess').onclick = function () { choose(0); };
+    document.getElementById('hbck-all').onclick = function () { choose(1); };
+    cus.onclick = function () { if (opts.hidden) showOpts(); else choose(an.checked ? 1 : 0); };
+    document.getElementById('hbck-pp').onclick = function (ev) { ev.preventDefault(); if (typeof renderLegalPage === 'function') renderLegalPage('privacy'); };
+  }
+  window.hbCookieOpen = function () { build(true); };
+
+  var saved = read();
+  if (saved && saved.a === 1) apply(1);
+  function ready() { if (!read()) build(false); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();
 </script>
+<!-- /HUBOOZE COOKIES -->
 <!-- manifest disabled -->
 <meta name="theme-color" content="#00ff8f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1909,7 +1984,7 @@ body:has(#page-checkout.active){padding-bottom:0 !important}
   <div class="footer-bot wrap">
     <div>&#169; <span id="footCopyEl">2025 Hubooze. All rights reserved.</span></div>
     <div class="pay-icons"><span style="font-size:11px;color:var(--text3)">Pay:</span><div class="pay-icon">UPI</div><div class="pay-icon">VISA</div><div class="pay-icon">MC</div><div class="pay-icon">NB</div><div class="pay-icon">EMI</div><div class="pay-icon">COD</div></div>
-    <div class="f-links"><a onclick="showPage('returns')">Return Policy</a><a onclick="renderLegalPage('privacy')">Privacy</a><a onclick="renderLegalPage('terms')">Terms</a><a onclick="renderLegalPage('about')">About</a><a onclick="renderLegalPage('refund')">Refund</a><a onclick="renderLegalPage('contact')">Contact</a><a onclick="renderLegalPage('shipping')">Shipping</a><a onclick="renderLegalPage('pricing')">Pricing</a><a href="/press">Press</a></div>
+    <div class="f-links"><a onclick="showPage('returns')">Return Policy</a><a onclick="renderLegalPage('privacy')">Privacy</a><a onclick="renderLegalPage('terms')">Terms</a><a onclick="renderLegalPage('about')">About</a><a onclick="renderLegalPage('refund')">Refund</a><a onclick="renderLegalPage('contact')">Contact</a><a onclick="renderLegalPage('shipping')">Shipping</a><a onclick="renderLegalPage('pricing')">Pricing</a><a onclick="hbCookieOpen()">Cookie settings</a><a href="/press">Press</a></div>
   </div>
 </footer>
 
@@ -7883,6 +7958,7 @@ var LEGAL_PAGES = {
     title: 'Privacy Policy',
     html: '<h2 style="color:var(--text);font-weight:800;margin-bottom:16px">Privacy Policy</h2>'
       + '<p style="margin-bottom:14px">Hubooze respects your privacy. This policy explains how we collect, use, and protect your personal information.</p>'
+      + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Cookies</h3><p style="margin-bottom:14px">We use essential cookies and browser storage to keep you signed in and your cart working. With your permission we also use Google Analytics cookies (such as _ga) to understand how the site is used. You can accept, refuse or change your choice at any time using Cookie settings in the footer.</p>'
       + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">Information We Collect</h3>'
       + '<p style="margin-bottom:14px">We collect your name, email, phone number, shipping address, and payment information (processed securely via our payment partners) when you register, shop, or contact us.</p>'
       + '<h3 style="color:var(--text);font-weight:700;margin:20px 0 8px">How We Use Your Data</h3>'
