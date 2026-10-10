@@ -8710,5 +8710,39 @@ hook();
  };
 })();
 </script>
+<script>/* hubooze-pay-v1: payment step matches reality - online payments happen on the CCAvenue page, COD stays */
+(function(){
+ function fix(){
+  try {
+   var c = document.getElementById('checkoutStepContent'); if (!c) return;
+   var tiles = c.querySelectorAll('[onclick^="switchPayMethod"]');
+   if (!tiles.length) return;
+   var grid = tiles[0].parentElement;
+   tiles.forEach(function(t){
+    var m = (t.getAttribute('onclick').match(/'(\w+)'/) || [])[1];
+    if (m === 'Card' || m === 'NB') { t.style.display = 'none'; }
+    if (m === 'UPI') {
+     var kids = t.children;
+     if (kids[0]) kids[0].innerHTML = '&#128179;';
+     if (kids[1]) kids[1].innerHTML = 'Pay Online<div style="font-size:10px;font-weight:400;color:var(--text3);margin-top:2px">UPI &middot; Card &middot; Net Banking</div>';
+    }
+   });
+   grid.style.gridTemplateColumns = '1fr 1fr';
+   ['Card', 'NB'].forEach(function(m){ var p = document.getElementById('payPanel_' + m); if (p) p.remove(); });
+   var u = document.getElementById('payPanel_UPI');
+   if (u && !u.getAttribute('data-hb')) {
+    u.setAttribute('data-hb', '1');
+    u.innerHTML = '<div style="background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--text2);line-height:1.6">'
+     + '<div style="font-weight:600;color:var(--text);margin-bottom:4px">&#128274; Secure payment on the next page</div>'
+     + 'After you place the order, you will pay on the CCAvenue payment page. Choose UPI, debit/credit card or net banking there.</div>';
+   }
+  } catch(e) {}
+ }
+ ['renderPaymentStep', 'renderCheckoutPage'].forEach(function(n){
+  var o = window[n];
+  if (typeof o === 'function') window[n] = function(){ var r = o.apply(this, arguments); fix(); return r; };
+ });
+})();
+</script>
 </body>
 </html>
