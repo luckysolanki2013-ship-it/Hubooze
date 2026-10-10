@@ -8683,5 +8683,25 @@ hook();
  });
 })();
 </script>
+<script>/* hubooze-tc-v1: terms checkbox starts unticked; the customer must agree themselves */
+(function(){
+ var o = window.renderReviewStep;
+ if (typeof o !== 'function') return;
+ window.renderReviewStep = function(){
+  var r = o.apply(this, arguments);
+  try {
+   var c = document.getElementById('tcCheck');
+   if (c) {
+    c.checked = false;
+    var l = c.parentElement;
+    c.addEventListener('change', function(){ if (l) l.style.outline = ''; });
+    var b = document.getElementById('placeOrderBtn');
+    if (b) b.addEventListener('click', function(){ if (!c.checked && l) { l.style.outline = '1px solid var(--red)'; l.style.outlineOffset = '6px'; l.style.borderRadius = '6px'; } }, true);
+   }
+  } catch(e) {}
+  return r;
+ };
+})();
+</script>
 </body>
 </html>
