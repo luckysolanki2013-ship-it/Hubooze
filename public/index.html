@@ -1056,6 +1056,13 @@ body:has(#page-account.active) .tone-bar,body:has(#page-account.active) .wa-fab{
 body:has(#page-checkout.active) .tone-bar,body:has(#page-checkout.active) .wa-fab{display:none !important}
 }
 </style>
+<style id="hubooze-cknav-v1">
+@media (max-width:768px){
+body:has(#page-checkout.active) .mob-nav{display:none !important}
+body:has(#page-checkout.active){padding-bottom:0 !important}
+#page-checkout #giftWrapCk{flex-shrink:0 !important;margin-left:12px !important}
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
