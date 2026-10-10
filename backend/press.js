@@ -123,16 +123,7 @@ function page(items) {
   return h.replace(/<body[^>]*>/i, m => m + '\n' + nos + boot);
 }
 function sitemapExtra(list) {
-  const base = SITE + '/press';
-  const s = list && list[0];
-  if (s == null) return [];
-  const abs = v => (/^https?:/i.test(String(v)) ? base : '/press');
-  if (typeof s === 'string') return [abs(s)];
-  if (typeof s === 'object') {
-    const o = Object.assign({}, s);
-    for (const k of ['loc', 'url']) if (k in o) { o[k] = abs(o[k]); return [o]; }
-  }
-  return [];
+  return ['<url><loc>' + SITE + '/press</loc><lastmod>' + new Date().toISOString().split('T')[0] + '</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>'];
 }
 function mount(app) {
   app.get('/api/press', async (req, res) => {

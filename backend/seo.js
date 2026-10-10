@@ -188,6 +188,27 @@ function buildFeed(products) {
   return '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel><title>Hubooze</title><link>' + SITE + '</link><description>Hubooze products</description>\n' + items.join('\n') + '\n</channel></rss>';
 }
 
+// HUBOOZE SEO2 — static pages (/categories, /returns) get their own title, description and canonical
+const STATIC_PAGES = {
+  '/categories': { title: 'Shop All Categories Online | Hubooze', desc: 'Browse fashion, handmade, home decor, food and more at Hubooze. 90-day free returns and instant refunds on every order.', h1: 'Shop all categories at Hubooze' },
+  '/returns': { title: '90-Day Free Returns & Instant Refunds | Hubooze', desc: 'Return any Hubooze order within 90 days for an instant refund, in any condition. See how Hubooze return-to-recycle works.', h1: '90-day free returns at Hubooze' },
+};
+function buildStaticHtml(p) {
+  const cfg = STATIC_PAGES[p], url = SITE + p;
+  let h = baseHtml();
+  h = h.replace(/<title>[\s\S]*?<\/title>/i, () => '<title>' + esc(cfg.title) + '</title>');
+  h = h.replace(/<meta\s+name=["']description["'][^>]*>/i, '');
+  h = h.replace(/<link\s+rel=["']canonical["'][^>]*>/i, '');
+  h = h.replace(/<meta\s+(?:property|name)=["'](?:og|twitter):[^>]*>/gi, '');
+  const head = '<meta name="description" content="' + esc(cfg.desc) + '">\n<link rel="canonical" href="' + esc(url) + '">\n'
+    + '<meta property="og:type" content="website">\n<meta property="og:site_name" content="Hubooze">\n<meta property="og:title" content="' + esc(cfg.title) + '">\n'
+    + '<meta property="og:description" content="' + esc(cfg.desc) + '">\n<meta property="og:url" content="' + esc(url) + '">\n'
+    + '<meta property="og:image" content="' + SITE + '/uploads/og-image.jpg">\n';
+  h = h.replace(/<\/head>/i, () => head + '</head>');
+  const nos = '<noscript><h1>' + esc(cfg.h1) + '</h1><p>' + esc(cfg.desc) + '</p><p><a href="/">Hubooze home</a></p></noscript>\n';
+  return h.replace(/<body[^>]*>/i, m => m + '\n' + nos);
+}
+
 function mount(app) {
   app.get('/product/:slug', async (req, res, next) => {
     try {
@@ -212,6 +233,21 @@ function mount(app) {
   });
   app.get('/feed/google.xml', async (req, res, next) => {
     try { res.set('Cache-Control', 'public, max-age=300').type('application/xml').send(buildFeed(await allProducts())); } catch (e) { next(); }
+  });
+  // ---- HUBOOZE SEO2: static pages, legacy URLs, real 404s ----
+  Object.keys(STATIC_PAGES).forEach(p => {
+    app.get(p, (req, res) => res.set('Cache-Control', 'public, max-age=300').type('html').send(buildStaticHtml(p)));
+  });
+  // old Shopify-style paths: collections/products -> categories; old /product/ols/... -> gone
+  app.get(/^\/(collections|products)(\/.*)?$/, (req, res) => res.redirect(301, '/categories'));
+  app.get(/^\/product\/ols\/.*$/, (req, res) => res.status(410).set('X-Robots-Tag', 'noindex').type('html').send(baseHtml()));
+  // anything that is not a known page gets a real 404 status (the app still loads for visitors)
+  const KNOWN = ['categories', 'returns', 'account', 'orders', 'seller', 'admin', 'checkout', 'notifications', 'press', 'legal', 'product', 'c', 'feed'];
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    const seg = req.path.split('/').filter(Boolean);
+    if (!seg.length || KNOWN.indexOf(String(seg[0]).toLowerCase()) > -1) return next();
+    res.status(404).set('X-Robots-Tag', 'noindex').type('html').send(baseHtml());
   });
 }
 module.exports = { descriptionIssue, seoDescription, buildCategoryHtml, categoryUrls, groups, mount, productPath, productUrl, slugify, isLive, buildHtml };
