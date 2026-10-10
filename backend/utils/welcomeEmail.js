@@ -28,7 +28,7 @@ async function sendWelcomeEmail(user) {
             <p style="color:#ccc;line-height:1.6">Thanks for joining India's return-to-recycle marketplace. Here's what makes Hubooze different:</p>
             <ul style="color:#ccc;line-height:1.8">
               <li>90-day free returns on every order</li>
-              <li>Free delivery on orders above ₹499</li>
+              <li>Free delivery on eligible orders</li>
               <li>Fashion, Electronics, Home, Beauty, and Handmade — all in one place</li>
             </ul>
             <p style="color:#ccc;line-height:1.6">Start exploring and happy shopping!</p>
