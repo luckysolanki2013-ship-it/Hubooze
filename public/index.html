@@ -1048,6 +1048,14 @@ body:has(#page-account.active) .tone-bar,body:has(#page-account.active) .wa-fab{
 }
 #customerPortal button[style*="var(--blue)"]{color:#4da3ff !important}
 </style>
+<style id="hubooze-checkout-v1">
+@media (max-width:900px){
+#checkoutSummaryEl{order:1 !important}
+}
+@media (max-width:768px){
+body:has(#page-checkout.active) .tone-bar,body:has(#page-checkout.active) .wa-fab{display:none !important}
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
@@ -8659,6 +8667,20 @@ hook();
  if (typeof oS === 'function') window.showPage = function(){ var r = oS.apply(this, arguments); setTimeout(sync, 300); return r; };
  window.hbSyncAddresses = sync;
  setTimeout(sync, 2000);
+})();
+</script>
+<script>/* hubooze-checkout-v1: remove checkout options and offers the store does not actually honour */
+(function(){
+ function clean(){
+  try {
+   document.querySelectorAll('input[name="delivOption"][value="exp"], input[name="delivOption"][value="same"]').forEach(function(i){ var l = i.closest('label'); if (l) l.remove(); });
+   document.querySelectorAll('#checkoutStepContent h4').forEach(function(t){ if (/Available Offers/i.test(t.textContent) && t.parentElement) t.parentElement.remove(); });
+  } catch(e) {}
+ }
+ ['renderCheckoutPage', 'renderAddressStep', 'renderPaymentStep'].forEach(function(n){
+  var o = window[n];
+  if (typeof o === 'function') window[n] = function(){ var r = o.apply(this, arguments); clean(); return r; };
+ });
 })();
 </script>
 </body>
