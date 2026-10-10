@@ -8600,5 +8600,66 @@ hook();
  }).catch(function(){});
 })();
 </script>
+<script>/* hubooze-addr-sync-v1 */
+(function(){
+ if (window.__hbAddrSync) return; window.__hbAddrSync = 1;
+ function tok(){ try { return localStorage.getItem('hb_token') || localStorage.getItem('token'); } catch(e){ return null; } }
+ function hdr(){ return {'Content-Type':'application/json','Authorization':'Bearer ' + tok()}; }
+ function key(a){ return String(a.line1||'').trim().toLowerCase() + '|' + String(a.pincode||a.pin||'').trim(); }
+ function ok(a){ return a && a.name && a.line1 && a.city && (a.pincode || a.pin); }
+ function post(a){
+  return fetch('/api/auth/addresses', {method:'POST', headers:hdr(), body:JSON.stringify({name:a.name, phone:a.phone||'', line1:a.line1, line2:a.line2||'', city:a.city, state:a.state||'', pincode:a.pincode||a.pin, isDefault:!!a.isDefault})}).catch(function(){});
+ }
+ function wrapAdd(name){
+  var o = window[name]; if (typeof o !== 'function') return;
+  window[name] = function(){
+   var n = ADDRESSES_DB.length, r = o.apply(this, arguments);
+   try { if (tok() && currentUser) ADDRESSES_DB.slice(n).forEach(function(a){ if (ok(a)) post(a); }); } catch(e){}
+   return r;
+  };
+ }
+ wrapAdd('addAddress'); wrapAdd('saveNewAddrAndContinue');
+ var oP = window.saveProfile;
+ if (typeof oP === 'function') window.saveProfile = function(){
+  var r = oP.apply(this, arguments);
+  try { if (tok() && currentUser) fetch('/api/auth/profile', {method:'PUT', headers:hdr(), body:JSON.stringify({name:currentUser.name, phone:currentUser.phone||'', city:currentUser.city||''})}).catch(function(){}); } catch(e){}
+  return r;
+ };
+ var busy = false, last = 0, lastUid = null;
+ async function sync(){
+  if (busy || !tok() || typeof currentUser === 'undefined' || !currentUser) return;
+  if (lastUid === currentUser.id && Date.now() - last < 20000) return;
+  busy = true; lastUid = currentUser.id; last = Date.now();
+  try {
+   var r = await fetch('/api/auth/me', {headers:hdr()}); if (!r.ok) return;
+   var u = (await r.json()).user; if (!u) return;
+   var server = u.addresses || [];
+   var local = ADDRESSES_DB.filter(function(a){ return a.userId === currentUser.id; });
+   var sk = {}, lk = {}; server.forEach(function(a){ sk[key(a)] = 1; }); local.forEach(function(a){ lk[key(a)] = 1; });
+   var added = 0;
+   server.forEach(function(a){
+    if (!ok(a) || lk[key(a)]) return;
+    var c = {}; for (var p in a) c[p] = a[p];
+    c.userId = currentUser.id; c.pincode = a.pincode || a.pin; c.id = a.id || ('addr_' + Date.now() + added);
+    ADDRESSES_DB.push(c); lk[key(a)] = 1; added++;
+   });
+   for (var i = 0; i < local.length; i++) { if (ok(local[i]) && !sk[key(local[i])]) { await post(local[i]); sk[key(local[i])] = 1; } }
+   var changed = false;
+   if (u.phone && !currentUser.phone) { currentUser.phone = u.phone; changed = true; }
+   if (u.city && !currentUser.city) { currentUser.city = u.city; changed = true; }
+   if ((currentUser.phone && !u.phone) || (currentUser.city && !u.city)) {
+    await fetch('/api/auth/profile', {method:'PUT', headers:hdr(), body:JSON.stringify({name:currentUser.name, phone:currentUser.phone||'', city:currentUser.city||''})}).catch(function(){});
+   }
+   if (added) saveReturnsDB();
+   if (changed) { try { localStorage.setItem('hb_session', JSON.stringify(currentUser)); } catch(e){} }
+   if ((added || changed) && typeof currentPage !== 'undefined' && currentPage === 'account' && typeof renderAccountPage === 'function') renderAccountPage();
+  } catch(e) {} finally { busy = false; }
+ }
+ var oS = window.showPage;
+ if (typeof oS === 'function') window.showPage = function(){ var r = oS.apply(this, arguments); setTimeout(sync, 300); return r; };
+ window.hbSyncAddresses = sync;
+ setTimeout(sync, 2000);
+})();
+</script>
 </body>
 </html>
