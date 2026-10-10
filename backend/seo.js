@@ -209,7 +209,35 @@ function buildStaticHtml(p) {
   return h.replace(/<body[^>]*>/i, m => m + '\n' + nos);
 }
 
+// ---------- HUBOOZE HOME: crawlable home page (categories + featured products in the source) ----------
+function buildHomeHtml(list) {
+  const live = list.filter(isLive);
+  const inStock = p => p.stock == null || Number(p.stock) > 0;
+  const feat = live.filter(p => inStock(p) && p.image)
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => (Number(b.p.reviews) || 0) - (Number(a.p.reviews) || 0) || a.i - b.i)
+    .slice(0, 24).map(x => x.p);
+  const cats = groups(live).slice().sort((a, b) => b.list.length - a.list.length).slice(0, 12);
+  const j = o => JSON.stringify(o).replace(/</g, '\\u003c');
+  const ld = { '@context': 'https://schema.org', '@type': 'ItemList', name: 'Featured products at Hubooze', numberOfItems: feat.length,
+    itemListElement: feat.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: productUrl(p), name: p.name })) };
+  let h = baseHtml();
+  h = h.replace(/<\/head>/i, () => '<script type="application/ld+json">' + j(ld) + '</script>\n</head>');
+  const nos = '<noscript><h1>Hubooze - Shop, Return, Recycle</h1>'
+    + '<p>India\'s return-to-recycle marketplace. 90-day free returns, instant refunds and free delivery above Rs.499.</p>'
+    + '<h2>Shop by category</h2><ul>'
+    + cats.map(g => '<li><a href="' + esc(categoryPath(g)) + '">' + esc(g.label) + '</a> (' + g.list.length + ')</li>').join('')
+    + '</ul><h2>Featured products</h2><ul>'
+    + feat.map(p => '<li><a href="' + esc(productPath(p)) + '">' + esc(p.name) + '</a> - Rs.' + esc(p.price) + '</li>').join('')
+    + '</ul><p><a href="/categories">All categories</a> | <a href="/returns">Returns</a></p></noscript>\n';
+  return h.replace(/<body[^>]*>/i, m => m + '\n' + nos);
+}
+
 function mount(app) {
+  // HUBOOZE HOME: serve the home page through the SEO builder
+  app.get('/', async (req, res, next) => {
+    try { res.set('Cache-Control', 'public, max-age=300').type('html').send(buildHomeHtml(await allProducts())); } catch (e) { next(); }
+  });
   app.get('/product/:slug', async (req, res, next) => {
     try {
       const slug = String(req.params.slug || '');

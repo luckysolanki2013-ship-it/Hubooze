@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiLimiter);
 
 // Static files
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), { index: false })); // HUBOOZE HOME: '/' is built in seo.js
 app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
 app.use('/js',      express.static(path.join(__dirname, '..', 'public', 'js')));
 
