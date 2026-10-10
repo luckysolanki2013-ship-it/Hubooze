@@ -4,6 +4,16 @@
 <script>/* hubooze-fetch-cache */(function(){var of=window.fetch,cache={},TTL=30000;window.fetch=function(u,o){var url=typeof u==='string'?u:((u&&u.url)||'');var method=String((o&&o.method)||(u&&u.method)||'GET').toUpperCase();var key=url.split('?')[0];if(key==='/api/admin/promotions'||key==='/api/admin/coupons'){if(method==='GET'&&!(o&&o.headers)){var c=cache[key];if(c&&Date.now()-c.t<TTL){return c.p.then(function(r){return r.clone();});}var p=of.apply(this,arguments);cache[key]={t:Date.now(),p:p};p.then(function(r){if(!r.ok){delete cache[key];}},function(){delete cache[key];});return p.then(function(r){return r.clone();});}else if(method!=='GET'){delete cache['/api/admin/promotions'];delete cache['/api/admin/coupons'];}}return of.apply(this,arguments);};})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- HUBOOZE PWA -->
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hubooze">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- /HUBOOZE PWA -->
 <title>Hubooze — Shop. Return. Recycle.</title>
 
 <meta name="description" content="Shop Fashion, Electronics, Home &amp; Kitchen, Beauty and Handmade products on Hubooze. 90-day free returns, instant refunds, and free delivery above Rs.499. India's return-to-recycle marketplace.">
@@ -8744,5 +8754,6 @@ hook();
  });
 })();
 </script>
+<script>/* HUBOOZE PWA */if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
 </body>
 </html>
