@@ -10,6 +10,12 @@ const app = express();
 
 // Trust proxy — required for nginx/AWS
 app.set('trust proxy', 1);
+// HUBOOZE WWW: send www.hubooze.in to hubooze.in (301, keeps path and query)
+app.use((req, res, next) => {
+  const h = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
+  if (h === 'www.hubooze.in') return res.redirect(301, 'https://hubooze.in' + req.originalUrl);
+  next();
+});
 
 app.use(cors({ origin: '*', credentials: false }));
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
