@@ -104,6 +104,7 @@ router.post('/response', express.raw({type: '*/*', limit: '2mb'}), async (req, r
 
     if (status === 'Success') {
       const dba = require('../dbAdapter');
+      const _before = await dba.findOrder(orderId).catch(() => null);
       await dba.updateOrder(orderId, {
         paymentStatus: 'paid',
         paymentId: trackingId,
@@ -111,6 +112,27 @@ router.post('/response', express.raw({type: '*/*', limit: '2mb'}), async (req, r
         paidAt: new Date(),
         status: 'confirmed',
       });
+      // HUBOOZE PAYNOTIFY: tell the customer and the sellers only now that the money has arrived (and only once)
+      if (_before && _before.paymentStatus !== 'paid') {
+        (async () => {
+          try {
+            const N = require('../utils/notifications');
+            const order = await dba.findOrder(orderId);
+            if (!order) return;
+            const user = await dba.findUser({ id: order.userId });
+            if (user) N.notifyOrderConfirmed(order, user).catch(e => console.error('Notif error:', e.message));
+            const bySeller = {};
+            (order.items || []).forEach(it => {
+              if (!it.sellerId) return;
+              (bySeller[it.sellerId] = bySeller[it.sellerId] || []).push(it);
+            });
+            for (const sellerId of Object.keys(bySeller)) {
+              const seller = await dba.findUser({ id: sellerId });
+              if (seller) await N.notifySellerNewOrder(order, seller, bySeller[sellerId]);
+            }
+          } catch (e) { console.error('Post-payment notify error:', e.message); }
+        })();
+      }
       res.redirect(`https://hubooze.in/?payment=success&order=${orderId}`);
     } else if (status === 'Aborted') {
       res.redirect(`https://hubooze.in/?payment=cancelled&order=${orderId}`);

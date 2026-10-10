@@ -132,8 +132,8 @@ router.post('/', protect, async (req, res) => {
     if (isCOD) {
       notifyOrderConfirmed(order, { ...user, name: req.user.name, email: req.user.email, phone: user?.phone }).catch(e => console.error('Notif error:', e.message));
     }
-    // Notify sellers of new order (grouped by seller)
-    (async () => {
+    // Notify sellers of new order (grouped by seller) - online orders are announced after payment succeeds (see ccavenue.js)
+    if (isCOD) (async () => {
       try {
         const bySeller = {};
         (order.items || []).forEach(it => {
