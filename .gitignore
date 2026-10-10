@@ -43,3 +43,8 @@ logs/
 coverage/
 .nyc_output/
 ecosystem.config.js
+
+# local backups and env copies
+*.bak-*
+.env*
+!.env.example
