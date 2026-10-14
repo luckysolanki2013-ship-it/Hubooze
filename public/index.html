@@ -8886,5 +8886,58 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE WELCOME -->
+<!-- HUBOOZE WELCOME ADMIN -->
+<script>
+(function () {
+  var ID = 'hbWelcomeCard';
+  function tok() { try { return localStorage.getItem('hb_token') || localStorage.getItem('token'); } catch (e) { return null; } }
+  function toast(m, t) { if (typeof showToast === 'function') showToast(m, t || 'success'); }
+  async function paint(host) {
+    if (!host || document.getElementById(ID)) return;
+    var w = { enabled: true, amount: 100, endDate: '' };
+    try {
+      var r = await fetch('/api/admin/promotions'); var d = await r.json();
+      var s = d && d.promotions && d.promotions.welcomeOffer;
+      if (s) w = { enabled: s.enabled !== false, amount: s.amount == null ? 100 : s.amount, endDate: s.endDate || '' };
+    } catch (e) {}
+    if (document.getElementById(ID)) return;
+    var card = document.createElement('div');
+    card.id = ID;
+    card.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:16px';
+    card.innerHTML =
+      '<h3 style="font-weight:700;font-size:15px;margin-bottom:4px">&#127873; Welcome offer (new customers)</h3>'
+      + '<p style="font-size:12.5px;color:var(--text2);margin:0 0 16px;line-height:1.6">Registered new customers get this amount off their <b>first order</b>, applied automatically. Not for guest checkout, and only once per person (same account or mobile number).</p>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border)"><div><b style="font-size:13.5px">Offer is on</b><div style="font-size:12px;color:var(--text3)">Turn off to stop giving the discount</div></div>'
+      + '<label class="toggle-sw"><input type="checkbox" id="hbWelOn"' + (w.enabled ? ' checked' : '') + '><span class="toggle-track"></span></label></div>'
+      + '<div style="display:flex;gap:14px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--border)">'
+      + '<label style="flex:1 1 160px;font-size:12.5px;color:var(--text2)">Discount amount (&#8377;)<input id="hbWelAmt" type="number" min="1" max="5000" step="1" value="' + String(w.amount).replace(/"/g, '') + '" style="display:block;width:100%;margin-top:6px;padding:11px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font:inherit"></label>'
+      + '<label style="flex:1 1 160px;font-size:12.5px;color:var(--text2)">Ends on (optional)<input id="hbWelEnd" type="date" value="' + String(w.endDate || '').slice(0, 10) + '" style="display:block;width:100%;margin-top:6px;padding:11px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font:inherit"></label>'
+      + '</div>'
+      + '<button id="hbWelSave" class="btn-grad" style="padding:11px 22px;border-radius:10px;font-weight:700;cursor:pointer">Save welcome offer</button>';
+    host.insertBefore(card, host.firstChild);
+    document.getElementById('hbWelSave').onclick = async function () {
+      var amt = Math.round(Number(document.getElementById('hbWelAmt').value));
+      if (!(amt >= 1 && amt <= 5000)) { toast('Enter an amount between 1 and 5000', 'error'); return; }
+      var body = { welcomeOffer: { enabled: document.getElementById('hbWelOn').checked, amount: amt, endDate: document.getElementById('hbWelEnd').value || '' } };
+      try {
+        var r = await fetch('/api/admin/promotions', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok() }, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error('save failed');
+        toast('Welcome offer saved', 'success');
+      } catch (e) { toast('Could not save. Please try again.', 'error'); }
+    };
+  }
+  var orig = window.renderAdminSettings;
+  if (typeof orig === 'function') {
+    window.renderAdminSettings = function (el) {
+      var out = orig.apply(this, arguments);
+      var host = el || document.getElementById('adminTabContent');
+      Promise.resolve(out).then(function () { paint(host); });
+      setTimeout(function () { paint(host); }, 700);
+      return out;
+    };
+  }
+})();
+</script>
+<!-- /HUBOOZE WELCOME ADMIN -->
 </body>
 </html>
