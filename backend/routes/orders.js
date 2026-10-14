@@ -22,6 +22,42 @@ async function getLiveCoupons() {
   } catch(e) { return {}; }
 }
 
+// ---------- HUBOOZE WELCOME: auto-applied first-order discount for new customers ----------
+// Setting lives in promotions.welcomeOffer = { enabled, amount, endDate }. Missing setting = on, Rs.100.
+async function getWelcomeOffer(user) {
+  try {
+    if (!user || user.isGuest || (user.role && user.role !== 'customer')) return null;
+    const promo = await getLivePromotions();
+    const w = (promo && promo.welcomeOffer) || {};
+    if (w.enabled === false || w.enabled === 'false') return null;
+    const amount = Math.max(0, Math.round(w.amount == null ? 100 : Number(w.amount) || 0));
+    if (!amount) return null;
+    if (w.endDate) {
+      const end = new Date(String(w.endDate).slice(0, 10) + 'T23:59:59+05:30').getTime();
+      if (!isNaN(end) && Date.now() > end) return null;
+    }
+    // "new" = this account and any account with the same 10-digit mobile has never placed an order
+    const ids = new Set([user.id]);
+    const ph = String(user.phone || '').replace(/\D/g, '').slice(-10);
+    if (ph.length === 10) {
+      const all = await dba.getAllUsers();
+      all.forEach(u => { if (String(u.phone || '').replace(/\D/g, '').slice(-10) === ph) ids.add(u.id); });
+    }
+    for (const id of ids) {
+      const list = await dba.findOrders({ userId: id });
+      if ((list || []).some(o => o.status !== 'cancelled' && o.status !== 'pending_payment')) return null;
+    }
+    return { amount };
+  } catch (e) { return null; }
+}
+router.get('/welcome-offer', protect, async (req, res) => {
+  try {
+    const user = await dba.findUser({ id: getCustomUserId(req) });
+    const wo = await getWelcomeOffer(user);
+    res.json(wo ? { eligible: true, amount: wo.amount } : { eligible: false });
+  } catch (e) { res.json({ eligible: false }); }
+});
+
 // GET /api/orders — user's orders
 router.get('/', protect, async (req, res) => {
   try {
@@ -86,6 +122,11 @@ router.post('/', protect, async (req, res) => {
         couponDiscount = coupon.type === 'flat' ? Math.min(coupon.value, eligibleSubtotal) : Math.round(eligibleSubtotal * coupon.value / 100);
         appliedCouponCode = couponCode.toUpperCase();
       }
+    }
+    // HUBOOZE WELCOME: reserved auto-applied code; the server decides eligibility
+    if (!couponDiscount && couponCode && String(couponCode).toUpperCase() === 'WELCOME') {
+      const wo = await getWelcomeOffer(user);
+      if (wo) couponDiscount = Math.min(wo.amount, subtotal);
     }
     const livePromo = await getLivePromotions();
     const freeDeliveryMin = livePromo.freeDeliveryMin || 499;

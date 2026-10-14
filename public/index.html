@@ -8831,5 +8831,60 @@ hook();
 })();
 </script>
 <script>/* HUBOOZE PWA */if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
+<!-- HUBOOZE WELCOME -->
+<script>
+(function () {
+  var CODE = 'WELCOME', last = 0, busy = false;
+  function tok() { try { return localStorage.getItem('hb_token'); } catch (e) { return null; } }
+  function offFlag() { try { return sessionStorage.getItem('hb_wel_off') === '1'; } catch (e) { return false; } }
+  function isWel() { return typeof appliedCoupon !== 'undefined' && appliedCoupon && appliedCoupon.code === CODE; }
+  var origRender = window.renderCartSummary;
+  function rerender() { try { if (typeof origRender === 'function') origRender(); } catch (e) {} }
+  function clearWel() { appliedCoupon = null; try { saveCartState(); } catch (e) {} rerender(); }
+  async function check(force) {
+    var t = tok();
+    if (!t) { if (isWel()) clearWel(); return; }
+    if (busy || offFlag() || (!force && Date.now() - last < 60000)) return;
+    busy = true; last = Date.now();
+    try {
+      var r = await fetch('/api/orders/welcome-offer', { headers: { Authorization: 'Bearer ' + t } });
+      var d = r.ok ? await r.json() : { eligible: false };
+      if (d.eligible) {
+        if (!appliedCoupon) {
+          appliedCoupon = { code: CODE, type: 'flat', value: d.amount, min: 0, desc: '&#8377;' + d.amount + ' welcome discount', scope: 'all', welcome: true };
+          try { saveCartState(); } catch (e) {}
+          rerender();
+          var seen = false; try { seen = sessionStorage.getItem('hb_wel_seen') === '1'; sessionStorage.setItem('hb_wel_seen', '1'); } catch (e) {}
+          if (!seen && typeof showToast === 'function') showToast('Welcome offer: &#8377;' + d.amount + ' off your first order is applied!', 'success');
+        } else if (isWel() && appliedCoupon.value !== d.amount) {
+          appliedCoupon.value = d.amount; try { saveCartState(); } catch (e) {} rerender();
+        }
+      } else if (isWel()) { clearWel(); }
+    } catch (e) {}
+    busy = false;
+  }
+  if (typeof origRender === 'function') {
+    window.renderCartSummary = function () { origRender.apply(this, arguments); check(false); };
+  }
+  var origRemove = window.removeCoupon;
+  if (typeof origRemove === 'function') {
+    window.removeCoupon = function () {
+      if (isWel()) { try { sessionStorage.setItem('hb_wel_off', '1'); } catch (e) {} }
+      return origRemove.apply(this, arguments);
+    };
+  }
+  try {
+    var si = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k) {
+      var r = si.apply(this, arguments);
+      if (k === 'hb_token') { try { sessionStorage.removeItem('hb_wel_off'); } catch (e) {} setTimeout(function () { check(true); }, 400); }
+      return r;
+    };
+  } catch (e) {}
+  function boot() { setTimeout(function () { check(true); }, 800); }
+  if (document.readyState === 'complete') boot(); else window.addEventListener('load', boot);
+})();
+</script>
+<!-- /HUBOOZE WELCOME -->
 </body>
 </html>
