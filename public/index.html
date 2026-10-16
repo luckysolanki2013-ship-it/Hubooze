@@ -1148,6 +1148,32 @@ body:has(#page-checkout.active){padding-bottom:0 !important}
 #page-checkout #giftWrapCk{flex-shrink:0 !important;margin-left:12px !important}
 }
 </style>
+<!-- HUBOOZE CLEANUP -->
+<style id="hbCleanupCss">/* ---- notification bell: only for signed-in customers ---- */
+html:not(.hb-in) #notifBadge{display:none!important}
+
+/* ---- small-text and tap-target fixes ---- */
+.prod-brand,.pp-off,.pay-icon,.pb{font-size:12px!important}
+#clearCartBtn{min-height:40px}
+#catTabsEl button,#subCatTabsEl button{min-height:40px}
+.f-col a{padding:9px 0;margin-bottom:0}
+.f-links a{display:inline-block;padding:11px 7px}
+@media (max-width:768px){
+  #topbarEl.topbar{font-size:11.5px!important}
+  .mob-btn span:last-child{font-size:11.5px!important}
+  .mob-nav{padding-top:5px!important}
+
+  /* tone switch: one small round button on the right edge instead of a wide pill */
+  .tone-bar{left:auto!important;right:10px!important;bottom:calc(140px + env(safe-area-inset-bottom,0px))!important;transform:none!important}
+  .tone-bar .tone-toggle{width:42px;height:42px;padding:0!important;gap:0!important;border-radius:50%!important;border:1px solid var(--border2)!important;justify-content:center;align-items:center;flex-direction:row!important;box-shadow:0 2px 10px rgba(0,0,0,.35)!important}
+  .tone-bar .tone-lbl,.tone-bar .tone-sep,.tone-bar .tn,.tone-bar .tbtn:not(.active){display:none!important}
+  .tone-bar .tbtn{min-width:0!important;padding:0!important;border:0!important;background:none!important}
+  .tone-bar .tbtn .ti{font-size:21px}
+  /* chat button: slightly smaller and tucked to the corner */
+  .wa-fab{width:42px!important;height:42px!important;font-size:20px!important;bottom:calc(76px + env(safe-area-inset-bottom,0px))!important;left:10px!important;opacity:.92}
+}
+</style>
+<!-- /HUBOOZE CLEANUP -->
 </head>
 <body>
 <div class="login-overlay" id="loginLoadingOverlay" style="display:none">
@@ -8939,5 +8965,47 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE WELCOME ADMIN -->
+<!-- HUBOOZE CLEANUP JS -->
+<script>(function () {
+  var TONE_KEY = 'hb_tone';
+  var root = document.documentElement;
+  /* ---- signed-in flag (hides the bell badge for visitors) ---- */
+  function syncIn() { var t = null; try { t = localStorage.getItem('hb_token'); } catch (e) {} root.classList.toggle('hb-in', !!t); }
+  syncIn(); setInterval(syncIn, 1500);
+  try {
+    var si = Storage.prototype.setItem, ri = Storage.prototype.removeItem;
+    Storage.prototype.setItem = function (k) { var r = si.apply(this, arguments); if (k === 'hb_token') syncIn(); return r; };
+    Storage.prototype.removeItem = function (k) { var r = ri.apply(this, arguments); if (k === 'hb_token') syncIn(); return r; };
+  } catch (e) {}
+
+  /* ---- tone switch: no toast on page load, remember the choice, one-tap flip on phones ---- */
+  function quietToast() {
+    var t = document.getElementById('toastEl');
+    if (t && /mode on/i.test((document.getElementById('toastMsg') || {}).textContent || '')) t.className = t.className.replace(/\bshow\b/g, '').trim();
+  }
+  quietToast();
+  var origTone = window.setTone, booting = true;
+  setTimeout(function () { booting = false; }, 1500);
+  var origToast = window.showToast;
+  if (typeof origToast === 'function') window.showToast = function (m) { if (booting && /mode on/i.test(String(m))) return; return origToast.apply(this, arguments); };
+  if (typeof origTone === 'function') {
+    window.setTone = function (tone) {
+      var r = origTone.apply(this, arguments);
+      if (!booting) { try { localStorage.setItem(TONE_KEY, tone); } catch (e) {} } else { quietToast(); }
+      return r;
+    };
+    var saved = null; try { saved = localStorage.getItem(TONE_KEY); } catch (e) {}
+    if (saved === 'normal') { origTone('normal'); quietToast(); }
+  }
+  var tt = document.querySelector('.tone-toggle');
+  if (tt) tt.addEventListener('click', function (e) {
+    if (!matchMedia('(max-width:768px)').matches || typeof window.setTone !== 'function') return;
+    e.preventDefault(); e.stopPropagation();
+    var isLocal = (document.getElementById('btnV') || {}).className.indexOf('active') > -1;
+    window.setTone(isLocal ? 'normal' : 'village');
+  }, true);
+})();
+</script>
+<!-- /HUBOOZE CLEANUP JS -->
 </body>
 </html>
