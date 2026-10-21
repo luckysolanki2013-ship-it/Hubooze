@@ -9024,5 +9024,54 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE CLEANUP JS -->
+<!-- HUBOOZE GA EVENTS -->
+<script>(function () {
+  function ev(name, params) { try { if (typeof window.gtag === 'function') window.gtag('event', name, params); } catch (e) {} }
+  function item(p, qty) {
+    return { item_id: p.id || p.productId, item_name: p.name, item_brand: p.brand, item_category: p.category, item_category2: p.subcategory, price: p.price, quantity: qty || 1 };
+  }
+  /* view_item: whenever a product page is opened */
+  var seen = {};
+  if (typeof window.openProduct === 'function') {
+    var oo = window.openProduct;
+    window.openProduct = function (pid) {
+      var r = oo.apply(this, arguments);
+      try {
+        var p = window.PRODUCTS && window.PRODUCTS[pid];
+        if (p) { var k = pid + '|' + Math.floor(Date.now() / 5000); if (!seen[k]) { seen[k] = 1; ev('view_item', { currency: 'INR', value: p.price, items: [item(p)] }); } }
+      } catch (e) {}
+      return r;
+    };
+  }
+  /* add_payment_info: customer moves on to the payment step */
+  if (typeof window.goToPayment === 'function') {
+    var og = window.goToPayment;
+    window.goToPayment = function () {
+      var r = og.apply(this, arguments);
+      try {
+        if (window.checkoutStep === 2) {
+          var items = (window.cartItems || []).map(function (ci) { var p = (window.PRODUCTS || {})[ci.productId] || {}; return item(p.id ? p : { id: ci.productId }, ci.qty); });
+          ev('add_payment_info', { currency: 'INR', value: typeof window.cartTotal === 'function' ? window.cartTotal() : undefined, items: items });
+        }
+      } catch (e) {}
+      return r;
+    };
+  }
+  /* login: after a successful sign-in or sign-up */
+  if (typeof window.loginSuccess === 'function') {
+    var ol = window.loginSuccess;
+    window.loginSuccess = function () { var r = ol.apply(this, arguments); ev('login', { method: 'hubooze' }); return r; };
+  }
+  /* search: Enter key or the search button */
+  function wireSearch() {
+    var inp = document.getElementById('searchInpEl'); if (!inp || inp.__hbGa) return; inp.__hbGa = 1;
+    var fire = function () { setTimeout(function () { var q = (inp.value || '').trim(); if (q) ev('search', { search_term: q }); }, 250); };
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') fire(); });
+    var btn = inp.parentElement && inp.parentElement.querySelector('button'); if (btn) btn.addEventListener('click', fire);
+  }
+  wireSearch();
+})();
+</script>
+<!-- /HUBOOZE GA EVENTS -->
 </body>
 </html>
