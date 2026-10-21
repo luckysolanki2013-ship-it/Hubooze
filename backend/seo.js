@@ -234,6 +234,7 @@ function buildHomeHtml(list) {
 }
 
 function mount(app) {
+  try { require('./gfeed')(app); } catch (e) { console.error('gfeed mount failed:', e.message); } // HUBOOZE GFEED MOUNT
   // HUBOOZE HOME: serve the home page through the SEO builder
   app.get('/', async (req, res, next) => {
     try { res.set('Cache-Control', 'public, max-age=300').type('html').send(buildHomeHtml(await allProducts())); } catch (e) { next(); }
