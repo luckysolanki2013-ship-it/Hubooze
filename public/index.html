@@ -9073,5 +9073,83 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE GA EVENTS -->
+<!-- HUBOOZE SHARE -->
+<script>(function () {
+  if (window.__hbShare) return; window.__hbShare = 1;
+  var css = document.createElement('style');
+  css.textContent =
+    '.hb-share{position:absolute;top:10px;right:10px;z-index:6}' +
+    '.hb-share-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);padding:0}' +
+    '.hb-share-btn:active{transform:scale(.94)}' +
+    '.hb-share-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
+    '.hb-share-menu{position:absolute;top:46px;right:0;min-width:180px;background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none}' +
+    '.hb-share-menu.open{display:block}' +
+    '.hb-share-menu a,.hb-share-menu button{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:11px 12px;border:none;background:none;color:#f5f5f5;font:600 14px/1.2 inherit;font-family:inherit;text-decoration:none;border-radius:8px;cursor:pointer;text-align:left}' +
+    '.hb-share-menu a:hover,.hb-share-menu button:hover{background:#2a2a2a}';
+  document.head.appendChild(css);
+
+  var ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+
+  function ev(m, id) { try { if (typeof window.gtag === 'function') window.gtag('event', 'share', { method: m, content_type: 'product', item_id: id }); } catch (e) {} }
+  function toast(t) { try { if (typeof window.showToast === 'function') window.showToast(t); } catch (e) {} }
+  function prod() { var p = window.currentProduct; if (p && typeof p === 'object') return p; return (window.PRODUCTS || {})[p] || {}; }
+  function link() {
+    var c = document.querySelector('link[rel=canonical]');
+    var u = (c && c.href && /\/product\//.test(c.href)) ? c.href : location.href;
+    return u.split('#')[0].split('?')[0];
+  }
+  function text(p) { return (p.name || 'Check this out') + (p.price ? ' - Rs. ' + p.price : '') + ' on Hubooze'; }
+  function copy(u) {
+    function done() { toast('Link copied'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(u).then(done, fallback); } else fallback();
+    function fallback() {
+      var t = document.createElement('textarea'); t.value = u; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) { toast(u); } document.body.removeChild(t);
+    }
+  }
+
+  function build() {
+    var box = document.createElement('div'); box.className = 'hb-share';
+    box.innerHTML = '<button type="button" class="hb-share-btn" aria-label="Share this product">' + ICON + '</button><div class="hb-share-menu" role="menu"></div>';
+    var btn = box.firstChild, menu = box.lastChild;
+    function fill() {
+      var p = prod(), u = link(), t = text(p), eu = encodeURIComponent(u), et = encodeURIComponent(t);
+      menu.innerHTML =
+        '<a target="_blank" rel="noopener" data-m="whatsapp" href="https://wa.me/?text=' + encodeURIComponent(t + '\n' + u) + '">WhatsApp</a>' +
+        '<button type="button" data-m="copy">Copy link</button>' +
+        '<a target="_blank" rel="noopener" data-m="facebook" href="https://www.facebook.com/sharer/sharer.php?u=' + eu + '">Facebook</a>' +
+        '<a target="_blank" rel="noopener" data-m="x" href="https://twitter.com/intent/tweet?text=' + et + '&url=' + eu + '">X (Twitter)</a>';
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation(); e.preventDefault();
+      var p = prod(), u = link();
+      if (navigator.share) {
+        navigator.share({ title: p.name || 'Hubooze', text: text(p), url: u }).then(function () { ev('native', p.id); }, function () {});
+        return;
+      }
+      fill(); menu.classList.toggle('open');
+    });
+    menu.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var el = e.target.closest('[data-m]'); if (!el) return;
+      var m = el.getAttribute('data-m'), p = prod();
+      ev(m, p.id); if (m === 'copy') copy(link());
+      menu.classList.remove('open');
+    });
+    document.addEventListener('click', function () { menu.classList.remove('open'); });
+    ['touchstart', 'mousedown'].forEach(function (n) { box.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); });
+    return box;
+  }
+
+  function ensure() {
+    var w = document.getElementById('prodMainImgWrap');
+    if (w && !w.querySelector('.hb-share')) w.appendChild(build());
+  }
+  var t = null;
+  new MutationObserver(function () { clearTimeout(t); t = setTimeout(ensure, 60); }).observe(document.body, { childList: true, subtree: true });
+  ensure();
+})();
+</script>
+<!-- /HUBOOZE SHARE -->
 </body>
 </html>
