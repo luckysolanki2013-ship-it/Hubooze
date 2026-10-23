@@ -9191,5 +9191,29 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE ORDERFIX -->
+<!-- HUBOOZE CANCELFIX -->
+<script>(function () {
+  if (typeof window.cancelOrderAPI !== 'function' || window.__hbCancelFix) return;
+  window.__hbCancelFix = 1;
+  var PAID = /^(paid|success|successful|completed|captured|charged)$/i;
+  window.cancelOrderAPI = async function (orderId) {
+    if (!confirm('Cancel order #' + orderId + '?')) return;
+    var token = localStorage.getItem('hb_token');
+    var H = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    var order = null;
+    try { var g = await fetch('/api/orders/' + orderId, { headers: H }); if (g.ok) { order = await g.json(); order = order.order || order; } } catch (e) {}
+    try {
+      var r = await fetch('/api/orders/' + orderId + '/cancel', { method: 'PATCH', headers: H, body: JSON.stringify({ reason: 'Customer request' }) });
+      var d = {}; try { d = await r.json(); } catch (e) {}
+      if (!r.ok) { showToast(d.message || d.error || 'Could not cancel this order', 'error'); return; }
+      var paid = order && PAID.test(String(order.paymentStatus || '')) && String(order.paymentMethod || '').toUpperCase() !== 'COD';
+      var msg = order ? (paid ? (d.message || 'Order cancelled. Your refund will be processed.') : 'Order cancelled. No payment was taken, so no refund is due.') : (d.message || 'Order cancelled');
+      showToast(msg, 'success');
+      renderOrdersPage();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  };
+})();
+</script>
+<!-- /HUBOOZE CANCELFIX -->
 </body>
 </html>
