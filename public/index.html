@@ -9215,5 +9215,24 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE CANCELFIX -->
+<!-- HUBOOZE ADMINKEEP -->
+<script>(function () {
+  if (typeof window.openPortal !== 'function' || window.__hbAdminKeep) return;
+  window.__hbAdminKeep = 1;
+  var orig = window.openPortal, lock = false;
+  window.openPortal = function (type) {
+    var clicked = !!(window.event && window.event.type === 'click');
+    if (clicked) lock = false;
+    else if (type === 'admin') lock = true;
+    if (type === 'customer' && lock && !clicked) return;
+    return orig.apply(this, arguments);
+  };
+  if (typeof window.showPage === 'function') {
+    var os = window.showPage;
+    window.showPage = function (name) { if (name !== 'account') lock = false; return os.apply(this, arguments); };
+  }
+})();
+</script>
+<!-- /HUBOOZE ADMINKEEP -->
 </body>
 </html>
