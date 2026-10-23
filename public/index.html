@@ -9151,5 +9151,45 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE SHARE -->
+<!-- HUBOOZE ORDERFIX -->
+<script>(function () {
+  if (typeof window.renderOrderConfirmation !== 'function' || window.__hbOrderFix) return;
+  window.__hbOrderFix = 1;
+  var orig = window.renderOrderConfirmation;
+  function num(v) { v = Number(v); return isFinite(v) ? v : 0; }
+  function imgTag(src) {
+    return '<img src="' + String(src).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display=\'none\'">';
+  }
+  function norm(o) {
+    var n = {}; for (var k in o) n[k] = o[k];
+    var a = (o.addrFull && o.addrFull.name) ? o.addrFull : (o.address && typeof o.address === 'object' ? o.address : null);
+    n.addrFull = a;
+    n.address = a ? [a.line1, a.line2, a.city, a.state, a.pincode].filter(Boolean).join(', ') : (typeof o.address === 'string' ? o.address : '');
+    n.delivery = (o.delivery != null) ? num(o.delivery) : num(o.deliveryFee);
+    n.couponD = (o.couponD != null) ? num(o.couponD) : num(o.couponDiscount);
+    n.discount = num(o.discount);
+    n.payment = o.payment || o.paymentMethod || 'COD';
+    n.subtotal = (o.subtotal != null) ? num(o.subtotal) : num(o.total);
+    n.total = num(o.total);
+    n.estimatedDelivery = o.estimatedDelivery || '3-5 days';
+    n.items = (o.items || []).map(function (it) {
+      var c = {}; for (var k in it) c[k] = it[k];
+      c.qty = it.qty || it.quantity || 1;
+      c.price = num(it.price);
+      var ic = it.icon, p = (window.PRODUCTS || {})[it.productId] || {};
+      var src = (typeof ic === 'string' && /^(\/|https?:)/.test(ic)) ? ic : (/^(\/|https?:)/.test(String(p.image || '')) ? p.image : '');
+      c.icon = src ? imgTag(src) : (ic && !/^(\/|https?:)/.test(String(ic)) ? ic : '&#128717;');
+      return c;
+    });
+    return n;
+  }
+  window.renderOrderConfirmation = function (order) {
+    var o = order;
+    try { o = norm(order || {}); } catch (e) {}
+    return orig.call(this, o);
+  };
+})();
+</script>
+<!-- /HUBOOZE ORDERFIX -->
 </body>
 </html>
