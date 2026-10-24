@@ -9234,5 +9234,30 @@ hook();
 })();
 </script>
 <!-- /HUBOOZE ADMINKEEP -->
+<!-- HUBOOZE REVIEWFIX -->
+<script>(function () {
+  if (typeof window.goToReview !== 'function' || window.__hbReviewFix) return;
+  window.__hbReviewFix = 1;
+  var orig = window.goToReview;
+  window.goToReview = function () {
+    try {
+      var m = activePayMethod;
+      var noUpiBox = (m === 'UPI' && !document.getElementById('upiIdInput'));
+      var noCardBox = (m === 'Card' && !document.getElementById('cardNum'));
+      if (noUpiBox || noCardBox) {
+        /* payment details are collected on the CCAvenue page, so nothing to validate here */
+        checkoutPayRef = '';
+        checkoutPayment = m;
+        checkoutStep = 3;
+        renderCheckoutPage();
+        window.scrollTo(0, 0);
+        return;
+      }
+    } catch (e) {}
+    return orig.apply(this, arguments);
+  };
+})();
+</script>
+<!-- /HUBOOZE REVIEWFIX -->
 </body>
 </html>
