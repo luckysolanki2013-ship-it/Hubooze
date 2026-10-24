@@ -41,6 +41,7 @@ app.use('/api/payments',      require('./routes/payments'));
 app.use('/api/upload',        require('./routes/upload'));
 app.use('/api/otp',          require('./routes/otp'));
 app.use('/api/ccavenue',     require('./routes/ccavenue'));
+try { require('./paymentGuard').start(); } catch (e) { console.error('paymentGuard', e.message); } // HUBOOZE PAYGUARD
 
 // Health check
 // Dynamic sitemap.xml

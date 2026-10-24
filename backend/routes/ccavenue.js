@@ -112,6 +112,7 @@ router.post('/response', express.raw({type: '*/*', limit: '2mb'}), async (req, r
         paidAt: new Date(),
         status: 'confirmed',
       });
+      try { await require('../paymentGuard').onPaid(_before); } catch (e) { console.error('payguard onPaid', e.message); }
       // HUBOOZE PAYNOTIFY: tell the customer and the sellers only now that the money has arrived (and only once)
       if (_before && _before.paymentStatus !== 'paid') {
         (async () => {
@@ -135,8 +136,10 @@ router.post('/response', express.raw({type: '*/*', limit: '2mb'}), async (req, r
       }
       res.redirect(`https://hubooze.in/?payment=success&order=${orderId}`);
     } else if (status === 'Aborted') {
+      try { require('../paymentGuard').onNotPaid(orderId, status, params); } catch (e) {}
       res.redirect(`https://hubooze.in/?payment=cancelled&order=${orderId}`);
     } else {
+      try { require('../paymentGuard').onNotPaid(orderId, status, params); } catch (e) {}
       res.redirect(`https://hubooze.in/?payment=failed&order=${orderId}`);
     }
   } catch(e) {
